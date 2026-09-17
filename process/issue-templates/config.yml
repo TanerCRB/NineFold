@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: AI team process task
+    url: https://github.com/
+    about: >-
+      AI team implementation stage tasks (PROC-1-xx, PROC-2-xx) do not live here — they are
+      in the process source repository, in PLAN-ZESPOLU-AI.md, with progress in the log. This
+      tracker is for product work.

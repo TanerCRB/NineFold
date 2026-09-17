@@ -1,0 +1,85 @@
+{
+  "$comment": [
+    "GitHub label manifest. Source of truth for product repositories.",
+    "Labels are not files in the repository - they are a GitHub-side setting.",
+    "Applied by: node tools/sync-github.mjs --labels | bash",
+    "The whole manifest is in pure ASCII - names AND descriptions. A label is an identifier",
+    "used in scripts, filters and URLs, and mangled characters in a URL are a source of silent mistakes.",
+    "Descriptions are ASCII because the path manifest -> node -> PowerShell -> gh has places where",
+    "Windows PowerShell 5.1 re-encodes text via the console code page and corrupts national characters.",
+    "Instead of configuring encodings along the way, the manifest simply has nothing to corrupt.",
+    "The generator is meant to check this - a character outside ASCII stops the run.",
+    "",
+    "The same manifest applies across all product repositories. A label meaning",
+    "something different in two repositories is worse than two different labels.",
+    "",
+    "Substitute your own state/role names for the keys below - the structure (states/roles/decisions/gaps/severity)",
+    "is what should stay, the content of each label is an example to adapt."
+  ],
+
+  "states": {
+    "$comment": "The story's state machine. Exactly one state label per Issue.",
+    "labels": [
+      { "name": "state:analysis", "color": "0e3454", "description": "Analyst establishes acceptance criteria and the Definition of Done row" },
+      { "name": "state:design", "color": "155a86", "description": "Architect builds an impact map for architectural decisions" },
+      { "name": "state:decision", "color": "a9821a", "description": "GATE 1 - waiting on a human decision: scope and architecture" },
+      { "name": "state:implementation", "color": "0a84c4", "description": "Developer writes the schema change (if applicable), code and tests" },
+      { "name": "state:qa", "color": "3ba3d9", "description": "QA writes negative and contrast tests, runs mutations" },
+      { "name": "state:merge", "color": "a9821a", "description": "GATE 2 - waiting on a human decision: review and merge the PR" },
+      { "name": "state:closed", "color": "1f7a3d", "description": "Evidence provided, status raised" }
+    ]
+  },
+
+  "roles": {
+    "$comment": "Who currently holds the ball. The role label says who is working, the state says at which stage.",
+    "labels": [
+      { "name": "role:po", "color": "d4d4d4", "description": "Product Owner - scope and business justification" },
+      { "name": "role:analyst", "color": "d4d4d4", "description": "Analyst - acceptance criteria" },
+      { "name": "role:architect", "color": "d4d4d4", "description": "Architect - impact map for architectural decisions" },
+      { "name": "role:backend", "color": "d4d4d4", "description": "Backend developer" },
+      { "name": "role:frontend", "color": "d4d4d4", "description": "Frontend developer" },
+      { "name": "role:qa", "color": "d4d4d4", "description": "QA - negative, contrast tests, mutations" },
+      { "name": "role:invariant-guardian", "color": "d4d4d4", "description": "Invariant Guardian - diff audit" }
+    ]
+  },
+
+  "decisions": {
+    "$comment": [
+      "Labels that stop work. 'waiting-on-human' is the most important in the whole",
+      "set: one filter showing everything that is standing and waiting for you, regardless",
+      "of stage. Without it you'd have to remember which states are gates."
+    ],
+    "labels": [
+      { "name": "waiting-on-human", "color": "b8860b", "description": "Standing and waiting for a decision - one filter for all gates" },
+      { "name": "adr-deviation", "color": "8b0000", "description": "Requires a new architectural decision or an explicit deviation from an existing one" },
+      { "name": "blocked", "color": "8b0000", "description": "Cannot move without an external resolution" },
+      { "name": "evidence:missing", "color": "8b0000", "description": "Code exists, evidence doesn't - the task cannot be checked off" }
+    ]
+  },
+
+  "gaps": {
+    "$comment": [
+      "Work ordered by the other repository. The Issue is created WHERE the work",
+      "needs to be done - the frontend finds a gap in the backend, so the Issue is created in <repo-backend>.",
+      "Full rules: process/cross-repo-gaps.md.",
+      "",
+      "'gap:awaiting-contract' has its own name because this is the state in which such reports",
+      "most often die quietly: the reporter proposed a shape, the recipient hasn't responded,",
+      "and both sides think the ball is with the other one."
+    ],
+    "labels": [
+      { "name": "gap:reported-by-frontend", "color": "5319e7", "description": "Work in this repository ordered by the frontend repository" },
+      { "name": "gap:reported-by-backend", "color": "006b75", "description": "Work in this repository ordered by the backend repository" },
+      { "name": "gap:awaiting-contract", "color": "c2a336", "description": "Contract shape proposed by the reporter, recipient has not yet responded" }
+    ]
+  },
+
+  "severity": {
+    "$comment": "Severity of an Invariant Guardian report. Scale from agents/invariant-guardian.md - adapt to your own list of invariants.",
+    "labels": [
+      { "name": "severity:high", "color": "b60205", "description": "Data leak between clients, incorrect billing, silent data loss, a security mechanism that appears to work but doesn't" },
+      { "name": "severity:medium", "color": "d93f0b", "description": "API contract, missing evidence, a defect under concurrency or retry" },
+      { "name": "severity:low", "color": "fbca04", "description": "Documentation drift, language, convention with no functional effect" }
+    ]
+  }
+}

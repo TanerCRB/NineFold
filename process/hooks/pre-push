@@ -1,0 +1,98 @@
+#!/usr/bin/env sh
+# Single source of the "don't push directly to main" rule, for all product repositories.
+# Copies: <repo-backend>/.githooks/pre-push, <repo-frontend>/.husky/pre-push, etc.
+#
+# Installation differs between repositories and this is the one part that can't be hidden here:
+#   without npm:   git config core.hooksPath .githooks
+#   with husky:    the file ends up at .husky/pre-push, husky wires itself in
+# Check: `git config --get core.hooksPath` or `ls -l .husky/pre-push`.
+#
+# This is NOT branch protection — GitHub doesn't give you that on a private repository on the
+# free plan. This file is bypassed with a single `--no-verify` and doesn't work for anyone who
+# hasn't installed it. And that's the point: whoever types `--no-verify` knows what they're
+# doing. Whoever forgot which branch they're on doesn't — and that's the case this hook catches.
+
+# The refusal comes before the tests: a push to main must be stopped even when tests pass.
+
+protected_ref="refs/heads/main"
+blocked=0
+
+# git supplies one line per reference: <local> <sha> <remote> <sha>
+while read -r local_ref local_sha remote_ref remote_sha; do
+    if [ "$remote_ref" = "$protected_ref" ]; then
+        blocked=1
+    fi
+done
+
+if [ "$blocked" -eq 1 ]; then
+    echo "" >&2
+    echo "  REFUSED: direct push to main." >&2
+    echo "" >&2
+    echo "  Changes go through a pull request - that is gate 2 of the process." >&2
+    echo "  Create a branch and open a PR:" >&2
+    echo "" >&2
+    echo "      git checkout -b <branch-name>" >&2
+    echo "      git push -u origin <branch-name>" >&2
+    echo "      gh pr create --fill" >&2
+    echo "" >&2
+    echo "  The hook can be bypassed with 'git push --no-verify' - deliberately, not by accident." >&2
+    echo "" >&2
+    exit 1
+fi
+
+# Tests run wherever there is something to run. The condition is the `test` script in the root
+# package.json, not the repository name — a list of names has to be maintained, a fact doesn't.
+# Repositories without a package.json at the root (e.g. .NET with no frontend in the same tree)
+# run nothing here — their tests go through CI, not through this hook.
+
+# The documentation validator runs BEFORE the tests and before checking for package.json, because
+# it applies to both production repositories and is cheap (a fraction of a second). Reason it
+# lives here, not only in CI: the rule "a gap reported only on our own side is not ordered" (see
+# cross-repo-gaps.md) catches real cases in the pipeline, after pushing, when the author is
+# already on to other work. A check run here costs the author a second and doesn't reach anyone
+# else.
+if [ -f tools/validate-docs.mjs ]; then
+    if ! command -v node >/dev/null 2>&1; then
+        echo "" >&2
+        echo "  pre-push: node is missing, and this repository has a documentation validator." >&2
+        echo "  Install Node or run the push with --no-verify deliberately." >&2
+        echo "" >&2
+        exit 1
+    fi
+
+    if ! node tools/validate-docs.mjs; then
+        echo "" >&2
+        echo "  REFUSED: the documentation validator reported an error." >&2
+        echo "" >&2
+        echo "  Most common cause: a gap-register entry without a **Reported:** field." >&2
+        echo "  An entry on our own side is not an order - the other side doesn't know about it." >&2
+        echo "" >&2
+        exit 1
+    fi
+fi
+
+if [ ! -f package.json ]; then
+    exit 0
+fi
+
+if ! node -e 'process.exit(require("./package.json").scripts?.test ? 0 : 1)' 2>/dev/null; then
+    exit 0
+fi
+
+# pnpm is sometimes off PATH despite Node being installed — the packageManager field doesn't
+# install anything, it only tells corepack which version to run. Without this the hook used to
+# end with exit code 127.
+# COREPACK_ENABLE_DOWNLOAD_PROMPT=0, because a prompt asked inside a hook has no one to answer it.
+if ! command -v pnpm >/dev/null 2>&1; then
+    if command -v corepack >/dev/null 2>&1; then
+        pnpm() { COREPACK_ENABLE_DOWNLOAD_PROMPT=0 corepack pnpm "$@"; }
+    else
+        echo "" >&2
+        echo "  pre-push: pnpm and corepack are both missing. Install Node 22+ or add pnpm to PATH." >&2
+        echo "" >&2
+        exit 1
+    fi
+fi
+
+# E2E is deliberately outside the hook: it requires a build and a browser, so it's a gate in CI.
+pnpm test

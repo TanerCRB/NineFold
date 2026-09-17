@@ -1,0 +1,68 @@
+name: Architecture decision
+description: A resolution needed before work starts — a new architecture decision or an explicit deviation.
+title: "[DECISION] "
+labels: ["state:decision", "role:architect", "waiting-on-human", "adr-deviation"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Created by the Architect when a task goes beyond accepted decisions. **A human decides.**
+        The "Accepted" status is assigned by the project owner, never by an agent.
+
+        Changing an accepted decision means an **addendum with a date and rationale**, never a silent edit
+        of the old text.
+
+  - type: input
+    id: zrodlo
+    attributes:
+      label: What this stems from
+      description: Identifier of the story or task that ran into this problem.
+      placeholder: "#12 / PROJ-8-03"
+    validations:
+      required: true
+
+  - type: textarea
+    id: pytanie
+    attributes:
+      label: Resolving question
+      description: |
+        One question that needs to be answered. **Not** "should we do X?" — that cannot be
+        resolved. The question should have options.
+      placeholder: Should <mechanism> be computed on read, or materialized on write?
+    validations:
+      required: true
+
+  - type: textarea
+    id: opcje
+    attributes:
+      label: Options and consequences
+      description: |
+        Each option with its cost and what it closes off. An option without consequences is not an option,
+        just a preference.
+      placeholder: |
+        A) Computed on read — zero new tables, but cost grows with volume; closes off the path
+           to push notifications without extra work.
+        B) Materialized — requires a background job and a retention decision; opens up notifications.
+    validations:
+      required: true
+
+  - type: textarea
+    id: dotkniete-adr
+    attributes:
+      label: Affected architecture decisions
+      description: Which decisions this matter violates, supplements, or refers to.
+      placeholder: |
+        ADR-0015 (asynchronous processing) — option B falls within its scope
+        ADR-0035 (classification and reproducibility of computations) — applies to both options
+    validations:
+      required: true
+
+  - type: textarea
+    id: koszt-zwloki
+    attributes:
+      label: What happens if we do not resolve this now
+      description: |
+        If the answer is "nothing," this is not a decision to make now — close it and come back
+        when it starts blocking.
+    validations:
+      required: true

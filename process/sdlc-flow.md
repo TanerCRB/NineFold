@@ -1,0 +1,69 @@
+# SDLC flow and state machine
+
+> Template for adaptation. Scope: one product repository (`<repo-backend>` or
+> `<repo-frontend>`). Stories and pull requests live in the product repository — `Closes #12`
+> closes an Issue only within the same repository, and the syntax `Closes owner/repo#12` only
+> creates a link and **does not close** the Issue after merging. The process source repository is
+> the source of truth for the label manifest and templates, not a place of work.
+
+## States
+
+Exactly **one** `state:*` label per Issue. The `role:*` label says who is holding the ball.
+
+```mermaid
+stateDiagram-v2
+    [*] --> analysis
+    analysis --> design : acceptance criteria ready
+    design --> decision : impact map ready
+    decision --> implementation : 🔒 approved
+    decision --> analysis : 🔒 rejected, scope needs rethinking
+    implementation --> qa : PR open, full test suite green
+    qa --> implementation : negative test found a defect
+    qa --> merge : mutation executed, Invariant Guardian PASS
+    merge --> implementation : 🔒 PR feedback
+    merge --> closed : 🔒 merged, status raised
+    closed --> [*]
+```
+
+🔒 = a transition that only a human performs.
+
+| State | Who works | Exit from this state |
+|---|---|---|
+| `state:analysis` | Product Owner, Analyst | *Definition of Done* and *Out of scope* filled in |
+| `state:design` | Architect | Impact map; on deviation — ADR deviation label |
+| `state:decision` 🔒 | **You** | Scope and architecture approved |
+| `state:implementation` | Developer | PR open, full test suite green |
+| `state:qa` | QA, Invariant Guardian | Contrast test, mutation recorded, audit verdict |
+| `state:merge` 🔒 | **You** | PR merged |
+| `state:closed` | — | Status raised in the register |
+
+## One filter that's enough
+
+```
+is:open label:waiting-on-human
+```
+
+The `waiting-on-human` label accompanies every gate state. Thanks to it you don't need to
+remember which states are gates — one filter shows everything that is standing and waiting for
+you. An agent that enters a gate state **applies this label and stops working**.
+
+## Rules we don't break
+
+**An agent does not remove the `waiting-on-human` label.** Removing it is equivalent to making a
+decision. You remove it, by moving on to the next state.
+
+**An agent does not pass through a gate on its own**, even when the answer seems obvious. A gate
+through which an agent sometimes passes on its own stops being a gate.
+
+**The ADR deviation label stops work regardless of state.** It is removed only by an accepted
+decision or by an explicitly recorded deviation with a date and justification.
+
+**The `evidence:missing` label blocks the transition to `state:closed`.** Code that exists but
+has no passing test does not check off the task — this is not a formality, it is the only reason
+the progress register can be trusted.
+
+## What this machine does not cover
+
+Process tasks of the AI team itself (e.g. `PROC-1-xx`) **have no Issue**. They live in the
+process rollout plan with *Definition of Done* rows, and progress in the run log. For a handful
+of such tasks, a separate tracker would be a tool without work to do.

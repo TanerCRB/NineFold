@@ -1,0 +1,84 @@
+name: QA or Invariant Guardian report
+description: A defect, an invariant violation, or a missing proof found in existing code.
+title: "[QA] "
+labels: ["state:analysis", "role:qa"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A report without a **path to harm** and without a **falsification condition** is not a report,
+        just a hunch. Both fields are required — the same discipline that applies to the Invariant Guardian.
+
+        This form is shared across all product repositories. File the report
+        in the repository the defect concerns — and if it concerns a gap on the other side,
+        describe it first in the local gap register and file the Issue where
+        the work needs to happen.
+
+  - type: dropdown
+    id: waga
+    attributes:
+      label: Severity
+      options:
+        - "High — data leak between customers, incorrect billing, silent data loss, a security mechanism that only appears to work"
+        - "Medium — API contract, missing proof for a strong claim, a concurrency or retry defect"
+        - "Low — documentation drift, wording, a convention with no functional effect"
+    validations:
+      required: true
+
+  - type: input
+    id: regula
+    attributes:
+      label: Rule violated
+      description: |
+        Number from your repository's Invariant Guardian checklist, or a link to an architecture
+        decision.
+      placeholder: "rule 14 / ADR-0033 / ADR-FE-0005"
+    validations:
+      required: true
+
+  - type: input
+    id: lokalizacja
+    attributes:
+      label: Location
+      description: Path and line range. Not "somewhere in the data layer."
+      placeholder: "src/<ProjectApi>/<Module>/<Entity>Endpoints.cs:44-85  •  src/app/[locale]/<resource>/page.tsx:180-214"
+    validations:
+      required: true
+
+  - type: textarea
+    id: sciezka-do-szkody
+    attributes:
+      label: Path to harm
+      description: Specific — what input, what state, what effect. If it cannot be written, there is no report.
+    validations:
+      required: true
+
+  - type: textarea
+    id: sprawdzone
+    attributes:
+      label: I checked that this is not already handled elsewhere
+      description: |
+        Both repositories may hoist mechanisms into shared places (e.g., a data access wrapper,
+        a shared authorization pipeline, shared contracts). Something missing at the point of use usually
+        means it lives one level up. Write where you looked.
+    validations:
+      required: true
+
+  - type: textarea
+    id: obalenie
+    attributes:
+      label: Would falsify this report
+      description: What piece of code, test, or database constraint would invalidate this entry.
+    validations:
+      required: true
+
+  - type: textarea
+    id: mutacja
+    attributes:
+      label: Mutation
+      description: |
+        If the report concerns a test carrying a strong claim: what mechanism was removed
+        and whether the test actually failed. A negative test passing for the wrong reason is
+        worse than not having it at all.
+    validations:
+      required: false

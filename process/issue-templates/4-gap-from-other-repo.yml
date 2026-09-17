@@ -1,0 +1,129 @@
+name: Gap reported by the other repository
+description: Something is missing in THIS repository, and the other one needs it. The only communication channel between product repositories.
+title: "[GAP] "
+labels: ["state:analysis", "waiting-on-human"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **You file this Issue in the repository that has to do the work** — not your own. The frontend
+        found a gap in the backend → Issue in `<repo-backend>`. The backend found a gap in the frontend →
+        Issue in `<repo-frontend>`.
+
+        From the moment it is filed, this is work for that repository and follows its normal cycle.
+        The reporter **does not set priority** — they describe the cost of the gap; the ordering is set
+        by the product owner on that side.
+
+        Full rules: [`process/cross-repo-gaps.md`](../cross-repo-gaps.md).
+
+  - type: dropdown
+    id: zglaszajacy
+    attributes:
+      label: Who is reporting
+      options:
+        - "<repo-frontend> — the frontend needs something from the backend"
+        - "<repo-backend> — the backend needs something from the frontend"
+    validations:
+      required: true
+
+  - type: textarea
+    id: czego-brakuje
+    attributes:
+      label: What is missing
+      description: |
+        **In terms of the contract, not the screen.** An endpoint, a response field, an error code, a header,
+        a state transition. "The frontend cannot show history" is an effect, not a gap — the gap is
+        "`<Entity>Response` does not return `createdAt` or `createdBy`."
+      placeholder: |
+        `<Entity>Response` and `<OtherEntity>Response` do not return `createdAt`/`createdBy`. The columns
+        exist in the schema (migration 017:58-60), but `INSERT` does not populate them — nothing sets
+        the actor context.
+    validations:
+      required: true
+
+  - type: input
+    id: lokalizacja
+    attributes:
+      label: Where this shows up for the reporter
+      description: Path and line range in the reporter's repository — the place that currently manages without this.
+      placeholder: "src/components/<Entity>Card.tsx:210-240"
+    validations:
+      required: true
+
+  - type: textarea
+    id: skutek
+    attributes:
+      label: Effect on the user and today's workaround
+      description: |
+        What the user sees instead, and what the reporter does today in its place. If there is
+        no workaround — state that the feature simply does not exist. If there is one — say
+        why it is a workaround and not a solution.
+      placeholder: |
+        The History column shows only the status and date. There is no answer to "who changed it."
+        There is no workaround — the frontend does not guess the author, because a guessed author in the
+        change log is worse than not having one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: propozycja
+    attributes:
+      label: Proposed shape (a proposal, not a requirement)
+      description: |
+        The reporter knows their side, the recipient knows theirs. Propose a shape, but write it so
+        that it can be rejected — the recipient may have a reason the reporter does not know about.
+      placeholder: |
+        `createdAt: string` (ISO) and `createdBy: { id, displayName }` — the name resolved, not
+        a bare identifier, because the frontend has no endpoint for resolving people.
+    validations:
+      required: true
+
+  - type: textarea
+    id: co-zrobie-u-siebie
+    attributes:
+      label: What I will do on my side once this exists
+      description: |
+        **The decisive field.** What the reporter will remove or replace: a workaround, an aggregation, a grayed-out
+        field, a placeholder. Without this sentence there is no way to know whether the gap is needed by anyone at all — and the recipient
+        has no way to check whether their work has been received.
+      placeholder: |
+        The History column gets two columns (who, when) in `<Entity>Card.tsx`, and the entry in the
+        gap register moves to "closed on our side."
+    validations:
+      required: true
+
+  - type: textarea
+    id: warunek-zamkniecia
+    attributes:
+      label: Closing condition
+      description: |
+        **Observable, on the recipient's side.** A test name, a response shape, an error code,
+        an artifact. Not "the frontend will be able to show history" — that is an effect, not a condition.
+        A report without a condition gets closed whenever someone decides it is enough.
+      placeholder: |
+        `GET /api/v1/<resource>/{id}` returns `createdBy` that is not `null` for a record created
+        by an authenticated user, and the test for this fails once the actor context setting
+        is removed.
+    validations:
+      required: true
+
+  - type: input
+    id: rejestr
+    attributes:
+      label: Entry in the reporter's gap register
+      description: Link to the section in the local gap register. The same link should point back to this Issue.
+      placeholder: "<repo-frontend>/docs/BACKEND-GAPS.md — section \"Change audit — who/when/why\""
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: potwierdzenia
+    attributes:
+      label: Before you submit
+      options:
+        - label: I am filing this Issue in the repository that has to DO the work — not my own
+          required: true
+        - label: I am not setting a priority or a milestone in this repository
+          required: true
+        - label: The entry in my gap register will get a link to this Issue
+          required: true
