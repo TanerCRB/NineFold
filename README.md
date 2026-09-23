@@ -58,6 +58,9 @@ e.g. `<repo-backend>`, `<owner>`, `<Entity>`. Substitute the specifics of your o
    actions to go from an empty repository to a working pipeline with gates. Start here if you want
    to **act**, not just understand.
 
+**Already installed the initial release?** [`UPGRADING.md`](UPGRADING.md) takes a process
+repository and its product repositories from the initial commit to the current version.
+
 ## Minimal set to get started
 
 If you don't have time to read everything: `FrameworkDoc.md` §1–5, one role from `agents/` as a
