@@ -207,7 +207,8 @@ gate 1. If gate 1 rejects the task, the branch and worktree are removed like at 
 3. **Analyst role** — acceptance criteria and the *Definition of done* row. Every criterion has an
    observable carrier, a contrast, and a named mutation meant to kill it. Verdict: `READY FOR GATE
    1` or `STORY NEEDS MORE WORK`.
-4. **Architect role** — impact map onto architectural decisions. Three outcomes: fits / needs a
+4. **Architect role** — **unless the fast lane applies** (see "Fast lane: when the Architect is
+   skipped" below). Impact map onto architectural decisions. Three outcomes: fits / needs a
    deviation / needs a new decision. A deviation is an Issue with the corresponding label and a
    draft decision in "Draft — pending approval" status. **After the call, run the write-boundary
    check** (see "Write-boundary check" below) with the architecture decisions directory as the
@@ -217,6 +218,31 @@ gate 1. If gate 1 rejects the task, the branch and worktree are removed like at 
    and for the move to the implementation phase. Without this, you don't enter the `code` phase.
    **You don't remove the waiting-on-human label yourself** — removing it is equivalent to making
    the decision. Unassign yourself — you're waiting on the human, not working.
+
+### Fast lane: when the Architect is skipped
+
+Cost should scale with risk, not with the number of tasks — the same principle that makes the
+Security Auditor conditional. The Architect is skipped only when **every** trigger below is clean,
+checked mechanically against the files the task will touch (from the Analyst's criteria and the
+Issue), not judged:
+
+- no file under the schema/migrations directory;
+- no new or changed public API surface (endpoint, contract type, event);
+- no new or upgraded dependency (package manifest, lock file, container image);
+- no path listed in the **architecture-sensitive paths** list — a file in the repository you keep
+  up to date, mapping directories to the decisions that govern them
+  (`<path-to-architecture-sensitive-paths-list>`);
+- the Product Owner raised no deviation label and the Analyst named no "unproven foundation".
+
+If any trigger fires, or you can't tell which files the task will touch, the Architect runs. At
+gate 1 you state explicitly: "Architect skipped — triggers checked: <list, each clean>". The human
+can require the Architect anyway; that's a gate-1 decision, not a failure of the fast lane.
+
+**Turn the fast lane on only with data.** Before enabling it, count in the cost register how often
+the Architect returned "fits, nothing to add" on tasks that would have passed all the triggers.
+If that's not nearly always, the triggers are missing something — fix the list before skipping
+anyone. Record the fast-lane skip in the cost register as a row with 0 tokens and the note
+"skipped: fast lane", so the saving and any later rework it caused are both visible.
 
 ---
 

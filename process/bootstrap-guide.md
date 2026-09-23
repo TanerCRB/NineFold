@@ -59,6 +59,12 @@ is a valid repository.
 
 Source: [`sdlc-flow.md`](sdlc-flow.md), [`../TEAM-CONTRACT-TEMPLATE.md`](../TEAM-CONTRACT-TEMPLATE.md).
 
+The one part of the state machine that *is* configuration: copy
+[`workflows/label-guard.yml`](workflows/label-guard.yml) into the product repository's
+`.github/workflows/` by hand (the sync script deliberately doesn't touch workflows). **Check:** give
+a test Issue two `state:*` labels — within a minute it gets a comment and a red run; remove one,
+and the next run is green.
+
 Three gates: **1** before code exists (scope and architecture), **2** before entering `main`
 (diff, invariant-checking role's report, mutation result), **3** before raising the status in
 the project register.

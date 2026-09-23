@@ -1,0 +1,71 @@
+# Template to copy into <product-repo>/.github/workflows/label-guard.yml by hand — sync-github.mjs
+# deliberately does not distribute workflows (see process/ci-and-branch-protection.md).
+#
+# Guards the state-machine invariants from process/sdlc-flow.md that the labels alone can't
+# enforce. On a violation it comments on the Issue and the run goes red — it never fixes labels
+# itself: which label is right is a decision, and a guard that "repairs" state hides the mistake.
+#
+# What it can't check: WHO removed `waiting-on-human`. Agents act on the human's own account, so
+# the event actor is the human either way. That rule stays a rule until agents get their own
+# technical account (see process/ci-and-branch-protection.md, §2).
+
+name: label-guard
+
+on:
+  issues:
+    types: [opened, reopened, labeled, unlabeled]
+
+# Labels change in bursts (remove the old state, add the new one). Only the last event in a burst
+# is checked, after a pause, so intermediate states don't produce false alarms.
+concurrency:
+  group: label-guard-${{ github.event.issue.number }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Check state-machine label invariants
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          sleep 30
+          # Current labels from the API, not the event payload — the payload is a snapshot from
+          # the moment of that one event, possibly several changes ago.
+          labels=$(gh issue view "$NUMBER" --repo "$REPO" --json labels --jq '.labels[].name')
+
+          has() { grep -qx -- "$1" <<<"$labels"; }
+          states=$(grep -c '^state:' <<<"$labels" || true)
+          process=$(grep -cE '^(state:|role:|waiting-on-human$)' <<<"$labels" || true)
+          violations=()
+
+          # Out of the process entirely (no process label at all) — nothing to guard.
+          if [ "$process" -eq 0 ]; then echo "No process labels — skipped."; exit 0; fi
+
+          [ "$states" -eq 1 ] || violations+=("exactly one \`state:*\` label expected, found $states")
+
+          for gate in state:decision state:merge state:evidence; do
+            if has "$gate" && ! has waiting-on-human; then
+              violations+=("\`$gate\` is a human gate but \`waiting-on-human\` is missing")
+            fi
+          done
+
+          if has state:closed && has evidence:missing; then
+            violations+=("\`state:closed\` together with \`evidence:missing\` — status raised without evidence")
+          fi
+
+          echo "Labels checked: $(wc -l <<<"$labels")"
+          if [ ${#violations[@]} -eq 0 ]; then echo "OK"; exit 0; fi
+
+          body="**label-guard:** the labels break the state machine (process/sdlc-flow.md):"
+          for v in "${violations[@]}"; do body+=$'\n'"- $v"; echo "VIOLATION: $v"; done
+          gh issue comment "$NUMBER" --repo "$REPO" --body "$body"
+          exit 1
