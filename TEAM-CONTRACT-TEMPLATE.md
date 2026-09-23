@@ -60,8 +60,24 @@ itself:
 | Role | Boundary inexpressible in `tools` | How it's checked |
 |---|---|---|
 | Product Owner | `Bash` gives access to `gh`, but it also gives `git commit` | Every trace of this role is public (Issue, comment). A commit made within its session is a violation visible at gate 2. |
-| Architect | writes restricted to the architecture decisions directory | **Any change outside that directory in the Architect's diff is an automatic `STOP` at gate 1.** |
-| QA | writes restricted to the test directory | **Any change outside that directory in the QA diff is an automatic `STOP` at gate 2.** |
+| Architect | writes restricted to the architecture decisions directory | **Mechanically, right after the call:** the task command's write-boundary check; any change outside that directory is an automatic `STOP`. Gate 1 is the backstop, not the check. |
+| QA | writes restricted to the test directory | **Mechanically, right after the call:** the same check with the test directory; any change outside it — including an un-reverted mutation — is an automatic `STOP`. Gate 2 is the backstop. |
+
+What the agent environment *can* enforce, enforce there instead of by rule. In Claude Code, the
+product repository's shared settings can refuse the irreversible commands outright and make the
+ones that need a human request ask first — for every role and for the driving session alike:
+
+```json
+{
+  "permissions": {
+    "deny": ["Bash(gh pr merge:*)", "Bash(git push --force:*)", "Bash(git push -f:*)"],
+    "ask": ["Bash(git push:*)"]
+  }
+}
+```
+
+`git commit` is deliberately not on the list: the task command makes pre-authorized bookkeeping
+commits (hard stop 3), and an `ask` on every one of them would train the human to click through.
 
 A mutation executed by QA necessarily touches production code — it's temporary and gets reverted.
 That's why the QA report states the working tree's state after mutations; anything non-empty
@@ -205,5 +221,6 @@ included; this rule states **how much** space that should take.
 
 After every role run, an entry is created in the run register. Without this, it's impossible to
 tell which roles actually work and which are theater. Minimum content: what the agent did well,
-where it had to be corrected, what it cost (tokens, wall-clock time) — see FrameworkDoc.md §7, the
-section on real cost in tokens.
+where it had to be corrected, what model it ran on, what it cost (tokens, wall-clock time) — see
+FrameworkDoc.md §6, the section on real cost in tokens, and the cost-register format in
+`process/task-command.md`.

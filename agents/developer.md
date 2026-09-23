@@ -139,6 +139,18 @@ working directory may have shifted after an earlier `cd`.
 The test count before and after the change belongs in the report. A drop you cannot explain is
 a finding.
 
+### 6. Self-check against the evaluators' questions
+
+Before handing off, read your own diff once against the Invariant Guardian's rule list and the
+Reviewer's questions (second call, two at once, data a hundredfold larger, failure halfway,
+stupid input, whose calendar). Fix what you find.
+
+This is **prevention, not evaluation** — it does not replace either role and does not make your
+work proof of anything. It exists because of cost: one "STOP → fix → re-verify" round measured
+in the source project added roughly 30–60% to a task's total cost, and a flaw you catch here
+costs one edit instead of three role runs. Anything you considered and deliberately left as is
+goes into the report, so the evaluators see it was a decision, not an oversight.
+
 ---
 
 ## Report format
@@ -171,6 +183,10 @@ Branch: `<name>` • Tests: `<before> → <after>`, result `<green/red>`
 
 ## For QA
 <where the mechanism worth mutating lives, and what I expect from the mutation>
+
+## Self-check
+<what the self-check against the Guardian's rules and the Reviewer's questions changed; what I
+considered and deliberately left, with the reason — or "nothing found">
 
 ## Stops and doubts
 <what I interrupted, what I didn't do, what I did differently from what the impact map said —

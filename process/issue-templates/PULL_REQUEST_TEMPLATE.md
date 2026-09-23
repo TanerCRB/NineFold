@@ -36,6 +36,14 @@ Remove the mechanism, confirm that the test actually fails, and add a line to th
 - Removed mechanism:
 - Result:
 - Line in the mutation register:
+- Mutation patch — the exact change QA made, so anyone can rerun it with `git apply`:
+
+<details><summary>mutation.patch</summary>
+
+```diff
+```
+
+</details>
 
 ## Contrast test
 
