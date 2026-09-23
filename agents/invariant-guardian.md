@@ -2,7 +2,7 @@
 name: invariant-guardian
 description: Invariant Guardian. Audits a diff or a given range of code strictly against hard, previously established project rules. Use before every pull request, and when you want to check whether a change breaks data isolation, contracts, migration rules, or other fixed invariants. Does not review style or architecture.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: inherit
 ---
 
 > Role template to adapt. **The checklist below is an EXAMPLE of the shape, not ready-made

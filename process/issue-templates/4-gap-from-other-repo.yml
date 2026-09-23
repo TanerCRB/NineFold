@@ -17,7 +17,7 @@ body:
         Full rules: [`process/cross-repo-gaps.md`](../cross-repo-gaps.md).
 
   - type: dropdown
-    id: zglaszajacy
+    id: reporter
     attributes:
       label: Who is reporting
       options:
@@ -27,7 +27,7 @@ body:
       required: true
 
   - type: textarea
-    id: czego-brakuje
+    id: what-is-missing
     attributes:
       label: What is missing
       description: |
@@ -42,7 +42,7 @@ body:
       required: true
 
   - type: input
-    id: lokalizacja
+    id: location
     attributes:
       label: Where this shows up for the reporter
       description: Path and line range in the reporter's repository — the place that currently manages without this.
@@ -51,7 +51,7 @@ body:
       required: true
 
   - type: textarea
-    id: skutek
+    id: impact
     attributes:
       label: Effect on the user and today's workaround
       description: |
@@ -66,7 +66,7 @@ body:
       required: true
 
   - type: textarea
-    id: propozycja
+    id: proposed-shape
     attributes:
       label: Proposed shape (a proposal, not a requirement)
       description: |
@@ -79,7 +79,7 @@ body:
       required: true
 
   - type: textarea
-    id: co-zrobie-u-siebie
+    id: what-i-will-remove
     attributes:
       label: What I will do on my side once this exists
       description: |
@@ -93,7 +93,7 @@ body:
       required: true
 
   - type: textarea
-    id: warunek-zamkniecia
+    id: closing-condition
     attributes:
       label: Closing condition
       description: |
@@ -108,7 +108,7 @@ body:
       required: true
 
   - type: input
-    id: rejestr
+    id: gap-register-entry
     attributes:
       label: Entry in the reporter's gap register
       description: Link to the section in the local gap register. The same link should point back to this Issue.
@@ -117,7 +117,7 @@ body:
       required: true
 
   - type: checkboxes
-    id: potwierdzenia
+    id: confirmations
     attributes:
       label: Before you submit
       options:

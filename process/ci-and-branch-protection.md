@@ -156,7 +156,7 @@ gh api -X PUT repos/<owner>/<repo>/branches/main/protection --input - <<'JSON'
   "required_pull_request_reviews": null,
   "enforce_admins": false,
   "restrictions": null,
-  "required_linear_history": true,
+  "required_linear_history": false,
   "allow_force_pushes": false,
   "allow_deletions": false,
   "required_conversation_resolution": true
@@ -172,7 +172,7 @@ What each field means and why exactly that:
 | `strict` | `true` | The branch must be up to date with `main` before merging — otherwise green checks pertain to a state that won't land |
 | `required_pull_request_reviews` | `null` | See §2 — an approval requirement would lock the repository with a single author |
 | `enforce_admins` | `false` | Deliberately: you must be able to merge your own PR. This is gate 2, not a workaround |
-| `required_linear_history` | `true` | Backward-compatibility harnesses typically assume that a commit's parent is the previous version of the application, not the other side of a merge |
+| `required_linear_history` | `false` | Matches the recommended merge strategy (merge commit allowed, see [`repository-settings.md`](repository-settings.md) §1). Set `true` only if you went squash-only because a backward-compatibility harness assumes a commit's parent is the previous version of the application |
 | `required_conversation_resolution` | `true` | A Guardian report pasted as a comment must be resolved, not scrolled past |
 | `allow_force_pushes` | `false` | A forced push to `main` overwrites the evidence the register rests on |
 
@@ -189,8 +189,9 @@ gh api repos/<owner>/<repo>/branches/main/protection | jq '{
 }'
 ```
 
-`required_linear_history: true` requires that **squash merge** or **rebase merge** be enabled in
-repository settings — with merge commit alone, nothing can be merged. See
+If you switch to `required_linear_history: true`, **squash merge** or **rebase merge** must be
+enabled in repository settings, and every merge commit gets rejected — with merge commit alone,
+nothing can be merged. See
 [`repository-settings.md`](repository-settings.md) §1 for the trade-off between squash and merge
 commit, worked out in practice.
 

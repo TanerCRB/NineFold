@@ -10,7 +10,7 @@
 //
 // Usage:
 //   node tools/sync-agents.mjs           copies the definitions, reports what changed
-//   node tools/sync-agents.mjs --check   reports only drift, writes nothing (exit 1 on drift)
+//   node tools/sync-agents.mjs --check   reports only drift, writes nothing (exit 1 on drift or a missing target)
 //
 // Run from the root directory of THIS repository (the process source repository).
 
@@ -105,18 +105,38 @@ function ignoredByGit(repoPath, relativePath) {
   }
 }
 
+// The commit of THIS repository the definitions are read from, plus whether the source directory
+// carries uncommitted changes. Reporting what was read is the remedy for the documented case of a
+// copy several commits stale that reported full success (FrameworkDoc.md, section 9).
+function sourceRevision(path) {
+  try {
+    const sha = execFileSync("git", ["rev-parse", "--short", "HEAD"], { encoding: "utf8" }).trim();
+    const dirty = execFileSync("git", ["status", "--porcelain", "--", path], { encoding: "utf8" }).trim();
+    return dirty ? `${sha} + uncommitted changes in ${path}/` : sha;
+  } catch {
+    return "unknown (not a git checkout, or git unavailable)";
+  }
+}
+
+for (const dir of sources.keys()) {
+  console.log(`Source ${dir}/: ${sourceRevision(dir)}`);
+}
+
 let drift = 0;
 let copied = 0;
 let total = 0;
+let skipped = 0;
 
 for (const target of TARGETS) {
   const { sourceDir, definitions } = sources.get(target.dir);
-  total += definitions.length;
 
+  // A missing target is not "no drift" — it is "nothing checked", and must not end in exit 0.
   if (!existsSync(target.path)) {
-    console.warn(`SKIPPED ${target.name}: not found: ${target.path}`);
+    console.error(`SKIPPED ${target.name}: not found: ${target.path}`);
+    skipped++;
     continue;
   }
+  total += definitions.length;
 
   // The target directory should stay outside the product repository's version control. The script
   // only warns: editing someone else's .gitignore is a decision for that repository's owner, not
@@ -169,9 +189,13 @@ for (const target of TARGETS) {
   }
 }
 
+if (skipped > 0) {
+  console.error(`Skipped ${skipped} of ${TARGETS.length} targets — not checked. Fix the TARGETS paths or remove the entries.`);
+}
+
 if (CHECK_ONLY) {
-  console.log(drift === 0 ? "No drift." : `Drifted: ${drift}.`);
-  process.exit(drift === 0 ? 0 : 1);
+  console.log(drift === 0 ? (skipped === 0 ? "No drift." : "No drift in the targets that were checked.") : `Drifted: ${drift}.`);
+  process.exit(drift === 0 && skipped === 0 ? 0 : 1);
 }
 
 console.log(
@@ -179,3 +203,4 @@ console.log(
     ? `No changes. Definitions: ${total}.`
     : `Wrote ${copied} of ${total} definitions.`,
 );
+process.exit(skipped === 0 ? 0 : 1);

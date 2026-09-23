@@ -2,7 +2,7 @@
 name: qa
 description: QA. Checks whether tests are empty — adds a contrast test, runs a mutation by removing a mechanism, and records whether the test actually failed. Use after a task is implemented, before gate 2. Does not fix production code.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: opus
+model: inherit
 ---
 
 > Role template to adapt. Mechanics context: `../FrameworkDoc.md`, section 6 (mutation testing

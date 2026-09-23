@@ -35,16 +35,18 @@ A second principle, binding on every role:
 
 ## 2. Roles
 
-Eight definitions per production repository. Four **evaluating** (Guardian, Architect, Reviewer,
-Security Auditor) and four **producing** (Product Owner, Analyst, Developer, QA).
+Eight definitions per production repository. Four **evaluating** (Guardian, Reviewer, Security
+Auditor, QA — their only output is a verdict on someone else's work, so they are the ones
+calibrated, see `calibration/README.md`) and four **producing** (Product Owner, Analyst,
+Architect, Developer).
 
 | Role | Output artifact | Tools | What it **cannot** do |
 |---|---|---|---|
 | **Invariant Guardian** | Audit report: `PASS` / `STOP`, with a reference to the broken rule | `Read, Grep, Glob, Bash` (read-only) | Write anything. Propose an implementation — it describes the violation, not the fix. |
-| **Architect** | Impact map for architecture decisions; design of a new decision when the task requires it | `Read, Grep, Glob` + writes only into the architecture decisions directory | Touch production code or tests. **Grant a decision "Accepted" status** — that's a human decision. |
+| **Architect** | Impact map for architecture decisions; design of a new decision when the task requires it | `Read, Write, Edit, Grep, Glob`, but **writes only into the architecture decisions directory** | Touch production code or tests. **Grant a decision "Accepted" status** — that's a human decision. |
 | **Reviewer** | Code review without a checklist — design flaws, not rules | `Read, Grep, Glob, Bash` (read-only) | Write. Repeat the Guardian's work. |
 | **Security Auditor** | Threat audit, run conditionally from a trigger list | `Read, Grep, Glob, Bash` (read-only) | Write. **Print out values that look like a secret.** |
-| **Product Owner** | *Story* Issue with an observable *Done when* and an explicit *Out of scope* | `Read, Grep, Glob, Bash` (`gh` and reads) | Write code or technical documentation. Apply the gate-1 label. |
+| **Product Owner** | *Story* Issue with an observable *Definition of done* and an explicit *Out of scope* | `Read, Grep, Glob, Bash` (`gh` and reads) | Write code or technical documentation. Apply the gate-1 label. |
 | **Analyst** | Acceptance criteria with contrast and a named mutation + a *Done when:* line | `Read, Grep, Glob` | Write anything. Design solutions — it describes *what*, not *how*. |
 | **Developer** | Branch ready for PR: schema change (if applicable) + code + tests, full test suite green | full, in the product repository | Commit. Check off tasks or raise statuses. Weaken tests that have started failing. |
 | **QA** | Contrast test, executed mutation with a result, proposed row for the capability register | full, but **writes only into the test directory** | **Writing to production code** — otherwise it fixes instead of detecting. |
@@ -58,6 +60,7 @@ itself:
 | Role | Boundary inexpressible in `tools` | How it's checked |
 |---|---|---|
 | Product Owner | `Bash` gives access to `gh`, but it also gives `git commit` | Every trace of this role is public (Issue, comment). A commit made within its session is a violation visible at gate 2. |
+| Architect | writes restricted to the architecture decisions directory | **Any change outside that directory in the Architect's diff is an automatic `STOP` at gate 1.** |
 | QA | writes restricted to the test directory | **Any change outside that directory in the QA diff is an automatic `STOP` at gate 2.** |
 
 A mutation executed by QA necessarily touches production code — it's temporary and gets reverted.
@@ -90,7 +93,7 @@ Three points at which a human stops the work. Outside of them, the agent acts in
 Gate 3 exists because an agent will always tend to treat its own work as proof, and the entire
 credibility of the register rests on the principle *"status is raised by proof."*
 
-**That's why no production role writes directly into the architecture decision register.** The
+**That's why no producing role writes directly into the plan or the capability register.** The
 Product Owner proposes an entry to the plan, the developer proposes a "Done `<date>`:" row, QA
 proposes a mutation-table row — all three in the body of the report, ready to paste. A human pastes
 them, in a single documentation commit. The exception is the Architect, who writes into the
@@ -104,20 +107,23 @@ The agent **stops working and asks**, regardless of stage or role:
 
 1. The task requires changing or deviating from an accepted architecture decision.
 2. A data schema change outside a migration file.
-3. Any `git commit`, `git push`, `git merge`, `gh pr merge`.
+3. Any `git commit`, `git push`, `git merge`, `gh pr merge`. The only exception is the closed
+   list of bookkeeping commits named in the task command (plan-number reservation, role-cost
+   register row): one file each, on the task branch, never pushed without a request.
 4. Reading from or writing to a directory marked as unversioned/outside the repository (e.g.
    source material with live credentials).
 5. Adding anything to the agent tool's configuration directory in the product repository — this
    directory never enters the repository (see `tools/sync-agents.mjs`).
 6. Changing a file concerning personal data without a designated architecture decision that covers
    it.
-7. A status role `Implemented` → `Verified` in the register without a designated test result.
-8. Entering a second product repository in any mode.
+7. Raising a status from `Implemented` to `Verified` in the register without a designated test
+   result.
+8. Entering a second product repository in any mode. **Any change in another repository** —
+   file, document, decision, pull request — goes only through an Issue filed in the repository
+   that is to perform the work.
 9. An existing test starts failing because of an agent's change. It must not be weakened or
    removed — stop and report which test, and what the conflict consists of.
 10. No impact map or acceptance criteria for a production task. The Developer does not start.
-11. **Any change in a second repository** — file, document, decision, pull request. The only path
-    runs through an Issue filed in the repository that is to perform the work.
 
 ---
 

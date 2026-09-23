@@ -24,8 +24,9 @@
       { "name": "state:design", "color": "155a86", "description": "Architect builds an impact map for architectural decisions" },
       { "name": "state:decision", "color": "a9821a", "description": "GATE 1 - waiting on a human decision: scope and architecture" },
       { "name": "state:implementation", "color": "0a84c4", "description": "Developer writes the schema change (if applicable), code and tests" },
-      { "name": "state:qa", "color": "3ba3d9", "description": "QA writes negative and contrast tests, runs mutations" },
+      { "name": "state:qa", "color": "3ba3d9", "description": "Verification: QA mutations and contrast tests, Guardian, Reviewer, Security Auditor if triggered" },
       { "name": "state:merge", "color": "a9821a", "description": "GATE 2 - waiting on a human decision: review and merge the PR" },
+      { "name": "state:evidence", "color": "a9821a", "description": "GATE 3 - merged, waiting on the human's documentation commit that raises the status" },
       { "name": "state:closed", "color": "1f7a3d", "description": "Evidence provided, status raised" }
     ]
   },
@@ -39,7 +40,9 @@
       { "name": "role:backend", "color": "d4d4d4", "description": "Backend developer" },
       { "name": "role:frontend", "color": "d4d4d4", "description": "Frontend developer" },
       { "name": "role:qa", "color": "d4d4d4", "description": "QA - negative, contrast tests, mutations" },
-      { "name": "role:invariant-guardian", "color": "d4d4d4", "description": "Invariant Guardian - diff audit" }
+      { "name": "role:invariant-guardian", "color": "d4d4d4", "description": "Invariant Guardian - diff audit" },
+      { "name": "role:reviewer", "color": "d4d4d4", "description": "Reviewer - design flaws outside the rule list" },
+      { "name": "role:security-auditor", "color": "d4d4d4", "description": "Security Auditor - threat audit, run conditionally" }
     ]
   },
 
