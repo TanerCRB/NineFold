@@ -1,6 +1,11 @@
-# Ninefold
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/images/ninefold-logo-v1-on-white.png">
+    <img src="docs/images/ninefold-logo-v1.png" alt="Ninefold" width="480">
+  </picture>
+</h1>
 
-*A starter kit for an AI-agent SDLC process.*
+<p align="center"><em>A starter kit for an AI-agent SDLC process.</em></p>
 
 **Why "Ninefold":** the process is carried by nine actors — eight specialized agent roles
 (Product Owner, Analyst, Architect, Developer, QA, Invariant Guardian, Reviewer, Security
