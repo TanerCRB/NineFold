@@ -226,7 +226,8 @@ pushes for every role and asks before any push.
 
 **Write-boundary check.** Copy `process/scripts/boundary-check.sh` to `scripts/boundary-check.sh`
 in the product repository (versioned; add `scripts/*.sh text eol=lf` to `.gitattributes`). The
-task command runs it around every role that may write.
+task command runs it around every role that may write, and around every role called through a
+general-purpose mechanism (which doesn't enforce `tools`).
 
 **Check:**
 
@@ -279,7 +280,7 @@ Three gates: **1** before code exists (scope and architecture), **2** before ent
 (diff, invariant-checking role's report, mutation result), **3** before raising the status in
 the project register.
 
-One thing worth repeating, because it looks like a formality: **gate 3 gets its own commit.** The
+One thing worth repeating, because it looks like a formality: **gate 3 gets its own pull request.** The
 entry checking off a task or raising a decision's status travels separately from the code it
 describes. An agent will always be inclined to treat its own work as evidence, and the entire
 credibility of the register rests on the principle "status is raised by evidence".
@@ -308,18 +309,18 @@ hidden cost, visible only once another, still-open branch lives alongside it.** 
 **new commit that is not an ancestor of the branch** it came from. The work is in `main`, but git
 doesn't know it. Consequences, observed in practice:
 
-1. **Merging `main` into a live branch produces a conflict on every file from a previously
-   merged PR** — not because anyone changed them, but because git sees two independent histories
-   of the same content. Resolving "in favor of main" then silently reverts work done later on
-   that branch.
-2. **`git branch --merged` lies.** A branch fully merged via squash still shows commits "ahead
-   of `main`", so it can't be safely deleted based on that command alone — you have to compare
-   content (`git diff main branch`).
-3. **Squash takes the branch head as remembered when the merge window was opened.** A commit
-   pushed in the meantime can vanish without a trace — the pull request looks fully merged, and
-   isn't.
+1. **A branch that still contains the squashed commits conflicts with `main`** — a branch
+   stacked on the merged one, or the merged branch reused for more work. Merging `main` into it
+   conflicts on files both the squash and its later commits touched, because git sees two
+   independent histories of the same content; resolving "in favor of main" can silently revert
+   later work. A branch that never contained those commits is not affected.
+2. **`git branch --merged` checks reachability, not content.** A branch fully merged via squash
+   isn't listed as merged, so it can't be judged safe to delete by that command — compare content
+   (`git diff main branch`).
+3. **Observed once, not a documented property:** a commit pushed while the merge dialog was open
+   didn't reach `main`, and the pull request looked fully merged. Reload before merging.
 
-A merge commit has none of these three properties. Its only cost is a denser history.
+A merge commit avoids the first two by construction. Its cost is a denser history.
 
 **Rule of thumb:** merge commit for pull requests carrying more than one commit or open longer
 than one day; squash for one-off, minor fixes. Rebase merge is usually worth disabling entirely
@@ -525,10 +526,10 @@ command can read the Issue, the PR, CI and the registers. Then drive **one** sma
 
 Watch, and note in the run log, what the kit can't check for you:
 
-- the write-boundary check after the Architect and QA leaves a "boundary check: clean" note;
+- the write-boundary check around the Architect and QA (and around every role, if roles are called through a general-purpose mechanism) leaves a "boundary check: clean" note;
 - a cost-register row lands as its own commit on the task branch after every role call;
 - the PR description carries the mutation patch and the Guardian's verdict unsmoothed;
-- at gate 3 the agent only **proposes** the register entries — you paste them.
+- at gate 3 the agent opens a documentation PR with the register entries (`Closes #<N>`) — you review them against their evidence and merge; the Issue stays open until then.
 
 **Check:** the pilot task is merged, its plan entry has a `Done <date>:` line with a link to the
 test, and the cost register has one row per role call. Count the times you had to step in

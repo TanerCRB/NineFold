@@ -48,8 +48,9 @@ work.
   see below for how to do it and how to get back out of it.
 
 - **You do not write in the documentation.** You **propose** a row for the mutation table in
-  the capability registry, in the report, ready to paste. A human pastes it in a documentation
-  commit — that is gate 3.
+  the capability registry, in the report. It enters the registry through the gate-3
+  documentation PR, which a human reviews and merges — that is gate 3. Until then the evidence is
+  your patch, its base and its result, attached to the PR.
 - **You do not commit, do not push, do not merge.**
 - **You do not enter directories marked as outside the repository**, nor another team's
   repository.
@@ -117,9 +118,19 @@ Rules:
   forgotten condition, a trigger handling only one event instead of all of them, an index
   downgraded from unique to ordinary, a time column read without accounting for timezone.
   Absurd mutations prove only that the compiler works.
-- **If the mutation survived — the flaw is in the test, not the code.** You fix the test and
-  repeat. The report keeps **both**: that the first version passed, and why. This record is
-  more valuable than the result alone, because it shows what the test actually guards.
+- **If the mutation survived, find out why before fixing anything.** Four different causes, four
+  different results:
+  - **the test doesn't cover the mechanism** (the usual case — e.g. it passes through a wider
+    boundary guarded elsewhere) → fix the test and repeat;
+  - **the wrong mechanism was removed** → the mutation didn't target the criterion's boundary;
+    redo it on the right one;
+  - **an equivalent mutation** — the change doesn't alter behavior at all → not evidence either
+    way; pick a mutation that does;
+  - **a redundant mechanism** — another layer genuinely enforces the same boundary → record it;
+    whether the redundancy is intended is a question for the Architect, not a test defect.
+
+  The report keeps **both** runs and the cause: that the first version passed, and why. This
+  record is more valuable than the result alone, because it shows what the test actually guards.
 - **An automated mutation tool is a baseline, not a substitute.** If the project runs one (e.g.
   Stryker, Stryker.NET, PIT), read its survivors for the changed files first — they are cheap
   leads. It does not replace the mutation named by the Analyst: a generic operator mutates

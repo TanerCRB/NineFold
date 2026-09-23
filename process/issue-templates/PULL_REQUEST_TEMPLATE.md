@@ -35,13 +35,13 @@ name, a query, an artifact. Code that exists but has no passing test does not ch
 
 <!--
 Required if the PR carries a strong claim (isolation, idempotency, a database constraint, permissions).
-Remove the mechanism, confirm that the test actually fails, and add a line to the mutation register
+Remove the mechanism, confirm that the test actually fails, and propose a line for the mutation register
 (e.g. docs/architecture/walking-skeleton.md#checking-that-tests-are-not-empty).
 -->
 
 - Removed mechanism:
 - Result:
-- Line in the mutation register:
+- Proposed row for the mutation register (entered at gate 3, not before):
 - Mutation patch — the exact change QA made, against the checkpoint (`Base: <SHA>` on its first line), so anyone can rerun it with `git apply` on that SHA:
 
 <details><summary>mutation.patch</summary>

@@ -105,7 +105,7 @@ exists so that at every handoff between roles, someone else looks at the result 
 | **Invariant Guardian** | Audits the code diff exclusively against a closed list of hard, previously established rules (data isolation between clients, API contracts, time handling, write uniqueness) | Does not evaluate style, architecture, or performance — only the checklist | Verdict: pass / stop, with location, damage path, and the condition that would overturn the ticket |
 | **Reviewer** | Reads the change without a checklist and looks for flaws no rule list would catch: behavior under load, under concurrency, under retried operations, with bad input data | Does not repeat the Guardian's work | List of design flaws with rationale |
 | **Security Auditor** | Runs conditionally — only when the change touches the CI/CD pipeline, dependencies, authentication, personal data, configuration, or secrets. Assesses: who can get what from this change, and what they shouldn't | Does not run on every change — audit cost is meant to scale with risk, not with the number of tickets | Threat assessment, not a rule list |
-| **Human** | Approves scope and approach (gate 1), approves merging (gate 2), confirms that evidence has been entered into the registries (gate 3). The only role that can make an irreversible decision | — | Decision |
+| **Human** | Approves scope and approach (gate 1), approves merging (gate 2), approves the evidence entered into the registries by merging the documentation pull request (gate 3). The only role that can make an irreversible decision | — | Decision |
 
 ### Where role definitions come from
 
@@ -136,9 +136,11 @@ definition instead of code. Tasks concerning the process itself do not have tick
 system — they live as rows in the plan with an explicit completion condition, with progress noted in
 the run log. A deliberate decision: for a handful of such tasks, a separate tracker would be a tool
 with no work to do. Tickets and pull requests concerning the product itself always live in the
-product repository, never in the process repository — because the mechanism that closes a ticket via
-merging only works within a single repository, not across them. That is a fact of the code-hosting
-platform, not a matter of preference.
+product repository, never in the process repository — because the work is owned where the code
+is: the ticket, its pull requests, its gates and its evidence sit in one place, under one team's
+review. (The code-hosting platform could close a ticket in another repository from a pull request —
+`Closes owner/repo#N` does close it on merge — so this is a choice of ownership, not a technical
+limit.)
 
 The source repository also prepares **drafts** of architectural decisions for product repositories —
 before they land in that repository's proper decision registry. The source repository itself has no
@@ -319,9 +321,12 @@ never merges a pull request itself.
 
 ### Closure phase
 
-After merging, the process **does not raise the task's status automatically**. It prepares entries
-ready to paste into the progress registries — but the human pastes them, as the third gate. Only this
-closes the loop: working labels are removed manually, the working environment is cleaned up.
+After merging, the process **does not raise the task's status automatically**. The driving agent
+collects the entries the roles proposed into one documentation pull request, each entry linking the
+test or artifact it rests on — and the human reviews and merges it, as the third gate. The decision
+is reading the entries against their evidence; retyping them by hand would add nothing to it. Only
+this merge closes the ticket and the loop: working labels are set to their final state, the working
+environment is cleaned up.
 
 ---
 
@@ -472,8 +477,8 @@ or because the role read more than the task required.
   between roles ([details](CASE-STUDY.md#results-after-gathering-material-from-production-work)).
 - One task tracked from ticket to merge through all roles cost 1,728,225 tokens (backend) and
   1,282,807 tokens (frontend) of expert-role time. **One corrective iteration** — a Reviewer STOP,
-  a fix, and re-verification — added **close to 60%** and **about 29%** of the task's total cost
-  respectively: the countable price of "it's cheaper to stop earlier than later" (section 5). The
+  a fix, and re-verification — made up **36%** and **29%** of the task's final cost respectively
+  (**57%** and **41%** on top of what each task would have cost without it): the countable price of "it's cheaper to stop earlier than later" (section 5). The
   frontend run also ended with an explicitly named dispute between two evaluating roles, handed to
   the human instead of being resolved automatically
   ([backend example](CASE-STUDY.md#example-the-cost-of-one-task-tracked-from-ticket-to-merge-backend),

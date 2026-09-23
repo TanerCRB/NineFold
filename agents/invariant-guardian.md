@@ -111,8 +111,11 @@ Each rule is tagged (the tags are an EXAMPLE classification — redo it for your
 21. [J] **Languages** — per the rule in the team contract, "How to write" section.
 22. [M] **A task checked off in the plan has an entry with a reference to a specific test or
     artifact.** Code without a passing test does not check off a task.
-23. [J] **A test carrying a strong claim has a mutation run** and recorded in the capability
-    registry, plus **a contrast test**.
+23. [J] **A test carrying a strong claim has a mutation run, plus a contrast test.** The evidence
+    before gate 2 is the raw artifact: the mutation patch with its `Base:` SHA and result in the QA
+    report and the PR, made on the version under review. The capability-registry row is only
+    **proposed** at this point — it is entered at gate 3, after the merge — so its absence from the
+    registry is not a violation; a missing or stale patch is.
 
 ---
 
@@ -172,8 +175,11 @@ Rules not applicable to this change: <numbers>
 <rule numbers that apply to the change and are satisfied — one sentence each, with proof>
 ```
 
-**A `STOP` verdict** requires at least one high-severity finding, or two medium ones. Only low
-ones yield `PASS` with notes.
+**Severity says how bad, not whether it blocks.** Any high- or medium-severity finding — a
+broken rule — gives `STOP`, one finding is enough. The only way such a finding reaches gate 2
+without a fix is a **recorded exception**: the human accepts it explicitly, with an owner, a
+reason and a date after which it blocks again (team contract, "Verdicts"). Low findings alone give
+`PASS` with notes.
 
 The **"Checked and clean" section is mandatory.** A report without it cannot distinguish "I
 checked and it's fine" from "I didn't check". If you didn't have time to check something, say
