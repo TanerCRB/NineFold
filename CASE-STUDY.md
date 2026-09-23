@@ -164,11 +164,13 @@ generate its own row in the cost registry.
 
 **The price of one corrective iteration, counted directly.** Had the Reviewer approved the change the
 first time (step 7), the task would have closed at step 7 with a total of **1,098,273 tokens** — one
-round of "go back, fix, re-verify" (steps 8–10) added **630k tokens, close to 60% of the task's total
-cost**. This is the countable price of what [FrameworkDoc section 5](FrameworkDoc.md#5-the-three-human-gates--why-these-specifically) calls the principle "it's cheaper to stop
-earlier than later" — here not as a general claim, but as a concrete difference: finding the same
-flaw at the Guardian stage instead of the Reviewer stage, or during implementation altogether, would
-have saved more than the cost of the role that would have caught it earlier.
+round of "go back, fix, re-verify" (steps 8–10) added **629,952 tokens — 36% of the task's final
+cost, or 57% on top of what the task would have cost without it**. This is the countable price of what [FrameworkDoc section 5](FrameworkDoc.md#5-the-three-human-gates--why-these-specifically) calls the principle "it's cheaper to stop
+earlier than later" — here not as a general claim, but as a concrete difference: in this task,
+finding the same flaw at the Guardian stage instead of the Reviewer stage, or during implementation
+altogether, would have saved more than the cost of the role that would have caught it earlier. Two
+traced tasks don't say how much moving a check earlier saves in general; the cost register's rework
+column is where that answer can come from.
 
 ## Example: the cost of one task tracked from ticket to merge (frontend)
 
@@ -195,8 +197,9 @@ and seven unique roles — the Security Auditor again did not appear, for the sa
 backend example.
 
 **The price of the iteration here is relatively lower, but more costly in time.** Without the
-iteration (steps 1–7), the total would have been **909,291 tokens** — steps 8–10 added **373k tokens,
-about 29% of the total cost**, less than in the backend example (there ~60%), because the developer's
+iteration (steps 1–7), the total would have been **909,291 tokens** — steps 8–10 added **373,516
+tokens, 29% of the final cost (41% on top of the task without it)**, less than in the backend example
+(there 36% and 57%), because the developer's
 fix was small (4 files). But those same three steps took **over 44 minutes out of the full 2 hours
 7 minutes** — both re-verifying roles read the source UX audit document in full, not just the
 fragment they had cited before, in order to resolve the dispute on the merits, not by repeating the

@@ -12,6 +12,7 @@
   "phase": "verification",
   "role": "invariant-guardian",
   "model": "<model id the call actually ran on>",
+  "invocation": "registered",
   "complexity": "Medium",
   "tokens": 142318,
   "toolCalls": 27,
@@ -23,6 +24,7 @@
 
 - `tokens`, `toolCalls`, `seconds` come from the call's usage data, never an estimate; missing →
   the string `"no data"`.
+- `invocation` is `registered` or `general-purpose` (see the task command, "How you call a role") — calibration holds per mode.
 - `complexity` (Low / Medium / High) is the driving agent's judgment, set **before** the call.
 - `reworkCause` is filled only on a repeated run: the finding that caused it and which earlier role
   could have caught it.

@@ -150,4 +150,6 @@ from an architectural decision, the sentence must say **which promise, and where
 not merely that the code does what its own comment claims. A false "clean" costs more than an
 oversight, because it closes the topic (see `../calibration/README.md`, finding 1).
 
-**A `STOP` verdict** requires one high-severity finding, or two medium ones.
+**Severity says how bad, not whether it blocks.** Any high- or medium-severity finding gives
+`STOP` — one is enough — unless the human records an exception with an owner, a reason and a
+date (team contract, "Verdicts"). Low findings alone give `PASS` with notes.

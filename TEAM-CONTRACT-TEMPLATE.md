@@ -61,6 +61,7 @@ itself:
 |---|---|---|
 | Product Owner | `Bash` gives access to `gh`, but it also gives `git commit` | Every trace of this role is public (Issue, comment). A commit made within its session is a violation visible at gate 2. |
 | Architect | writes restricted to the architecture decisions directory | **Mechanically, around the call:** `boundary-check.sh` compares HEAD, the index and the working tree; any change outside that directory is an automatic `STOP`. Gate 1 is the backstop, not the check. |
+| Any role called through a general-purpose mechanism | the `tools` field isn't applied at all — the pasted definition only asks | **Mechanically, around every call:** `boundary-check.sh` with the role's allowed paths, `--none` for a read-only role. The invocation mode is recorded with the cost row; calibration holds per mode. |
 | QA | writes restricted to the test directory | **Mechanically, right after the call:** the same check with the test directory; any change outside it — including an un-reverted mutation — is an automatic `STOP`. Gate 2 is the backstop. |
 
 What the agent environment *can* enforce, enforce there instead of by rule. In Claude Code, the
@@ -104,16 +105,32 @@ Three points at which a human stops the work. Outside of them, the agent acts in
 |---|---|---|---|
 | **1** | Before code comes into existence | Story scope and the architecture decision | Issue: gate-1 label |
 | **2** | Before entering `main` | Diff, Guardian report, mutation result | Approve PR |
-| **3** | Before raising a status | Entry in the progress register / capability register | Separate documentation commit |
+| **3** | Before raising a status | Entry in the progress register / capability register | Merge of the documentation PR (`Closes #N`) |
 
 Gate 3 exists because an agent will always tend to treat its own work as proof, and the entire
 credibility of the register rests on the principle *"status is raised by proof."*
 
-**That's why no producing role writes directly into the plan or the capability register.** The
-Product Owner proposes an entry to the plan, the developer proposes a "Done `<date>`:" row, QA
-proposes a mutation-table row — all three in the body of the report, ready to paste. A human pastes
-them, in a single documentation commit. The exception is the Architect, who writes into the
-decision directory but does not grant statuses.
+**That's why no role raises a status on its own.** The Product Owner proposes an entry to the plan,
+the developer proposes a "Done `<date>`:" row, QA proposes a mutation-table row — in their reports.
+After the code merge, the driving agent collects them into **one documentation PR**, each entry
+linking the test or artifact it rests on. The human reviews that PR and merges it: **the merge is
+the gate-3 decision**. Retyping the entries by hand adds nothing to that decision — reading them
+against their evidence does. The Architect writes decision drafts into the decision directory but
+never grants a status.
+
+### 3a. Verdicts
+
+The evaluating roles speak one language:
+
+| Result | Meaning | Reaches gate 2 |
+|---|---|---|
+| `STOP` | A broken acceptance criterion or hard rule — one finding of high or medium severity is enough | Only fixed, or as a **recorded exception**: accepted by the human, with an owner, a reason and a date after which it blocks again |
+| `PASS WITH RESERVATIONS` | Findings that need a human decision but don't break a rule (e.g. a medium security risk) | Each one as a recorded exception or a fix — never in silence |
+| `PASS` | Nothing that blocks; low findings as notes | Yes |
+| QA `PROOF IS EMPTY` | The tests don't guard the claim | No — it blocks like `STOP` |
+
+Severity says how bad a finding is; it never decides alone whether it blocks. A count threshold
+("two medium ones") would let one real defect through.
 
 ---
 
@@ -126,13 +143,18 @@ The agent **stops working and asks**, regardless of stage or role:
 3. Any `git commit`, `git push`, `git merge`, `gh pr merge`. The only exception is the closed
    list of local commits named in the task command, all on the task branch and never pushed
    without a request: bookkeeping commits (plan-number reservation, role-cost register row — one
-   file each) and verification checkpoints (the developer's state before QA, QA's tests after
+   file each), verification checkpoints (the developer's state before QA, QA's tests after
    QA — exactly the paths the role's report lists), which pin the evidence to one version of the
-   code.
+   code, and the gate-3 documentation commit (the register entries the roles proposed, on its own
+   branch — the human's merge of its PR is the gate).
 4. Reading from or writing to a directory marked as unversioned/outside the repository (e.g.
    source material with live credentials).
-5. Adding anything to the agent tool's configuration directory in the product repository — this
-   directory never enters the repository (see `tools/sync-agents.mjs`).
+5. Editing the synchronized roles in the product repository (`.claude/agents/`) — they are a
+   copy of the process repository, never versioned there, and change only through the process
+   repository (see `tools/sync-agents.mjs`). The commands (`.claude/commands/`) and the shared
+   settings (`.claude/settings.json`) **are** versioned and change only through a pull request,
+   like code; local state (e.g. `.claude/settings.local.json`) stays unversioned. A role never
+   changes any of them as a side effect of a task.
 6. Changing a file concerning personal data without a designated architecture decision that covers
    it.
 7. Raising a status from `Implemented` to `Verified` in the register without a designated test
@@ -142,7 +164,8 @@ The agent **stops working and asks**, regardless of stage or role:
    that is to perform the work.
 9. An existing test starts failing because of an agent's change. It must not be weakened or
    removed — stop and report which test, and what the conflict consists of.
-10. No impact map or acceptance criteria for a production task. The Developer does not start.
+10. No acceptance criteria, or neither an impact map nor an approved fast-lane record, for a
+    production task. The Developer does not start.
 
 ---
 
@@ -157,8 +180,10 @@ node tools/sync-agents.mjs          # copies definitions to the target directori
 node tools/sync-agents.mjs --check  # checks for drift without writing
 ```
 
-The process's source repository is versioned and is the source of truth. The product repository's
-`.claude/` stays outside its version control.
+The process's source repository is versioned and is the source of truth. In the product
+repository only the synchronized copy `.claude/agents/` (and local state) stays outside version
+control; the commands and the shared settings are versioned (`process/bootstrap-guide.md`,
+step 4).
 
 In an agent tool session running in the product repository's directory:
 

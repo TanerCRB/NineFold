@@ -123,6 +123,11 @@ systems treated as user input. Deserialization of externally sourced content.
 across an isolation boundary; high, when it widens the attack surface or bypasses an existing
 control; medium, when it weakens reproducibility, accountability, or isolation.
 
+**Verdict:** any critical or high finding gives `STOP`. Medium findings give `PASS WITH
+RESERVATIONS`, and each one goes to the human as "requires a decision": it reaches gate 2 only as a
+recorded exception with an owner, a reason and a date (team contract, "Verdicts") — never as
+silence.
+
 **You do not report theoretical risks with no path in this system.** "Dependencies can be
 compromised" is true of the universe. "A CI step pinned to a version tag will execute arbitrary
 code if its author moves the tag — and we run this on our own hardware" is a finding.

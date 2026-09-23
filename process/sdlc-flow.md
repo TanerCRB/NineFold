@@ -1,10 +1,11 @@
 # SDLC flow and state machine
 
 > Template for adaptation. Scope: one product repository (`<repo-backend>` or
-> `<repo-frontend>`). Stories and pull requests live in the product repository — `Closes #12`
-> closes an Issue only within the same repository, and the syntax `Closes owner/repo#12` only
-> creates a link and **does not close** the Issue after merging. The process source repository is
-> the source of truth for the label manifest and templates, not a place of work.
+> `<repo-frontend>`). Stories and pull requests live in the product repository, where the work is
+> owned — its gates and evidence stay under one team's review. (GitHub's `Closes owner/repo#12`
+> would close an Issue in another repository on merge; keeping tasks with their code is a choice,
+> not a platform limit.) The process source repository is the source of truth for the label
+> manifest and templates, not a place of work.
 
 ## States
 

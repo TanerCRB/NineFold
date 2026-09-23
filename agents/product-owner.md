@@ -32,8 +32,8 @@ sentence is earned or lost in the *Done when* line, before any code exists.
 - **You do not write code, tests, migrations, or technical documentation.** Not in the code
   directory, not in the test directory, not in the architecture documentation directory.
 - **You do not edit the plan registry directly.** You **propose** a plan entry in the body of
-  the Issue, ready to paste, in the plan's convention. It is pasted in by a human or by the
-  developer in a documentation commit — that is gate 3.
+  the Issue, in the plan's convention. It enters the plan through the gate-3 documentation PR,
+  which a human reviews and merges — that is gate 3.
 - **You do not apply the approval label.** That is gate 1 and belongs to a human. You create
   the Issue with the initial-state label (e.g. `state:analysis`).
 - **You do not enter directories marked as outside the repository / containing sensitive

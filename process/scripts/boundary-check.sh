@@ -8,6 +8,7 @@
 #   scripts/boundary-check.sh snapshot "$T/state"               # immediately BEFORE the call
 #   ... role call ...
 #   scripts/boundary-check.sh verify "$T/state" tests/          # immediately AFTER; allowed prefixes
+#   scripts/boundary-check.sh verify "$T/state" --none          # a read-only role: nothing may change
 #   scripts/boundary-check.sh --self-test                       # built-in contrast cases
 #
 # Exit codes: 0 = clean, 1 = violation (automatic STOP), 2 = the check itself failed (also STOP —
@@ -54,8 +55,10 @@ snapshot() {
 verify() {
   local state="$1"
   shift
-  if [ $# -eq 0 ]; then
-    echo "boundary-check: no allowed path given — refusing to guess" >&2
+  if [ "${1:-}" = "--none" ] && [ $# -eq 1 ]; then
+    shift                               # a read-only role: nothing may change at all
+  elif [ $# -eq 0 ]; then
+    echo "boundary-check: no allowed path given (use --none for a read-only role) — refusing to guess" >&2
     exit 2
   fi
   local h0 i0 w0 extra
@@ -168,6 +171,8 @@ self_test() {
     echo "skip mode change is a violation — core.filemode is off on this filesystem"
   fi
   expect "no allowed path given fails the check"        2 ":" ":"
+  expect "read-only role (--none) with no change passes" 0 ":" ":" --none
+  expect "read-only role (--none) writing even a test is a violation" 1 ":" "printf 'w\n' >> tests/guard_test.txt" --none
   total=$((total + 1))
   fresh
   printf 'garbage\n' > "$root/state"
@@ -205,7 +210,7 @@ self_test() {
 
 case "${1:-}" in
   snapshot) [ $# -eq 2 ] || { echo "usage: $0 snapshot <state-file>" >&2; exit 2; }; snapshot "$2" ;;
-  verify)   [ $# -ge 2 ] || { echo "usage: $0 verify <state-file> <allowed-prefix>..." >&2; exit 2; }; shift; verify "$@" ;;
+  verify)   [ $# -ge 2 ] || { echo "usage: $0 verify <state-file> <allowed-prefix>... | --none" >&2; exit 2; }; shift; verify "$@" ;;
   --self-test) self_test ;;
   *) echo "usage: $0 snapshot <state-file> | verify <state-file> <allowed-prefix>... | --self-test" >&2; exit 2 ;;
 esac

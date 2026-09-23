@@ -41,7 +41,7 @@ window width — and it is usually the other half of each pair that breaks.
 <!--
 Required if the PR carries a strong claim: that a screen does NOT show something, that it denies,
 that it does not miscalculate, that it does not drop the locale. Remove the mechanism, confirm that
-the test actually fails, and add a line to the frontend state register.
+the test actually fails, and propose a line for the frontend state register (entered at gate 3).
 
 The mutation should target the layer the criterion is about. Removing a key from the translation
 catalog is not a mutation for a claim computed by the date library.
@@ -49,7 +49,7 @@ catalog is not a mutation for a claim computed by the date library.
 
 - Removed mechanism:
 - Result:
-- Line in the frontend state register:
+- Proposed row for the frontend state register (entered at gate 3, not before):
 - Mutation patch — the exact change QA made, against the checkpoint (`Base: <SHA>` on its first line), so anyone can rerun it with `git apply` on that SHA:
 
 <details><summary>mutation.patch</summary>

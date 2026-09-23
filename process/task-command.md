@@ -34,20 +34,23 @@ Issue returns 404, don't use it. -->
 - **Status is raised by evidence, not conviction.** You don't check off the task and you don't
   raise its status.
 - **You don't commit or push without an explicit request.** Never merge a pull request. The only
-  exception is a closed list of commits you make without asking, all local, on the task branch —
+  exception is a closed list of commits you make without asking, all local, on a task branch —
   never on `main` — and none pushed without a request:
   - **bookkeeping commits** — the plan-number reservation (step 2) and the role-cost register row
     ("How you talk to the human", point 3); each touches only its one file;
   - **verification checkpoints** — the developer's state before QA (step 10a) and QA's tests after
     QA (step 11a); each holds exactly the paths that role's report lists. A checkpoint is what
     makes the evidence refer to one fixed version of the code: mutations are measured against it
-    and every report names its SHA.
+    and every report names its SHA;
+  - **the gate-3 documentation commit** (step 21) — the register entries the roles proposed, on its
+    own branch; the human's merge of its PR is the gate.
 
   Anything outside this list goes back to the rule.
 - **Gates 1, 2 and 3 belong to the human.** You work up to them, prepare the material, and
   **stop**.
-- The agent tool's configuration directory and any directory explicitly marked as outside the
-  repository (e.g. a prototype with live credentials) are out of reach.
+- The agent environment's configuration (synchronized roles, commands, shared settings) is not
+  changed as part of a task — it changes through its own pull request. Any directory explicitly
+  marked as outside the repository (e.g. a prototype with live credentials) is out of reach.
 - A task that writes code works in its own working directory (worktree). The main checkout stays
   on the main branch.
 - **Assignment for the duration of the work.** You start working a task → you assign the Issue to
@@ -74,6 +77,16 @@ Call the role through the environment's general-purpose execution mechanism (e.g
 `subagent_type: general-purpose` in Claude Code), and take the role's content (system prompt) from
 its definition file — read it and paste it as the first part of the prompt, ahead of the task
 context (Issue, impact map, criteria). This applies to **every** role invocation in this process.
+
+**This is a weaker mode, and you treat it as one.** A registered role gets the `tools` field of
+its definition enforced by the environment; a general-purpose call gets whatever tools the
+general-purpose mechanism has — the pasted text only *asks* the role not to write. The contract
+defines a role by the tools it doesn't have (team contract, §1), so in this mode you restore the
+boundary mechanically: **run the write-boundary check around every role call**, not only the
+Architect and QA — for the read-only roles with `--none` (nothing may change). Record the
+invocation mode in the cost register (`registered` / `general-purpose`): calibration results hold
+for the mode they were measured in. Prefer registering the roles (run the command from the product
+repository) whenever you can.
 
 **Subagent model — the same as yours**, if you're calling the role through the general-purpose
 mechanism: the model field in the role definition file does not apply automatically in this mode.
@@ -123,8 +136,8 @@ or personal data. After such a passage, go back to the compressed mode.
 ### 3. After every role invocation — a row in the cost register
 
 If you keep a role-cost register (see `../FrameworkDoc.md`, section 6) — after every invocation of
-any of the eight roles, record one row: date, role, task, phase, **model**, complexity, tokens,
-tool calls, time, **rework cause**, notes.
+any of the eight roles, record one row: date, role, task, phase, **model**, **invocation**
+(`registered` / `general-purpose`), complexity, tokens, tool calls, time, **rework cause**, notes.
 
 **One file per row, not one shared table.** Write each row as its own small file, e.g.
 `<cost-register-dir>/<date>_<task>_<phase>_<role>_<n>.json`, and build the table from the
@@ -240,9 +253,17 @@ Issue), not judged:
   (`<path-to-architecture-sensitive-paths-list>`);
 - the Product Owner raised no deviation label and the Analyst named no "unproven foundation".
 
-If any trigger fires, or you can't tell which files the task will touch, the Architect runs. At
-gate 1 you state explicitly: "Architect skipped — triggers checked: <list, each clean>". The human
-can require the Architect anyway; that's a gate-1 decision, not a failure of the fast lane.
+If any trigger fires, or you can't tell which files the task will touch, the Architect runs.
+Otherwise you write a **fast-lane record** as a comment on the Issue: "Architect skipped —
+triggers checked: <each trigger, clean>; paths expected: <list>". At gate 1 the human approves
+that record together with the criteria — **an approved record takes the place of the impact map**
+for the Developer's entry condition. The human can require the Architect anyway; that's a gate-1
+decision, not a failure of the fast lane.
+
+**The record is checked again against the real diff** at step 10a: if the implementation touched
+any trigger (a migration, an API contract, a dependency, a sensitive path) the record no longer
+holds — the task goes back to the Architect before verification, and then through gate 1 again for
+what changed.
 
 **Turn the fast lane on only with data.** Before enabling it, count in the cost register how often
 the Architect returned "fits, nothing to add" on tasks that would have passed all the triggers.
@@ -254,8 +275,8 @@ anyone. Record the fast-lane skip in the cost register as a row with 0 tokens an
 
 ## Phase `code` — implementation
 
-Entry condition: an impact map **and** criteria exist, the Issue carries the implementation-phase
-label. Either missing = go back to the `analysis` phase.
+Entry condition: criteria **and** either an impact map or an approved fast-lane record exist, the
+Issue carries the implementation-phase label. Anything missing = go back to the `analysis` phase.
 
 6. **Working directory.** Already created in step 0 — confirm you're working in it. A task that
    writes: its own worktree on its own branch, the branch name carries the task identifier. A
@@ -306,6 +327,9 @@ label. Either missing = go back to the `analysis` phase.
     commit it along. Merge conflicts follow the rules of step 15. A merge that brought something
     in repeats the local gates from step 9. **`CHECKPOINT` = `git rev-parse HEAD`** — every
     verification step below refers to it.
+    **Fast-lane tasks:** check the fast-lane triggers again, now against the real diff
+    (`git diff --name-only origin/main...HEAD`). Any trigger fires → back to the Architect before
+    verification (see "Fast lane").
 
 ---
 
@@ -437,14 +461,17 @@ message to the human.
 20. **If you maintain a queryable code index/graph — refresh it before gate 3.** Applies only to
     code files; if the index doesn't exist yet, skip this step — don't set one up from scratch
     here.
-21. **GATE 3 — material for the human.** After the merge the Issue is **still open**, in the
-    gate-3 state (`state:evidence` + `waiting-on-human`, see `sdlc-flow.md`) — that is what keeps
-    it in the one filter the human watches. Prepare ready-to-paste entries, don't paste them
-    yourself: checking off the task in the plan with a "Done <date>" row, a row in the
-    activity/capability register, mutation rows with links to the patches in the merged PR.
-    Status is never raised without a link to a specific test or artifact. The human commits them
-    as a documentation PR whose description says **`Closes #<N>`** — that merge, not the code
-    merge, closes the Issue.
+21. **GATE 3 — a documentation PR for the human to decide on.** After the merge the Issue is
+    **still open**, in the gate-3 state (`state:evidence` + `waiting-on-human`, see
+    `sdlc-flow.md`) — that is what keeps it in the one filter the human watches. On a separate
+    branch from the updated `main`, commit the entries the roles proposed — checking off the task
+    in the plan with a "Done <date>" row, the row in the activity/capability register, mutation
+    rows linking the patches in the merged PR — as one documentation commit (the last
+    pre-authorized commit, see "Overriding rules"). Every entry links the specific test or
+    artifact it rests on; an entry without one isn't written. On the human's request, push it and
+    open the PR with **`Closes #<N>`**. **The human's review and merge of that PR is gate 3** —
+    reading each entry against its evidence is the decision; you never merge it, and it is the
+    merge that closes the Issue.
 22. **Ratcheted numeric counters** (e.g. a test counter), if you keep one — write the measured
     values **only on the main branch, after a full run**. On a task branch, report-only mode,
     no write.

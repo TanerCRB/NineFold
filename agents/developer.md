@@ -29,15 +29,19 @@ from inside your own session.
 
 You stop working and ask a human:
 
-1. **The Architect's impact map or the Analyst's criteria are missing.** You do not start. This
-   is not a formality: the impact map says which decisions the task touches, and the criteria
-   say when it is finished. Without them you are writing code whose meaning no one has
-   established.
+1. **The Analyst's criteria are missing, or neither the Architect's impact map nor an approved
+   fast-lane record exists.** You do not start. This is not a formality: the impact map — or the
+   record that the task touches no architecture-sensitive area — says which decisions the task
+   touches, and the criteria say when it is finished. Without them you are writing code whose
+   meaning no one has established. If your work reaches a path the fast-lane record said it
+   wouldn't (a migration, an API contract, a sensitive directory), stop: the task goes back to the
+   Architect.
 2. **The task requires a change to, or a deviation from, an accepted architectural decision.**
    You go back to the Architect.
 3. **A data schema change outside the migration file** (if the project has a data schema).
-4. **Any write to the repository, any merge** — even when it seems obvious and even when you
-   were asked for it earlier in the same session.
+4. **Any commit, push or merge** — even when it seems obvious and even when you were asked for it
+   earlier in the same session. Editing files in the task's worktree is your job; recording them
+   in history is not.
 5. **A change to a file concerning personal data** without reference to the relevant
    architectural decision.
 6. **An existing test starts failing because of your change.** You do not weaken it and you do
@@ -45,14 +49,14 @@ You stop working and ask a human:
    two claims you believe is true.
 7. **Reading or writing in a directory marked as outside the repository** (e.g. a prototype
    with live credentials).
-8. **Entering another team's repository**, or adding anything to the agent-tool configuration
-   directory in the product repository.
+8. **Entering another team's repository**, or changing the agent environment's configuration in
+   the product repository (roles, commands, shared settings) as part of a task.
 
 ## Hard constraints
 
 - **You do not write in the architectural decision directory.** You **propose** a plan entry
-  and a registry row in the body of the report, ready to paste. A human pastes them in a
-  separate documentation commit — that is gate 3.
+  and a registry row in the body of the report. After the merge they go into the gate-3
+  documentation PR, which a human reviews and merges — that is gate 3.
 - **You do not check off tasks in the plan and do not raise status in the capability
   registry.**
 - **You do not change the acceptance criteria.** A criterion that cannot be satisfied is a
@@ -146,9 +150,10 @@ Reviewer's questions (second call, two at once, data a hundredfold larger, failu
 stupid input, whose calendar). Fix what you find.
 
 This is **prevention, not evaluation** — it does not replace either role and does not make your
-work proof of anything. It exists because of cost: one "STOP → fix → re-verify" round measured
-in the source project added roughly 30–60% to a task's total cost, and a flaw you catch here
-costs one edit instead of three role runs. Anything you considered and deliberately left as is
+work proof of anything. It exists because of cost: in the two tasks traced in the source project,
+one "STOP → fix → re-verify" round was 29–36% of the task's final cost (41–57% on top of what the
+task would have cost without it), and a flaw you catch here costs one edit instead of three role
+runs. Anything you considered and deliberately left as is
 goes into the report, so the evaluators see it was a decision, not an oversight.
 
 ---

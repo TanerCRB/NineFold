@@ -30,23 +30,24 @@ another branch lives alongside it.
 Squash creates a **new commit that is not an ancestor of the branch** it came from. The work is
 in `main`, but git doesn't know it. Consequences worth knowing before choosing:
 
-1. **Merging `main` into a live branch produces a conflict on every file from the previous pull
-   request.** Not because anyone changed them — because git sees two independent histories of the
-   same content. Resolving "in favor of main" then silently reverts work done later on the
-   branch.
-2. **`git branch --merged` lies.** A fully merged branch shows commits "ahead of `main`", so it
-   can't be safely deleted based on that command alone — you have to compare content
-   (`git diff main branch`), which happens manually or not at all.
-3. **Squash takes the head remembered when the merge window was opened.** A commit pushed in the
-   meantime disappears without a trace from the pull request — it looks merged, because the PR is
-   closed.
+1. **A branch that still contains the squashed commits conflicts with `main`.** This hits a branch
+   stacked on the merged one, or the merged branch reused for more work: merging `main` into it
+   conflicts on files that both the squash and the branch's later commits touched, because git
+   sees two independent histories of the same content. Resolving "in favor of main" can then
+   silently revert later work. A branch that never contained those commits is not affected.
+2. **`git branch --merged` checks reachability, not content.** The squashed branch's commits are
+   not reachable from `main`, so a fully merged branch isn't listed as merged — deciding whether
+   it can be deleted takes a content comparison (`git diff main branch`).
+3. **Observed once, not a documented property:** a commit pushed while the merge dialog was open
+   didn't reach `main`, and the closed PR looked complete. Reload the PR before merging; don't
+   read this as a guarantee of how squash behaves.
 
-Merge commit has none of these three properties. The history is denser, and that's its only cost.
+A merge commit avoids the first two by construction. The history is denser, and that's its cost.
 
 **Rule of thumb:** merge commit for a pull request carrying more than one commit or open longer
 than one day; squash for one-off fixes.
 
-If linear history matters to you more than the three pitfalls above (e.g. you have
+If linear history matters to you more than the pitfalls above (e.g. you have
 backward-compatibility harnesses assuming `HEAD^` == previous version), squash-only remains a
 valid choice — just make sure to set `squash_merge_commit_message=PR_BODY`, because the default
 `COMMIT_MESSAGES` concatenates **all** of the branch's commit messages, including ones that
@@ -75,8 +76,10 @@ The substitute is the `pre-push` hook (section 4, and
 must say this outright, and it does: it can be bypassed with `--no-verify`, and it doesn't work
 for anyone who hasn't installed it.
 
-When the plan changes, the settings to apply are: required status checks, a ban on force-pushing
-`main`, a ban on deleting `main`. Required status checks have one precondition — see
+When the plan changes, the settings to apply are: a required pull request with zero approvals,
+required status checks, the rules enforced for administrators too, a ban on force-pushing `main`, a
+ban on deleting `main` (the reasons: [`ci-and-branch-protection.md`](ci-and-branch-protection.md)
+§2). Required status checks have one precondition — see
 [`ci-and-branch-protection.md`](ci-and-branch-protection.md) §1.
 
 ---
@@ -164,9 +167,10 @@ letting every push through.
 
 ## 6. Deliberate differences that should stay
 
-- **The agent tool's config directory does not enter the product repository** and is not subject
-  to its checks. A content check reading a git-ignored directory reports things that aren't
-  there.
+- **The synchronized roles (`.claude/agents/`) and local agent state don't enter the product
+  repository** and are not subject to its checks — a content check reading a git-ignored directory
+  reports things that aren't there. The commands (`.claude/commands/`) and the shared settings
+  (`.claude/settings.json`) do enter it, and change through review like code.
 - **The pull request template and role definitions differ in content**, not mechanism. Backend
   watches over data isolation and migrations, frontend over theme tokens and the navigation
   boundary. A shared list where half the fields can't be checked is worse than two lists.
