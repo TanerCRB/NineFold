@@ -22,7 +22,7 @@ stateDiagram-v2
     qa --> merge : mutation executed, all verdicts PASS, PR open, CI green
     merge --> implementation : 🔒 PR feedback
     merge --> evidence : 🔒 merged
-    evidence --> closed : 🔒 documentation commit, status raised
+    evidence --> closed : 🔒 documentation PR merged, status raised
     closed --> [*]
 ```
 
@@ -34,16 +34,22 @@ stateDiagram-v2
 | `state:design` | Architect | Impact map; on deviation — ADR deviation label |
 | `state:decision` 🔒 | **You** — gate 1 | Scope and architecture approved |
 | `state:implementation` | Developer | Developer report ready, full test suite green — no PR yet |
-| `state:qa` | QA, Invariant Guardian, Reviewer, Security Auditor (conditional) | Contrast test and mutation recorded, every verdict `PASS`; then commit, PR with the full template, CI green |
+| `state:qa` | QA, Invariant Guardian, Reviewer, Security Auditor (conditional) | Contrast test and mutation recorded, every verdict `PASS` on the same checkpointed version (`VERIFIED`); then PR with the full template, CI green |
 | `state:merge` 🔒 | **You** — gate 2 | PR merged |
-| `state:evidence` 🔒 | **You** — gate 3 | Documentation commit with the entries prepared by the agent |
-| `state:closed` | — | Status raised in the register |
+| `state:evidence` 🔒 | **You** — gate 3 | Documentation PR with the entries prepared by the agent, merged; it says `Closes #<N>` |
+| `state:closed` | — | Status raised in the register; the Issue is closed |
 
 The PR is opened at the end of `state:qa`, not at the end of implementation: its description
 carries the mutation result and the verdicts, so it cannot be complete earlier.
 
 Merging and raising the status are two separate human decisions. A merged PR only moves the Issue
 to `state:evidence` — "green tests" and "task complete" are deliberately separate claims.
+
+**The Issue stays open until gate 3.** The code PR refers to it with `Refs #<N>`, never a closing
+keyword: GitHub closes an Issue when a PR carrying `Closes`/`Fixes` merges into the default
+branch, and a closed Issue drops out of the `is:open` filter below exactly when it is waiting for
+you. Only the gate-3 documentation PR says `Closes #<N>`. An Issue closed in any state other than
+`state:closed` is flagged by `label-guard`.
 
 ## One filter that's enough
 

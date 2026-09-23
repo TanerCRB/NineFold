@@ -15,7 +15,13 @@ repository do not break the build — they expose a service, leak a secret into 
 version nobody can identify.
 -->
 
-Closes #
+<!--
+Refs, not Closes: merging this PR must leave the Issue open, waiting for gate 3 (state:evidence).
+The gate-3 documentation PR is the one that says "Closes #<N>".
+-->
+Refs #
+
+Verified at: <!-- the VERIFIED SHA from the task command, step 11a; every report below refers to it -->
 
 ## What is changing and why
 

@@ -13,7 +13,7 @@ name: label-guard
 
 on:
   issues:
-    types: [opened, reopened, labeled, unlabeled]
+    types: [opened, reopened, closed, labeled, unlabeled]
 
 # Labels change in bursts (remove the old state, add the new one). Only the last event in a burst
 # is checked, after a pause, so intermediate states don't produce false alarms.
@@ -38,9 +38,12 @@ jobs:
         run: |
           set -euo pipefail
           sleep 30
-          # Current labels from the API, not the event payload — the payload is a snapshot from
-          # the moment of that one event, possibly several changes ago.
-          labels=$(gh issue view "$NUMBER" --repo "$REPO" --json labels --jq '.labels[].name')
+          # Current state and labels from the API, not the event payload — the payload is a
+          # snapshot from the moment of that one event, possibly several changes ago.
+          info=$(gh issue view "$NUMBER" --repo "$REPO" --json state,labels \
+            --jq '.state, (.labels[].name)')
+          issue_state=$(head -n 1 <<<"$info")
+          labels=$(tail -n +2 <<<"$info")
 
           has() { grep -qx -- "$1" <<<"$labels"; }
           states=$(grep -c '^state:' <<<"$labels" || true)
@@ -60,6 +63,13 @@ jobs:
 
           if has state:closed && has evidence:missing; then
             violations+=("\`state:closed\` together with \`evidence:missing\` — status raised without evidence")
+          fi
+
+          # Only the gate-3 documentation PR closes a task. A code PR with a closing keyword, or a
+          # manual close, takes the Issue out of the is:open filter while it still waits for a
+          # human. The guard raises the alarm; it doesn't reopen — which state is right is a decision.
+          if [ "$issue_state" = "CLOSED" ] && ! has state:closed; then
+            violations+=("the Issue is closed but not in \`state:closed\` — closed before gate 3; reopen it or finish gate 3")
           fi
 
           echo "Labels checked: $(wc -l <<<"$labels")"

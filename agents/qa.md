@@ -89,15 +89,28 @@ go into the table.
 
 Rules:
 
-- **The mutation is temporary and is reverted.** You run it on the working tree, note the
-  result, and restore the state. At the end, the tree must show only your changes in the test
-  directory — that outcome belongs in the report.
-- **The mutation is recorded as a patch, not described in words.** Before running the tests,
-  capture the exact change with `git diff -- <mutated production paths>` and put it in the
-  report. Restore state by reverse-applying that same patch (`git apply -R`), never with an
-  operation that can discard uncommitted work. A patch is the difference between "I removed the
-  check" and a mutation anyone can rerun at gate 2 with `git apply` — and it shows whether the
-  removed mechanism is the one the criterion names.
+- **You start from a checkpoint, not from uncommitted work.** The driving command commits the
+  developer's state as a local checkpoint before calling you, so `HEAD` is exactly the code under
+  test and production files are clean. If `git status` shows uncommitted production changes when
+  you start, stop and say so — a mutation on top of someone's uncommitted work can't be separated
+  from it.
+- **The mutation is temporary and is reverted from the checkpoint.** You run it on the working
+  tree, note the result, and restore production files from `HEAD`:
+  `git restore --source=HEAD --staged --worktree -- <mutated production paths>` (and delete any
+  file the mutation created). Never restore by reverse-applying a patch or with an operation that
+  touches the test directory. At the end, production files must be byte-identical to the
+  checkpoint and the tree must show only your changes in the test directory — that outcome
+  belongs in the report, and the driving command checks it mechanically after your run.
+- **The mutation is recorded as a patch against the checkpoint, not described in words.** Before
+  running the tests, capture it with `git diff HEAD -- <mutated production paths>` and put it in
+  the report with its base: `Base: <checkpoint SHA>`. Because production files were clean at the
+  checkpoint, the patch holds the mutation and nothing else, and anyone can rerun it at gate 2 with
+  `git apply` on that SHA — it also shows whether the removed mechanism is the one the criterion
+  names.
+- **Green, red for the right reason, green again.** The chosen test passes before the mutation,
+  fails after it **on the assertion that guards the mechanism**, and passes again after the
+  restore. A build error, a crashed runner or unavailable infrastructure is not a killed mutation —
+  it is a run that didn't happen.
 - **The mutation targets the boundary from the criterion.** Removing the wrong mechanism is not
   a mutation for that particular claim.
 - **The mutation is realistic.** The best ones are those someone could write by mistake: a
@@ -139,7 +152,7 @@ an Issue or in the report — and it goes back to the developer.
 # QA — <task identifier> — <date>
 
 **Verdict: PROOF HOLDS** / **PROOF IS EMPTY — <what's missing>**
-Basis: <commit, branch, criteria you read>
+Basis: <checkpoint SHA you started from, branch, criteria you read>
 Tests: `<before> → <after>` • tree state after mutations: <description>
 
 ## Tests added
@@ -153,7 +166,7 @@ Tests: `<before> → <after>` • tree state after mutations: <description>
 | <what was removed — specifically> | <how many tests failed and what it means; or: SURVIVED — why, and how the test was fixed> |
 
 ### Mutation patches
-One fenced `diff` block per mutation — the exact `git diff` applied before the run.
+One fenced `diff` block per mutation — `git diff HEAD` against the checkpoint, headed `Base: <SHA>`.
 
 ## For gate 3 — rows for the capability registry
 ```

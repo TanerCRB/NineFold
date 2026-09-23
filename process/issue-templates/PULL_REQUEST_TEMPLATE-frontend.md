@@ -10,7 +10,13 @@ about data isolation and migrations — the source of both is in the process sou
 process/issue-templates/.
 -->
 
-Closes #
+<!--
+Refs, not Closes: merging this PR must leave the Issue open, waiting for gate 3 (state:evidence).
+The gate-3 documentation PR is the one that says "Closes #<N>".
+-->
+Refs #
+
+Verified at: <!-- the VERIFIED SHA from the task command, step 11a; every report below refers to it -->
 
 ## What is changing and why
 
@@ -44,7 +50,7 @@ catalog is not a mutation for a claim computed by the date library.
 - Removed mechanism:
 - Result:
 - Line in the frontend state register:
-- Mutation patch — the exact change QA made, so anyone can rerun it with `git apply`:
+- Mutation patch — the exact change QA made, against the checkpoint (`Base: <SHA>` on its first line), so anyone can rerun it with `git apply` on that SHA:
 
 <details><summary>mutation.patch</summary>
 
