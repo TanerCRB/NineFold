@@ -61,14 +61,25 @@ FROM information_schema.columns
 WHERE data_type = 'timestamp without time zone'
   AND table_schema NOT IN ('pg_catalog', 'information_schema');
 
--- A3. Every foreign key on a tenant table carries the tenant column.
-SELECT 'A3 FK without tenant column' AS assertion, format('%s %I', c.conrelid::regclass, c.conname) AS object
+-- A3. Every foreign key from a tenant table to a tenant table pairs the local tenant column with
+--     the referenced tenant column, position by position. Checking only that the local key
+--     contains tenant_id is not enough: FOREIGN KEY (parent_id, tenant_id) REFERENCES
+--     parent (tenant_id, id) contains it, and compares the local tenant with the parent's id.
+--     A reference to a table without a tenant column (global reference data) is out of scope.
+SELECT 'A3 FK does not pair tenant with tenant' AS assertion,
+       format('%s %I', c.conrelid::regclass, c.conname) AS object
 FROM pg_constraint c
 WHERE c.contype = 'f'
   AND EXISTS (SELECT 1 FROM pg_attribute a
               WHERE a.attrelid = c.conrelid AND a.attname = 'tenant_id' AND NOT a.attisdropped)
-  AND NOT EXISTS (SELECT 1 FROM pg_attribute a
-                  WHERE a.attrelid = c.conrelid AND a.attname = 'tenant_id' AND a.attnum = ANY (c.conkey));
+  AND EXISTS (SELECT 1 FROM pg_attribute a
+              WHERE a.attrelid = c.confrelid AND a.attname = 'tenant_id' AND NOT a.attisdropped)
+  AND NOT EXISTS (
+    SELECT 1
+    FROM unnest(c.conkey, c.confkey) AS k(local_attnum, referenced_attnum)
+    JOIN pg_attribute la ON la.attrelid = c.conrelid  AND la.attnum = k.local_attnum
+    JOIN pg_attribute ra ON ra.attrelid = c.confrelid AND ra.attnum = k.referenced_attnum
+    WHERE la.attname = 'tenant_id' AND ra.attname = 'tenant_id');
 
 -- A4. Every unique index on a tenant table (constraints included — they are backed by one) starts
 --     with the tenant column. Expression indexes (indkey[0] = 0) are reported too: the rule can't
@@ -106,15 +117,20 @@ CREATE TABLE good_parent (tenant_id uuid NOT NULL, id uuid NOT NULL, code text N
   PRIMARY KEY (tenant_id, id), UNIQUE (tenant_id, code));
 ALTER TABLE good_parent ENABLE ROW LEVEL SECURITY; ALTER TABLE good_parent FORCE ROW LEVEL SECURITY;
 
-CREATE TABLE good_child (tenant_id uuid NOT NULL, id uuid NOT NULL, parent_id uuid NOT NULL,
-  PRIMARY KEY (tenant_id, id),
-  FOREIGN KEY (tenant_id, parent_id) REFERENCES good_parent (tenant_id, id));
-ALTER TABLE good_child ENABLE ROW LEVEL SECURITY; ALTER TABLE good_child FORCE ROW LEVEL SECURITY;
-CREATE UNIQUE INDEX good_child_parent_ux ON good_child (tenant_id, parent_id);
-
 -- A global reference table (no tenant column) is out of scope of the tenant rules.
 CREATE TABLE good_country (code text PRIMARY KEY, created_at timestamptz NOT NULL);
 ALTER TABLE good_country ENABLE ROW LEVEL SECURITY; ALTER TABLE good_country FORCE ROW LEVEL SECURITY;
+
+-- Three correct references: the composite key, the same key with its columns listed in another
+-- order (still tenant to tenant), and a reference to global data.
+CREATE TABLE good_child (tenant_id uuid NOT NULL, id uuid NOT NULL, parent_id uuid NOT NULL,
+  country text NOT NULL,
+  PRIMARY KEY (tenant_id, id),
+  CONSTRAINT good_child_parent_fk FOREIGN KEY (tenant_id, parent_id) REFERENCES good_parent (tenant_id, id),
+  CONSTRAINT good_child_reordered_fk FOREIGN KEY (parent_id, tenant_id) REFERENCES good_parent (id, tenant_id),
+  CONSTRAINT good_child_country_fk FOREIGN KEY (country) REFERENCES good_country (code));
+ALTER TABLE good_child ENABLE ROW LEVEL SECURITY; ALTER TABLE good_child FORCE ROW LEVEL SECURITY;
+CREATE UNIQUE INDEX good_child_parent_ux ON good_child (tenant_id, parent_id);
 
 -- A1: RLS enabled but not forced
 CREATE TABLE bad_not_forced (tenant_id uuid NOT NULL, id uuid NOT NULL, PRIMARY KEY (tenant_id, id));
@@ -131,12 +147,42 @@ CREATE TABLE bad_child (tenant_id uuid NOT NULL, id uuid NOT NULL, parent_id uui
   PRIMARY KEY (tenant_id, id),
   CONSTRAINT bad_child_parent_fk FOREIGN KEY (parent_id) REFERENCES bad_parent (id));
 CREATE UNIQUE INDEX bad_child_code_ux ON bad_child (code);
+
+-- A3: the tenant column is in the key, but paired with the parent's id
+CREATE TABLE bad_swapped (tenant_id uuid NOT NULL, id uuid NOT NULL, parent_id uuid NOT NULL,
+  PRIMARY KEY (tenant_id, id),
+  CONSTRAINT bad_swapped_fk FOREIGN KEY (parent_id, tenant_id) REFERENCES good_parent (tenant_id, id));
+ALTER TABLE bad_swapped ENABLE ROW LEVEL SECURITY; ALTER TABLE bad_swapped FORCE ROW LEVEL SECURITY;
 ```
 
 Expected result: `bad_not_forced` and `bad_child` under A1, `bad_child.happened_at` under A2,
-`bad_child_parent_fk` under A3, `bad_parent_id_uq` and `bad_child_code_ux` under A4 — and nothing
-else. Run the fixture in a separate, throwaway schema or database, never in the one the real
-assertions check.
+`bad_child_parent_fk` and `bad_swapped_fk` under A3, `bad_parent_id_uq` and `bad_child_code_ux`
+under A4 — and nothing else. Run the fixture in a separate, throwaway schema or database, never in
+the one the real assertions check.
+
+### A catalog check is not the claim — test the behavior too
+
+A3 says the keys are *shaped* right. The claim is that a row of one tenant can't reference another
+tenant's row. Prove that directly, once per isolated relation, in the same throwaway database:
+
+```sql
+INSERT INTO good_parent (tenant_id, id, code, created_at)
+  VALUES ('00000000-0000-0000-0000-00000000000b', '00000000-0000-0000-0000-0000000000b1', 'P', now());
+INSERT INTO good_country (code, created_at) VALUES ('PL', now());
+DO $$
+BEGIN
+  INSERT INTO good_child (tenant_id, id, parent_id, country)
+    VALUES ('00000000-0000-0000-0000-00000000000a', gen_random_uuid(),
+            '00000000-0000-0000-0000-0000000000b1', 'PL');   -- tenant A pointing at tenant B's parent
+  RAISE EXCEPTION 'BEHAVIOR FAILED: a cross-tenant reference was accepted';
+EXCEPTION WHEN foreign_key_violation THEN
+  RAISE NOTICE 'behavior ok: cross-tenant reference rejected';
+END $$;
+```
+
+Its contrast: the same insert through a single-column key (`FOREIGN KEY (parent_id) REFERENCES
+parent (id)`) is accepted and the block fails — verified on PostgreSQL 16, so the test can fail
+for the reason it exists.
 
 ## Step 4 — exceptions with an owner and a date
 

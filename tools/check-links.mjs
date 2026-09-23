@@ -24,6 +24,7 @@
 // Run from the root directory of THIS repository.
 
 import { readdirSync, readFileSync, writeFileSync, existsSync, mkdtempSync, mkdirSync, rmSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname, relative, sep } from "node:path";
 
@@ -76,9 +77,31 @@ function relativePathOf(target) {
   }
 }
 
+// Files git ignores (local scratch like TMP/, build output) are not part of the repository, so
+// their links are not this repository's links: they would pass or fail differently on every
+// machine. Asked of git itself, not matched against .gitignore by hand. Outside a git repository
+// (or without git) nothing is filtered — and the report says how many files were skipped either
+// way, so an over-eager ignore rule shows up instead of silently shrinking the scan.
+function ignoredByGit(root, files) {
+  const relativePaths = files.map((file) => relative(root, file).split(sep).join("/"));
+  try {
+    const output = execFileSync("git", ["-C", root, "check-ignore", "--stdin"], {
+      input: relativePaths.join("\n"),
+      encoding: "utf8",
+      stdio: ["pipe", "pipe", "ignore"],
+    });
+    return new Set(output.split("\n").filter(Boolean));
+  } catch (error) {
+    if (error.status === 1) return new Set(); // none ignored
+    return new Set(); // not a git repository, or git unavailable: check everything
+  }
+}
+
 // Checks every Markdown file under `root`. `out.log` receives the report lines.
 function checkLinks(root, out) {
-  const files = listMarkdown(root);
+  const all = listMarkdown(root);
+  const ignored = ignoredByGit(root, all);
+  const files = all.filter((file) => !ignored.has(relative(root, file).split(sep).join("/")));
   let checked = 0;
   const broken = [];
   for (const file of files) {
@@ -94,7 +117,10 @@ function checkLinks(root, out) {
     }
   }
   for (const entry of broken) out.log(`BROKEN ${entry}`);
-  out.log(`Checked ${checked} relative links in ${files.length} Markdown files; broken: ${broken.length}.`);
+  out.log(
+    `Checked ${checked} relative links in ${files.length} Markdown files; broken: ${broken.length}.` +
+      (ignored.size > 0 ? ` Skipped ${ignored.size} file(s) ignored by git.` : ""),
+  );
   if (files.length === 0) {
     out.log("ERROR: no Markdown files found — nothing was checked. Run from the repository root.");
     return 2;
@@ -107,13 +133,14 @@ function checkLinks(root, out) {
 // Built-in contrast cases (calibration/README.md, Method 3): the same checker, run against
 // fixtures whose correct verdict is known, must tell them apart before its green is trusted.
 
-function withFixture(files, run) {
+function withFixture(files, run, { git = false } = {}) {
   const root = mkdtempSync(join(tmpdir(), "check-links-self-test-"));
   try {
     for (const [path, content] of Object.entries(files)) {
       mkdirSync(dirname(join(root, path)), { recursive: true });
       writeFileSync(join(root, path), content);
     }
+    if (git) execFileSync("git", ["init", "-q", root], { stdio: "ignore" });
     const lines = [];
     const code = checkLinks(root, { log: (m) => lines.push(m) });
     return run({ code, lines });
@@ -155,6 +182,18 @@ const SELF_TEST_CASES = [
           code === 0 && lines.includes("Checked 0 relative links in 1 Markdown files; broken: 0.")
             ? null
             : `expected exit 0 with 0 links checked, got ${code}: ${lines.join(" | ")}`,
+      ),
+  },
+  {
+    name: "a Markdown file ignored by git is skipped, and the skip is reported",
+    run: () =>
+      withFixture(
+        { ".gitignore": "TMP/\n", "README.md": "[a](docs/a.md)\n", "docs/a.md": "ok\n", "TMP/notes.md": "[x](../nope.md)\n" },
+        ({ code, lines }) =>
+          code === 0 && lines.includes("Checked 1 relative links in 2 Markdown files; broken: 0. Skipped 1 file(s) ignored by git.")
+            ? null
+            : `expected exit 0, the TMP file skipped and reported, got ${code}: ${lines.join(" | ")}`,
+        { git: true },
       ),
   },
   {
