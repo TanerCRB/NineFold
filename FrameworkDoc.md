@@ -75,7 +75,7 @@ returns an empty list. The code looks safe, the proof is false.
 
 SDD on its own does not solve this problem — a specification without verification of whether the
 proof actually proves anything is just more nicely worded code. That's why the process closes the
-loop with **mutation testing** (section 7) as part of the standard flow, not as an optional audit.
+loop with **mutation testing** (section 6) as part of the standard flow, not as an optional audit.
 
 HIL on its own does not scale — a human approving every line of code is a bottleneck. That's why
 human gates are **deliberately few and concentrated on decisions that cannot be automated** (scope,
@@ -131,7 +131,7 @@ The distribution mechanism is mechanical, not manual:
 
 **The source repository has its own lifecycle for changes to the roles themselves.** A change to a
 role definition (e.g., extending the Guardian's checklist with a new rule) requires repeating that
-role's calibration run (section 7) — this is the equivalent of a regression test, but for the role
+role's calibration run (section 6) — this is the equivalent of a regression test, but for the role
 definition instead of code. Tasks concerning the process itself do not have tickets in the tracking
 system — they live as rows in the plan with an explicit completion condition, with progress noted in
 the run log. A deliberate decision: for a handful of such tasks, a separate tracker would be a tool
@@ -299,7 +299,7 @@ prove**.
 QA does not check whether the code works — the developer's green test run already showed that. QA
 answers the question a green run doesn't ask: **can these tests fail at all?** It does this by
 physically removing the mechanism from the code (a mutation) and checking whether the corresponding
-test actually then fails. Details in section 7.
+test actually then fails. Details in section 6.
 
 In parallel (because they only read, they write nothing) come: the Guardian with a checklist of hard
 rules, the Reviewer looking for design flaws outside the checklist, and, conditionally, the Security
@@ -314,7 +314,7 @@ Guardian's unvarnished verdict, the list of invariants the change touches, and a
 scope outside this pull request. An unfilled field is left blank with a stated reason — "n/a" without
 a justification is worse than an empty field, because it pretends to be a resolution.
 
-Automatic CI gates must pass (section 9) before the process reaches the second human gate. An agent
+Automatic CI gates must pass (section 8) before the process reaches the second human gate. An agent
 never merges a pull request itself.
 
 ### Closure phase
@@ -776,7 +776,7 @@ counter-intuitive, verified empirically:
    they write nothing.
 2. **Process in the tracking system** — ticket forms, labels, branch protection — before any agent
    started writing code.
-3. **Calibration of evaluating roles** (section 7) — before anyone started trusting their reports.
+3. **Calibration of evaluating roles** (section 6) — before anyone started trusting their reports.
 4. **Producing roles plus a pilot of one task from start to finish** — the first week of work
    **did not once** go through a full product task from ticket to merge, even though the evaluating
    roles were already working correctly.
@@ -800,7 +800,7 @@ The Framework is not free, and it's worth saying so directly, because that's par
   bare list of questions.
 - Mutation testing is an extra step on top of standard test writing — it requires deliberately
   removing a mechanism and interpreting the result, and cannot be fully automated without oversight.
-  Role calibration (section 7) is the same cost moved up to the process level — every role definition
+  Role calibration (section 6) is the same cost moved up to the process level — every role definition
   change requires a fresh calibration run before the role returns to production work.
 - The layer of rules protecting against shared-resource collisions (number reservations, queue
   splitting, uniqueness checks) exists solely because many agents work on the repository at once — in
