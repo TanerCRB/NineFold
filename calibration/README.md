@@ -128,7 +128,13 @@ an AI role.
 ## When to repeat it
 
 After every change to the role's definition. A role that stops detecting an item from the answer
-key, or starts reporting a decoy, is a regression — just like a failing test. For deterministic
+key, or starts reporting a decoy, is a regression — just like a failing test.
+
+**And after every change of the model the role runs on.** Roles inherit the model of the session
+that calls them (`model: inherit`), so the definition file alone doesn't say what was calibrated.
+A calibration result is a claim about *this definition on this model* — record the model with
+every run, and treat a switch to a different model (cheaper for a cheap role, or the next model
+generation) as a definition change: rerun both methods before trusting the role's reports on it. For deterministic
 tools (Method 3), the equivalent is a change to the self-test's control case — it happens less
 often, but the rule is the same.
 

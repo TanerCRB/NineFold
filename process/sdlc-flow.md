@@ -70,6 +70,12 @@ decision or by an explicitly recorded deviation with a date and justification.
 has no passing test does not check off the task — this is not a formality, it is the only reason
 the progress register can be trusted.
 
+**The label invariants are checked by a workflow, not remembered.** Exactly one `state:*` label,
+`waiting-on-human` on every gate state, no `state:closed` next to `evidence:missing` — the
+[`workflows/label-guard.yml`](workflows/label-guard.yml) template comments on the Issue and goes
+red on a violation. It can't tell who removed `waiting-on-human` while agents act on the human's
+account; that one stays a rule.
+
 ## What this machine does not cover
 
 Process tasks of the AI team itself (e.g. `PROC-1-xx`) **have no Issue**. They live in the

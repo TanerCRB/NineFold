@@ -117,8 +117,25 @@ or personal data. After such a passage, go back to the compressed mode.
 ### 3. After every role invocation — a row in the cost register
 
 If you keep a role-cost register (see `../FrameworkDoc.md`, section 6) — after every invocation of
-any of the eight roles, append a row: date, role, task, phase, complexity, tokens, tool calls,
-time, notes.
+any of the eight roles, record one row: date, role, task, phase, **model**, complexity, tokens,
+tool calls, time, **rework cause**, notes.
+
+**One file per row, not one shared table.** Write each row as its own small file, e.g.
+`<cost-register-dir>/<date>_<task>_<phase>_<role>_<n>.json`, and build the table from the
+directory when you need it. A shared append-only table makes two parallel tasks append at the
+same spot and conflict on every merge; separate files never conflict, so the merge step needs no
+special rule for them.
+
+**Model** — the model the role actually ran on, from the invocation, not from the role file.
+Roles inherit the calling session's model, so the same role can run on different models across
+tasks; without this column a cost or quality difference between two runs can't be told apart
+from a model difference. A role's calibration result holds only for the model it was run on (see
+`../calibration/README.md`).
+
+**Rework cause** — filled only on a run that repeats earlier work (a fix after `STOP`, a
+re-verification): which finding caused it and **which earlier role could have caught it** (the
+Developer's self-check, the Guardian, the Analyst's criteria, nobody). This is the data for
+deciding where to move checks earlier; leave it empty on first runs.
 
 Take the numbers (tokens, tool calls, time) from the invocation's usage field — never estimate. If
 a given invocation doesn't return a number, write "no data" in that column instead of guessing: an
@@ -133,7 +150,7 @@ column with the evidence columns next to it — it's deliberately subjective.
 The entry doesn't block any gate and isn't part of the task's completion criteria — it's a
 separate, parallel process-cost register.
 
-**Commit the row immediately, as its own small commit of just that one file, on the task branch in
+**Commit the row file immediately, as its own small commit of just that one file, on the task branch in
 the task's worktree** — don't wait for the `pr` phase. This is one of the two pre-authorized
 bookkeeping commits (see "Overriding rules"); it never goes to `main` directly and is not pushed
 without a request. Reason: an uncommitted file on a shared checkout isn't evidence — it's just the
@@ -190,14 +207,42 @@ gate 1. If gate 1 rejects the task, the branch and worktree are removed like at 
 3. **Analyst role** — acceptance criteria and the *Definition of done* row. Every criterion has an
    observable carrier, a contrast, and a named mutation meant to kill it. Verdict: `READY FOR GATE
    1` or `STORY NEEDS MORE WORK`.
-4. **Architect role** — impact map onto architectural decisions. Three outcomes: fits / needs a
+4. **Architect role** — **unless the fast lane applies** (see "Fast lane: when the Architect is
+   skipped" below). Impact map onto architectural decisions. Three outcomes: fits / needs a
    deviation / needs a new decision. A deviation is an Issue with the corresponding label and a
-   draft decision in "Draft — pending approval" status.
+   draft decision in "Draft — pending approval" status. **After the call, run the write-boundary
+   check** (see "Write-boundary check" below) with the architecture decisions directory as the
+   only allowed path.
 5. **GATE 1 — STOP.** Gather in one message: the criteria, the impact map, the open questions
    (each with options and consequences, not "should we do X?"). You wait for the human's decision
    and for the move to the implementation phase. Without this, you don't enter the `code` phase.
    **You don't remove the waiting-on-human label yourself** — removing it is equivalent to making
    the decision. Unassign yourself — you're waiting on the human, not working.
+
+### Fast lane: when the Architect is skipped
+
+Cost should scale with risk, not with the number of tasks — the same principle that makes the
+Security Auditor conditional. The Architect is skipped only when **every** trigger below is clean,
+checked mechanically against the files the task will touch (from the Analyst's criteria and the
+Issue), not judged:
+
+- no file under the schema/migrations directory;
+- no new or changed public API surface (endpoint, contract type, event);
+- no new or upgraded dependency (package manifest, lock file, container image);
+- no path listed in the **architecture-sensitive paths** list — a file in the repository you keep
+  up to date, mapping directories to the decisions that govern them
+  (`<path-to-architecture-sensitive-paths-list>`);
+- the Product Owner raised no deviation label and the Analyst named no "unproven foundation".
+
+If any trigger fires, or you can't tell which files the task will touch, the Architect runs. At
+gate 1 you state explicitly: "Architect skipped — triggers checked: <list, each clean>". The human
+can require the Architect anyway; that's a gate-1 decision, not a failure of the fast lane.
+
+**Turn the fast lane on only with data.** Before enabling it, count in the cost register how often
+the Architect returned "fits, nothing to add" on tasks that would have passed all the triggers.
+If that's not nearly always, the triggers are missing something — fix the list before skipping
+anyone. Record the fast-lane skip in the cost register as a row with 0 tokens and the note
+"skipped: fast lane", so the saving and any later rework it caused are both visible.
 
 ---
 
@@ -250,7 +295,10 @@ label. Either missing = go back to the `analysis` phase.
     never from a separate counter (see `../FrameworkDoc.md`, section 9). A mutation that survived
     is a result to report, not to hide. Rows for the capability register are created as a
     **proposal**. Don't run the mutation with an operation that can discard uncommitted work
-    (e.g. a hard checkout) — restore state from a patch/diff instead.
+    (e.g. a hard checkout) — restore state from a patch/diff instead. Every mutation comes back
+    as a patch in the QA report; it goes into the PR's Mutation section as is. **After the call,
+    run the write-boundary check** with the test directory as the only allowed path — a
+    mutation left un-reverted in production code shows up here, not at gate 2.
 12. **Invariant Guardian role** — audits the diff against the hard rules. Verdict `PASS` /
     `STOP`. On `STOP` you go back to the `code` phase; the verdict goes into the PR description
     unsmoothed.
@@ -261,6 +309,50 @@ label. Either missing = go back to the `analysis` phase.
     it.
 
 Call roles 12–14 **in parallel** — they read, they write nothing.
+
+### Write-boundary check
+
+A role's `tools` declaration can't restrict writes to a directory (see the team contract, §2a),
+so the boundary is checked mechanically by you, right after the call, not by a human at the gate:
+
+```bash
+# Content hash of every modified, deleted or untracked file. Hashes, not `git status` letters:
+# a file already modified before the call and modified again during it keeps the same status
+# letter, and would slip through.
+snapshot() { git ls-files -m -o -d --exclude-standard | sort -u | while IFS= read -r f; do
+  if [ -e "$f" ]; then echo "$(git hash-object -- "$f") $f"; else echo "deleted $f"; fi
+done | sort; }
+
+T=$(mktemp -d)                 # outside the tree, so the snapshots don't snapshot themselves
+snapshot > "$T/before"         # immediately BEFORE the role call
+# ... role call ...
+snapshot > "$T/after"          # immediately AFTER
+# paths that changed during the call, outside the allowed directory:
+comm -3 "$T/before" "$T/after" | sed 's/^\t//' | cut -d' ' -f2- | sort -u | grep -v '^<allowed-dir>/'
+```
+
+Any output = **automatic STOP**: report the paths to the human and do not continue with the
+role's result. You don't revert the paths yourself — a human decides whether it was a mutation
+left behind or a deliberate edit out of role. Empty output goes into the role's cost-register
+notes as "boundary check: clean", so the check leaves a trace that it ran.
+
+### Re-verification after a `STOP`
+
+After the Developer fixes the findings, **don't rerun every evaluating role on the whole change
+by default.** Rerun:
+
+- each role that returned `STOP`, given its previous report and the **diff of the fix** (not the
+  whole branch) — its question is "are my findings resolved, and did the fix break anything
+  nearby";
+- the Invariant Guardian on the diff of the fix, always — a fix is new code, and new code can
+  break a fixed rule;
+- QA, if the fix touched a mechanism a mutation was run against — the old mutation result no
+  longer describes the code.
+
+A role that returned `PASS` and whose area the fix didn't touch is not rerun. **Fall back to a
+full rerun** when the fix touches files outside the previous findings, or when two roles disagree
+on the same facts — then each needs the full picture. Say which variant you chose and why in the
+message to the human.
 
 ---
 
@@ -277,10 +369,11 @@ Call roles 12–14 **in parallel** — they read, they write nothing.
     git merge origin/main                    # into the worktree, NOT the other way around
     ```
     **No conflict** — carry on.
-    **Conflict only in the role-cost register (append-only, one row per call)** — this is a known,
-    mechanical pattern: both sides appended a row at the same spot in the table, neither is a
-    duplicate. You resolve it **yourself, without a gate**: keep BOTH rows (never drop either
-    side), order chronologically/logically from the rows' content.
+    **Conflict in the role-cost register** — shouldn't happen with one file per row. If your
+    register is still a single shared table, this is the known mechanical pattern: both sides
+    appended a row at the same spot, neither is a duplicate. You resolve it **yourself, without a
+    gate**: keep BOTH rows (never drop either side), order chronologically from the rows' content
+    — and consider moving to one file per row.
     **Conflict in any other file** — STOP. This isn't mechanical; escalate to the human with a
     recommendation (see "How you talk to the human"), don't resolve it yourself.
     A merge that actually brought something in (a non-empty `git log` above) repeats the local

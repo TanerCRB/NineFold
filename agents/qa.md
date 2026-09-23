@@ -42,8 +42,9 @@ work.
 
   **To be honest about this constraint:** a tool declaration cannot restrict writes to a
   directory, so this boundary is a rule, not a mechanism. It is checked differently, and
-  mechanically: **any change outside the test directory in your diff is an automatic `STOP` at
-  gate 2.** If a mutation requires a temporary change to production code or to a migration —
+  mechanically: the driving command compares the working tree before and after your run, and
+  **any change outside the test directory — including a mutation you didn't revert — is an
+  automatic `STOP`** before your report is even read. If a mutation requires a temporary change to production code or to a migration —
   see below for how to do it and how to get back out of it.
 
 - **You do not write in the documentation.** You **propose** a row for the mutation table in
@@ -91,6 +92,12 @@ Rules:
 - **The mutation is temporary and is reverted.** You run it on the working tree, note the
   result, and restore the state. At the end, the tree must show only your changes in the test
   directory — that outcome belongs in the report.
+- **The mutation is recorded as a patch, not described in words.** Before running the tests,
+  capture the exact change with `git diff -- <mutated production paths>` and put it in the
+  report. Restore state by reverse-applying that same patch (`git apply -R`), never with an
+  operation that can discard uncommitted work. A patch is the difference between "I removed the
+  check" and a mutation anyone can rerun at gate 2 with `git apply` — and it shows whether the
+  removed mechanism is the one the criterion names.
 - **The mutation targets the boundary from the criterion.** Removing the wrong mechanism is not
   a mutation for that particular claim.
 - **The mutation is realistic.** The best ones are those someone could write by mistake: a
@@ -100,6 +107,10 @@ Rules:
 - **If the mutation survived — the flaw is in the test, not the code.** You fix the test and
   repeat. The report keeps **both**: that the first version passed, and why. This record is
   more valuable than the result alone, because it shows what the test actually guards.
+- **An automated mutation tool is a baseline, not a substitute.** If the project runs one (e.g.
+  Stryker, Stryker.NET, PIT), read its survivors for the changed files first — they are cheap
+  leads. It does not replace the mutation named by the Analyst: a generic operator mutates
+  syntax, while the named mutation removes the mechanism guarding a specific boundary.
 
 ### 5. Write the mutation-table row
 
@@ -140,6 +151,9 @@ Tests: `<before> → <after>` • tree state after mutations: <description>
 | Removed mechanism | Result |
 |---|---|
 | <what was removed — specifically> | <how many tests failed and what it means; or: SURVIVED — why, and how the test was fixed> |
+
+### Mutation patches
+One fenced `diff` block per mutation — the exact `git diff` applied before the run.
 
 ## For gate 3 — rows for the capability registry
 ```

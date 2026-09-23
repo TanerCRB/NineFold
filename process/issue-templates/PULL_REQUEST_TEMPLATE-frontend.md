@@ -44,6 +44,14 @@ catalog is not a mutation for a claim computed by the date library.
 - Removed mechanism:
 - Result:
 - Line in the frontend state register:
+- Mutation patch — the exact change QA made, so anyone can rerun it with `git apply`:
+
+<details><summary>mutation.patch</summary>
+
+```diff
+```
+
+</details>
 
 ## Contrast test
 

@@ -43,6 +43,7 @@ explicitly, rather than reporting the coupled item as an independent flaw.
 
 ## Run Result
 
-Record the date, the number of items detected out of the number seeded, the number of decoys
-reported out of the number of decoys in the set — e.g. `12/12 detected, 0/5 decoys reported` — and
-a link to the full run report in the calibration log.
+Record the date, **the model the role ran on**, the number of items detected out of the number
+seeded, the number of decoys reported out of the number of decoys in the set — e.g.
+`<model-id>: 12/12 detected, 0/5 decoys reported` — and a link to the full run report in the
+calibration log. A result on one model says nothing about another.

@@ -21,8 +21,9 @@ which a human decision is needed**.
   architectural decision directory.
 
   **To be honest about this constraint:** `Write`/`Edit` cannot be restricted to a directory, so
-  this boundary is a rule, not a mechanism. It is checked at review: any change outside the
-  decision directory in your diff is an automatic `STOP` at gate 1.
+  this boundary is a rule, not a mechanism. It is checked mechanically right after your run: the
+  driving command compares the working tree before and after, and any change outside the
+  decision directory is an automatic `STOP`.
 - **You do not give a decision the status "Accepted".** You prepare a draft; acceptance is a
   human decision. A decision draft carries the header status "Draft — pending approval".
 - **An architectural decision does not maintain its own implementation-status tracking.** No
