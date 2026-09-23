@@ -2,7 +2,7 @@
 
 > A method template for adaptation. Don't copy the examples verbatim — build your own calibration
 > set grounded in your own project's reality. Philosophical context: `../FrameworkDoc.md`, section 6
-> ("Calibrating roles: the same mechanism applied to the agents themselves").
+> ("Role calibration: the same mechanism applied to the agents themselves").
 
 An evaluating role (Invariant Guardian, Reviewer, QA, and any other role whose sole output is a
 verdict on someone else's work) is verified the same way a test is verified by mutation: it is run
@@ -82,7 +82,7 @@ If the code lives outside the directory the agent's tools see directly (e.g. on 
 the agent must read it through a channel that actually reads from there — not one assumed
 upfront. This isn't a technical detail: a copying tool that silently returns a stale version and
 reports success is a real, documented failure mode (see `../FrameworkDoc.md`, section 9, "Failure
-pattern: a tool reports success while being wrong").
+pattern: a tool returns success while being wrong").
 
 **How to score the run** — three numbers, not one:
 

@@ -22,8 +22,11 @@ e.g. `<repo-backend>`, `<owner>`, `<Entity>`. Substitute the specifics of your o
 
 1. **[`FrameworkDoc.md`](FrameworkDoc.md)** — the philosophy and mechanics of the process: nine
    roles, three human gates, mutation testing as the core of proof, state management, parallel
-   work by multiple agents, cost in tokens. Start here to understand **why** the rest of the
-   directory looks the way it looks.
+   work by multiple agents, how role cost is measured. Start here to understand **why** the rest of
+   the directory looks the way it looks.
+   *Optional:* **[`CASE-STUDY.md`](CASE-STUDY.md)** — the measured numbers and worked examples
+   from the source project (token cost per role, two tasks traced from ticket to merge, documented
+   tool failures). Not needed to adopt the process; read it to see what the pattern cost in practice.
 2. **[`TEAM-CONTRACT-TEMPLATE.md`](TEAM-CONTRACT-TEMPLATE.md)** — the team contract: who does what,
    which tools they don't have, where the boundary lies that can't be expressed in the permission
    declaration itself, how to launch a role. This is the document the role definitions defer to in
@@ -44,7 +47,10 @@ e.g. `<repo-backend>`, `<owner>`, `<Entity>`. Substitute the specifics of your o
    product repository, not here (see `FrameworkDoc.md`, section 4).
 5. **[`tools/`](tools/)** — `sync-agents.mjs` (copies role definitions from the process repository
    to the `.claude/agents/` of the product repository) and `sync-github.mjs` (distributes Issue/PR
-   templates and prints `gh` commands for labels).
+   templates and prints `gh` commands for labels). Both carry a `--self-test` of built-in contrast
+   cases (calibration Method 3) that also runs silently before every real run; this repository's
+   own CI (`.github/workflows/kit-ci.yml`) runs the self-tests, the label manifest check and
+   `check-links.mjs` (relative Markdown links) on every pull request.
 6. **[`calibration/`](calibration/)** — how to check that an evaluating role actually evaluates,
    before you start trusting it.
 7. **[`process/bootstrap-guide.md`](process/bootstrap-guide.md)** — a step-by-step sequence of
@@ -55,7 +61,8 @@ e.g. `<repo-backend>`, `<owner>`, `<Entity>`. Substitute the specifics of your o
 
 If you don't have time to read everything: `FrameworkDoc.md` §1–5, one role from `agents/` as a
 sample (e.g. `invariant-guardian.md` — it has the most mechanical output format),
-`process/sdlc-flow.md`, and `process/bootstrap-guide.md` steps 0–4.
+`process/sdlc-flow.md`, and `process/bootstrap-guide.md` steps 0–4. `CASE-STUDY.md` can be
+skipped entirely.
 
 ## What this kit deliberately does not contain
 

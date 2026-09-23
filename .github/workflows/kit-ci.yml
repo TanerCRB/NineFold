@@ -1,0 +1,58 @@
+# CI for THIS repository (the starter kit itself), not a template for product repositories —
+# tools/sync-github.mjs deliberately never distributes anything under .github/workflows/.
+#
+# No `paths` filter on pull_request, on purpose: a workflow skipped by a path filter reports no
+# status at all, and once its job is a required check, a PR touching only other paths hangs
+# forever on "Expected — Waiting for status to be reported"
+# (process/ci-and-branch-protection.md, section 1). The whole run takes seconds; filtering it
+# would save nothing worth that trap.
+name: kit-ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Read-only token: nothing here writes to the repository, comments on PRs, or publishes anything.
+permissions:
+  contents: read
+
+jobs:
+  checks:
+    name: kit-ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Actions pinned to full commit SHAs, not tags: a tag can be moved to different code after
+      # it was reviewed; a SHA can't. The comment names the tag the SHA was taken from, for the
+      # next person who bumps it.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 22
+
+      - name: Syntax check
+        run: |
+          node --check tools/sync-agents.mjs
+          node --check tools/sync-github.mjs
+          node --check tools/check-links.mjs
+
+      # Method 3 from calibration/README.md: each tool proves on built-in contrast cases that its
+      # checks still fire, before any of its green results below is worth anything.
+      - name: Self-tests
+        run: |
+          node tools/sync-agents.mjs --self-test
+          node tools/sync-github.mjs --self-test
+          node tools/check-links.mjs --self-test
+
+      # Validates the real label manifest (ASCII-only, unique names, hex colors, every target
+      # subset naming existing labels) and renders the gh script. Nothing is applied — the script
+      # has no credentials and this job wouldn't give it any.
+      - name: Label manifest renders
+        run: node tools/sync-github.mjs --labels
+
+      - name: Relative Markdown links resolve
+        run: node tools/check-links.mjs
