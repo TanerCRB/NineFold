@@ -23,6 +23,47 @@ All project names, organization, business domain, and specific identifiers (ADR 
 PR, hosts, accounts) have been removed or replaced with placeholders in angle brackets,
 e.g. `<repo-backend>`, `<owner>`, `<Entity>`. Substitute the specifics of your own project for them.
 
+## Start here
+
+Pick the row that matches what you came to do:
+
+| You want to… | Start with | Then |
+|---|---|---|
+| **Understand the process** | [`FrameworkDoc.md`](FrameworkDoc.md) §1–5 and the three diagrams below | [`process/sdlc-flow.md`](process/sdlc-flow.md) (states and gates), one role as a sample — [`agents/invariant-guardian.md`](agents/invariant-guardian.md) |
+| **Install it on your repositories** | [`process/bootstrap-guide.md`](process/bootstrap-guide.md) — the installation guide, steps 0–13, each with a check | [`TEAM-CONTRACT-TEMPLATE.md`](TEAM-CONTRACT-TEMPLATE.md), [`process/registers/`](process/registers/README.md) |
+| **Upgrade an existing installation** | [`UPGRADING.md`](UPGRADING.md) | the release notes of the version you move to |
+| **Drive a task** (after installing) | `/task-status #N` first — read-only — then `/task #N`: [`process/task-status-command.md`](process/task-status-command.md), [`process/task-command.md`](process/task-command.md) | [`process/sdlc-flow.md`](process/sdlc-flow.md) |
+| **Decide whether to trust a role's report** | [`calibration/README.md`](calibration/README.md) | [`process/invariant-assertions.md`](process/invariant-assertions.md) — what to move from a role into CI |
+| **Change this kit** | the tool self-tests (`node tools/<tool>.mjs --self-test`, `bash process/scripts/boundary-check.sh --self-test`) | [`.github/workflows/kit-ci.yml`](.github/workflows/kit-ci.yml) — the same checks on every pull request |
+
+**Short on time:** `FrameworkDoc.md` §1–5, `process/sdlc-flow.md`, and `process/bootstrap-guide.md`
+steps 0–6 (a working installation); steps 9–10 (calibration, one pilot task) before the first real
+task. [`CASE-STUDY.md`](CASE-STUDY.md) — the measured numbers from the source project — can be
+skipped entirely.
+
+### What you need before installing
+
+Two repositories: your own copy of this kit (the **process repository**) and the **product
+repository** it serves. On the machine: `git`, Node.js 22+, the GitHub CLI `gh` (authenticated), an
+agent environment that loads roles from a directory (e.g. Claude Code), and administrator rights on
+the product repository. Details and a check for each: `process/bootstrap-guide.md`, step 0.
+
+### Read this before you rely on it
+
+- **Placeholders are not optional.** Everything in `<angle brackets>` is yours to fill in; the sync
+  scripts refuse to run while one is left.
+- **The checklists are examples.** The Guardian's rules, the developer checklists and the
+  invariants in the PR template must be rewritten for your domain — carrying them over unchanged is
+  theater, not control (`FrameworkDoc.md`, §12).
+- **Three decisions stay human** — scope (gate 1), merge (gate 2), status (gate 3). Agents never
+  merge; a code PR says `Refs #N`, so the Issue stays open until the gate-3 documentation PR.
+- **Calibrate before you trust.** An evaluating role's `PASS` means something only after it was run
+  on material with a known answer — and the result holds for one definition, one model and one way
+  of invoking it. Roles run on the model of the session that calls them.
+- **Know what your protection really is.** On a private repository on GitHub's free plan there is no
+  server-side branch protection — the pre-push hook is a guard, not a gate. On a paid plan, enforce
+  the rules for administrators too: the agents act on your account.
+
 ## The process at a glance
 
 **Where the process lives.** One process repository is the source of truth; product repositories
@@ -84,13 +125,6 @@ anywhere zeroes out the rest (`FrameworkDoc.md`, section 6).
 
 **Already installed v0.1.0?** [`UPGRADING.md`](UPGRADING.md) takes a process repository and its
 product repositories from v0.1.0 to v0.2.0.
-
-## Minimal set to get started
-
-If you don't have time to read everything: `FrameworkDoc.md` §1–5, one role from `agents/` as a
-sample (e.g. `invariant-guardian.md` — it has the most mechanical output format),
-`process/sdlc-flow.md`, and `process/bootstrap-guide.md` steps 0–6 (everything up to a working
-installation; steps 9–10 before the first real task). `CASE-STUDY.md` can be skipped entirely.
 
 ## What this kit deliberately does not contain
 
