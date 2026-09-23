@@ -15,7 +15,7 @@ body:
         the work needs to happen.
 
   - type: dropdown
-    id: waga
+    id: severity
     attributes:
       label: Severity
       options:
@@ -26,7 +26,7 @@ body:
       required: true
 
   - type: input
-    id: regula
+    id: rule
     attributes:
       label: Rule violated
       description: |
@@ -37,7 +37,7 @@ body:
       required: true
 
   - type: input
-    id: lokalizacja
+    id: location
     attributes:
       label: Location
       description: Path and line range. Not "somewhere in the data layer."
@@ -46,7 +46,7 @@ body:
       required: true
 
   - type: textarea
-    id: sciezka-do-szkody
+    id: path-to-harm
     attributes:
       label: Path to harm
       description: Specific — what input, what state, what effect. If it cannot be written, there is no report.
@@ -54,7 +54,7 @@ body:
       required: true
 
   - type: textarea
-    id: sprawdzone
+    id: checked-elsewhere
     attributes:
       label: I checked that this is not already handled elsewhere
       description: |
@@ -65,7 +65,7 @@ body:
       required: true
 
   - type: textarea
-    id: obalenie
+    id: would-disprove
     attributes:
       label: Would falsify this report
       description: What piece of code, test, or database constraint would invalidate this entry.
@@ -73,7 +73,7 @@ body:
       required: true
 
   - type: textarea
-    id: mutacja
+    id: mutation
     attributes:
       label: Mutation
       description: |

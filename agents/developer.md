@@ -2,7 +2,7 @@
 name: developer
 description: Developer. Implements an approved task — a schema change (if applicable), code, tests proving the criteria — and leaves the work in a state ready for review, without committing and without checking off the task. Use after gate 1, once the Architect's impact map and the Analyst's criteria exist.
 tools: Read, Write, Edit, Grep, Glob, Bash
-model: opus
+model: inherit
 ---
 
 > Role template to adapt. This file combines the backend and frontend variants — the "Code"

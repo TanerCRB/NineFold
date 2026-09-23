@@ -33,7 +33,11 @@ Issue returns 404, don't use it. -->
 
 - **Status is raised by evidence, not conviction.** You don't check off the task and you don't
   raise its status.
-- **You don't commit or push without an explicit request.** Never merge a pull request.
+- **You don't commit or push without an explicit request.** Never merge a pull request. The only
+  exception is a closed list of **bookkeeping commits** you make without asking: the plan-number
+  reservation (step 2) and the role-cost register row ("How you talk to the human", point 3).
+  Each touches only its one file, lands on the task branch — never on `main` — and is not pushed
+  without a request. Anything outside this list goes back to the rule.
 - **Gates 1, 2 and 3 belong to the human.** You work up to them, prepare the material, and
   **stop**.
 - The agent tool's configuration directory and any directory explicitly marked as outside the
@@ -129,11 +133,14 @@ column with the evidence columns next to it — it's deliberately subjective.
 The entry doesn't block any gate and isn't part of the task's completion criteria — it's a
 separate, parallel process-cost register.
 
-**Commit the row immediately, as its own small commit of just that one file** — don't wait for the
-`pr` phase. Reason: an uncommitted file on a shared checkout isn't evidence — it's just the belief
-that something was written down, and it disappears the moment someone else's parallel work switches
-that checkout. A single small commit doesn't get in the way of further work, and it survives
-removing the worktree and other people's operations on other checkouts.
+**Commit the row immediately, as its own small commit of just that one file, on the task branch in
+the task's worktree** — don't wait for the `pr` phase. This is one of the two pre-authorized
+bookkeeping commits (see "Overriding rules"); it never goes to `main` directly and is not pushed
+without a request. Reason: an uncommitted file on a shared checkout isn't evidence — it's just the
+belief that something was written down, and it disappears the moment someone else's parallel work
+switches that checkout. A single small commit doesn't get in the way of further work, and it
+survives removing the worktree and other people's operations on other checkouts. The row reaches
+`main` together with the task's pull request.
 
 ---
 
@@ -163,7 +170,11 @@ never closed. Before you start implementation, check whether the *Definition of 
 already met by the current code. If it is — the right reaction is to close the submission with
 evidence (a quoted test/code reference), not to reimplement the same thing.
 
-Once the above rules out a collision and you're moving ahead, assign the Issue to yourself.
+Once the above rules out a collision and you're moving ahead, assign the Issue to yourself and
+**create the task's worktree on its own branch now**, before the first role call (the rules for
+where to create it are in step 6). Until gate 1 the branch carries only bookkeeping commits — the
+number reservation and the cost-register rows of the analysis roles; code enters it only after
+gate 1. If gate 1 rejects the task, the branch and worktree are removed like at closure.
 
 ---
 
@@ -175,7 +186,7 @@ Once the above rules out a collision and you're moving ahead, assign the Issue t
    state label and **doesn't** move on.
 2. **Plan task number** — if the task isn't in the plan yet, reserve a number through the dedicated
    mechanism (see `../FrameworkDoc.md`, section 9, on identifiers as a shared resource), as a
-   separate commit before the actual work.
+   separate bookkeeping commit on the task branch, before the actual work.
 3. **Analyst role** — acceptance criteria and the *Definition of done* row. Every criterion has an
    observable carrier, a contrast, and a named mutation meant to kill it. Verdict: `READY FOR GATE
    1` or `STORY NEEDS MORE WORK`.
@@ -195,8 +206,9 @@ Once the above rules out a collision and you're moving ahead, assign the Issue t
 Entry condition: an impact map **and** criteria exist, the Issue carries the implementation-phase
 label. Either missing = go back to the `analysis` phase.
 
-6. **Working directory.** A task that writes: its own worktree on its own branch, the branch name
-   carries the task identifier. A task that only reads stays on the main branch. **Only ever
+6. **Working directory.** Already created in step 0 — confirm you're working in it. A task that
+   writes: its own worktree on its own branch, the branch name carries the task identifier. A
+   task that only reads stays on the main branch. **Only ever
    create the worktree somewhere your quality tools (formatter, linter) actually scan** — a
    directory excluded from their reach by default (e.g. because it holds the agent tool's own
    configuration) hands back a green check that checked nothing (see `../FrameworkDoc.md`, section
@@ -295,7 +307,8 @@ Call roles 12–14 **in parallel** — they read, they write nothing.
 20. **If you maintain a queryable code index/graph — refresh it before gate 3.** Applies only to
     code files; if the index doesn't exist yet, skip this step — don't set one up from scratch
     here.
-21. **GATE 3 — material for the human.** Prepare ready-to-paste entries, don't paste them
+21. **GATE 3 — material for the human.** The merged task sits in the gate-3 state (e.g.
+    `state:evidence`, see `sdlc-flow.md`), not in the closed one. Prepare ready-to-paste entries, don't paste them
     yourself: checking off the task in the plan with a "Done <date>" row, a row in the
     activity/capability register, mutation rows. Status is never raised without a link to a
     specific test or artifact.

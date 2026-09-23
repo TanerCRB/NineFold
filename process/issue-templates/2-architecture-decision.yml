@@ -13,7 +13,7 @@ body:
         of the old text.
 
   - type: input
-    id: zrodlo
+    id: source
     attributes:
       label: What this stems from
       description: Identifier of the story or task that ran into this problem.
@@ -22,7 +22,7 @@ body:
       required: true
 
   - type: textarea
-    id: pytanie
+    id: question
     attributes:
       label: Resolving question
       description: |
@@ -33,7 +33,7 @@ body:
       required: true
 
   - type: textarea
-    id: opcje
+    id: options
     attributes:
       label: Options and consequences
       description: |
@@ -47,7 +47,7 @@ body:
       required: true
 
   - type: textarea
-    id: dotkniete-adr
+    id: affected-decisions
     attributes:
       label: Affected architecture decisions
       description: Which decisions this matter violates, supplements, or refers to.
@@ -58,7 +58,7 @@ body:
       required: true
 
   - type: textarea
-    id: koszt-zwloki
+    id: cost-of-delay
     attributes:
       label: What happens if we do not resolve this now
       description: |

@@ -15,7 +15,7 @@
 //
 // Usage:
 //   node tools/sync-github.mjs              copies templates, reports what changed
-//   node tools/sync-github.mjs --check      reports only drift, writes nothing (exit 1 on drift)
+//   node tools/sync-github.mjs --check      reports only drift, writes nothing (exit 1 on drift or a missing target)
 //   node tools/sync-github.mjs --labels     prints gh commands for labels (bash), writes nothing
 //   node tools/sync-github.mjs --labels-ps1 same, for PowerShell
 //
@@ -26,6 +26,7 @@
 // Run from the root directory of THIS repository (the process source repository).
 
 import { readdirSync, readFileSync, writeFileSync, mkdirSync, existsSync, statSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { join, resolve } from "node:path";
 
 const CHECK_ONLY = process.argv.includes("--check");
@@ -92,12 +93,15 @@ const TARGETS = [
       "state:implementation",
       "state:qa",
       "state:merge",
+      "state:evidence",
       "state:closed",
       "role:po",
       "role:analyst",
       "role:architect",
       "role:qa",
       "role:invariant-guardian",
+      "role:reviewer",
+      "role:security-auditor",
       "waiting-on-human",
       "blocked",
       "evidence:missing",
@@ -128,8 +132,9 @@ const TARGETS = [
   },
 ];
 
-const TEMPLATE_DIR = resolve("..", "process", "issue-templates");
-const LABEL_MANIFEST = resolve("..", "process", "labels.json");
+// Relative to the root of THIS repository — the same working directory sync-agents.mjs expects.
+const TEMPLATE_DIR = resolve("process", "issue-templates");
+const LABEL_MANIFEST = resolve("process", "labels.json");
 // ---------------------------------------------------------------------------------------------
 
 // Everything else in the templates directory is an Issue form and lands under ISSUE_TEMPLATE/.
@@ -138,6 +143,18 @@ const REPO_ROOT_TEMPLATES = new Set(["PULL_REQUEST_TEMPLATE.md"]);
 function fail(message) {
   console.error(`ERROR: ${message}`);
   process.exit(2);
+}
+
+// The commit of THIS repository the files are read from, plus whether the source path carries
+// uncommitted changes. "unknown" instead of failing: the report must say it, not hide it.
+function sourceRevision(path) {
+  try {
+    const sha = execFileSync("git", ["rev-parse", "--short", "HEAD"], { encoding: "utf8" }).trim();
+    const dirty = execFileSync("git", ["status", "--porcelain", "--", path], { encoding: "utf8" }).trim();
+    return dirty ? `${sha} + uncommitted changes in ${path}` : sha;
+  } catch {
+    return "unknown (not a git checkout, or git unavailable)";
+  }
 }
 
 // Both shells use single quotes for the literal, but escape an apostrophe inside it
@@ -289,12 +306,19 @@ for (const file of templates) {
   }
 }
 
+// Report WHAT was read, not only what was found: a copy from a stale checkout reports success just
+// as convincingly as a fresh one (FrameworkDoc.md, section 9).
+console.log(`Source: ${sourceRevision("process/issue-templates")}`);
+
 let drift = 0;
 let copied = 0;
+let skipped = 0;
 
 for (const target of TARGETS) {
+  // A missing target is not "no drift" — it is "nothing checked", and must not end in exit 0.
   if (!existsSync(target.path)) {
-    console.warn(`SKIPPED ${target.name}: not found: ${target.path}`);
+    console.error(`SKIPPED ${target.name}: not found: ${target.path}`);
+    skipped++;
     continue;
   }
 
@@ -358,9 +382,13 @@ for (const target of TARGETS) {
   }
 }
 
+if (skipped > 0) {
+  console.error(`Skipped ${skipped} of ${TARGETS.length} targets — not checked. Fix the TARGETS paths or remove the entries.`);
+}
+
 if (CHECK_ONLY) {
-  console.log(drift === 0 ? "No drift." : `Drifted: ${drift}.`);
-  process.exit(drift === 0 ? 0 : 1);
+  console.log(drift === 0 ? (skipped === 0 ? "No drift." : "No drift in the targets that were checked.") : `Drifted: ${drift}.`);
+  process.exit(drift === 0 && skipped === 0 ? 0 : 1);
 }
 
 console.log(
@@ -368,3 +396,4 @@ console.log(
     ? `No changes. Templates: ${templates.length}.`
     : `Wrote ${copied} of ${templates.length} templates. Files are tracked by git — review and commit them yourself.`,
 );
+process.exit(skipped === 0 ? 0 : 1);

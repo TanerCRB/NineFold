@@ -11,7 +11,7 @@ body:
         not passed, because there is nothing to decide when the work is finished.
 
   - type: input
-    id: zadanie
+    id: task-id
     attributes:
       label: Task identifier from the plan
       description: For example `PROJ-8-03`. If the task is not in the plan, write `none` and justify it in the description.
@@ -20,7 +20,7 @@ body:
       required: true
 
   - type: textarea
-    id: opis
+    id: what-and-why
     attributes:
       label: What and why
       description: One to three sentences. What is missing and who it affects. Do not describe the solution.
@@ -28,7 +28,7 @@ body:
       required: true
 
   - type: textarea
-    id: gotowe-gdy
+    id: definition-of-done
     attributes:
       label: Definition of done
       description: |
@@ -42,7 +42,7 @@ body:
       required: true
 
   - type: textarea
-    id: poza-zakresem
+    id: out-of-scope
     attributes:
       label: Out of scope (explicit)
       description: |
@@ -55,7 +55,7 @@ body:
       required: true
 
   - type: textarea
-    id: podstawa
+    id: documentation-basis
     attributes:
       label: Basis in documentation
       description: Links to architecture decisions, data model sections, the state machine, an entry in the plan.
@@ -63,7 +63,7 @@ body:
       required: false
 
   - type: checkboxes
-    id: potwierdzenia
+    id: confirmations
     attributes:
       label: Before gate 1
       options:

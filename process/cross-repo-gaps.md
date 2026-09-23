@@ -74,7 +74,7 @@ allows not reporting and forgetting about it.
 
 ## What the Issue must contain
 
-The `4-gap-from-the-other-repo.yml` template enforces seven fields. Two of them are unusual, and
+The `4-gap-from-other-repo.yml` template enforces seven fields. Two of them are unusual, and
 they're what decides whether a report is an order or a wish:
 
 **"What I will remove on my side once this exists".** The reporter states what they will remove

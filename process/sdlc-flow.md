@@ -17,11 +17,12 @@ stateDiagram-v2
     design --> decision : impact map ready
     decision --> implementation : 🔒 approved
     decision --> analysis : 🔒 rejected, scope needs rethinking
-    implementation --> qa : PR open, full test suite green
-    qa --> implementation : negative test found a defect
-    qa --> merge : mutation executed, Invariant Guardian PASS
+    implementation --> qa : developer report ready, full test suite green
+    qa --> implementation : STOP from QA, Guardian, Reviewer or Security Auditor
+    qa --> merge : mutation executed, all verdicts PASS, PR open, CI green
     merge --> implementation : 🔒 PR feedback
-    merge --> closed : 🔒 merged, status raised
+    merge --> evidence : 🔒 merged
+    evidence --> closed : 🔒 documentation commit, status raised
     closed --> [*]
 ```
 
@@ -31,11 +32,18 @@ stateDiagram-v2
 |---|---|---|
 | `state:analysis` | Product Owner, Analyst | *Definition of Done* and *Out of scope* filled in |
 | `state:design` | Architect | Impact map; on deviation — ADR deviation label |
-| `state:decision` 🔒 | **You** | Scope and architecture approved |
-| `state:implementation` | Developer | PR open, full test suite green |
-| `state:qa` | QA, Invariant Guardian | Contrast test, mutation recorded, audit verdict |
-| `state:merge` 🔒 | **You** | PR merged |
+| `state:decision` 🔒 | **You** — gate 1 | Scope and architecture approved |
+| `state:implementation` | Developer | Developer report ready, full test suite green — no PR yet |
+| `state:qa` | QA, Invariant Guardian, Reviewer, Security Auditor (conditional) | Contrast test and mutation recorded, every verdict `PASS`; then commit, PR with the full template, CI green |
+| `state:merge` 🔒 | **You** — gate 2 | PR merged |
+| `state:evidence` 🔒 | **You** — gate 3 | Documentation commit with the entries prepared by the agent |
 | `state:closed` | — | Status raised in the register |
+
+The PR is opened at the end of `state:qa`, not at the end of implementation: its description
+carries the mutation result and the verdicts, so it cannot be complete earlier.
+
+Merging and raising the status are two separate human decisions. A merged PR only moves the Issue
+to `state:evidence` — "green tests" and "task complete" are deliberately separate claims.
 
 ## One filter that's enough
 

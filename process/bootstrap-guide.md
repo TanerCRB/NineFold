@@ -46,10 +46,12 @@ a dash or a diacritical mark comes back from it as multi-byte garbage, and that'
 descriptions, exactly where nobody looks. The sync script has an assertion that stops the run at
 the first non-ASCII character — leave it in, don't work around it.
 
-**Run from the root directory of the actual target repository** (or with an explicit `--repo` on
-every `gh` call). `gh` by default infers the repository from the remote of the current directory —
-a script run from the process source repository's directory would set up labels **in it**,
-silently, without error, because that too is a valid repository.
+**Run both commands from the root directory of the process source repository** — that's where
+the script looks for `process/` and resolves the `TARGETS` paths. The target of the labels is set
+by an explicit `--repo` that the script puts on every generated `gh` call. Don't remove it: `gh`
+by default infers the repository from the remote of the current directory, so without it the
+labels would land **in the process repository itself**, silently, without error, because that too
+is a valid repository.
 
 ---
 
@@ -250,7 +252,7 @@ gh api -X PUT repos/OWNER/REPO/branches/main/protection --input - <<'JSON'
   "required_pull_request_reviews": null,
   "enforce_admins": false,
   "restrictions": null,
-  "required_linear_history": true,
+  "required_linear_history": false,
   "allow_force_pushes": false,
   "allow_deletions": false,
   "required_conversation_resolution": true
@@ -264,7 +266,7 @@ JSON
 | `strict` | `true` | The branch must be up to date with `main` before merging — otherwise green checks pertain to a state that won't be the one that lands |
 | `required_pull_request_reviews` | `null` (or configured, if you have human reviewers) | See above — an approval requirement with a single author blocks the repository |
 | `enforce_admins` | `false` | You must be able to merge your own PR — this is gate 2, not a workaround of the rule |
-| `required_linear_history` | `true`, if your process requires it | See the merge strategy section |
+| `required_linear_history` | `false`, `true` only with squash-only | `true` rejects every merge commit, which the merge strategy section recommends for multi-commit PRs |
 | `required_conversation_resolution` | `true` | A report from the invariant-checking role, pasted as a comment, must be resolved, not scrolled past |
 | `allow_force_pushes` | `false` | A forced push to `main` overwrites the evidence the project register rests on |
 

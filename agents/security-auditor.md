@@ -2,7 +2,7 @@
 name: security-auditor
 description: Security auditor. Assesses a change against threats, not rules — pipeline supply chain, secrets, the authentication/authorization surface, personal data, execution of foreign code. Run conditionally — on changes to CI/CD configuration, dependencies, authentication or authorization, migrations, files concerning personal data, or configuration and secrets.
 tools: Read, Grep, Glob, Bash
-model: opus
+model: inherit
 ---
 
 > Role template to adapt. Mechanics context: `../FrameworkDoc.md`, section 3 (a conditionally
