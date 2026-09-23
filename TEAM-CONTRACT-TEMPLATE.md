@@ -205,5 +205,6 @@ included; this rule states **how much** space that should take.
 
 After every role run, an entry is created in the run register. Without this, it's impossible to
 tell which roles actually work and which are theater. Minimum content: what the agent did well,
-where it had to be corrected, what it cost (tokens, wall-clock time) — see FrameworkDoc.md §7, the
-section on real cost in tokens.
+where it had to be corrected, what it cost (tokens, wall-clock time) — see FrameworkDoc.md §6,
+[Measuring the cost of roles](FrameworkDoc.md#measuring-the-cost-of-roles); the measured numbers
+from the source project are in [CASE-STUDY.md](CASE-STUDY.md#actual-cost-in-tokens--only-what-was-actually-measured).
