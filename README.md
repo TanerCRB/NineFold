@@ -123,8 +123,8 @@ anywhere zeroes out the rest (`FrameworkDoc.md`, section 6).
    actions to go from an empty repository to a working pipeline with gates. Start here if you want
    to **act**, not just understand.
 
-**Already installed v0.1.0?** [`UPGRADING.md`](UPGRADING.md) takes a process repository and its
-product repositories from v0.1.0 to v0.2.0.
+**Already installed an earlier version?** [`UPGRADING.md`](UPGRADING.md) takes a process repository
+and its product repositories forward one version at a time (v0.1.0 → v0.2.0 → v0.3.0).
 
 ## What this kit deliberately does not contain
 
