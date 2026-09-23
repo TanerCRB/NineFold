@@ -1,4 +1,205 @@
-# Upgrading from v0.1.0 to v0.2.0
+# Upgrading
+
+Step-by-step upgrades between released versions, newest first. Each one touches two places — your
+**process repository** (your copy of this kit) and every **product repository** that received
+roles, templates and commands from it — and every step ends with a check, because most of these
+changes fail silently when half-done. Upgrade one version at a time.
+
+- [v0.2.0 → v0.3.0](#v020--v030)
+- [v0.1.0 → v0.2.0](#v010--v020)
+
+If you are installing from scratch, follow [`process/bootstrap-guide.md`](process/bootstrap-guide.md)
+instead.
+
+---
+
+## v0.2.0 → v0.3.0
+
+v0.3.0 answers an external review of the process. Its core: the evidence behind a merge must be
+about the code that is merged, and a check that can't see something must not report "clean". The
+reasons for each change are in the pull requests
+[#11](https://github.com/TanerCRB/NineFold/pull/11) (controls),
+[#12](https://github.com/TanerCRB/NineFold/pull/12) (consistent instructions) and
+[#13](https://github.com/TanerCRB/NineFold/pull/13) (assertions and measurement); #9, #10, #14 and
+#15 only touch the kit's own documentation.
+
+**Time:** about half a day per product repository, plus recalibration of all four evaluating roles.
+
+### What changed, in one table
+
+| Area | Change | Action in a product repo |
+|---|---|---|
+| Verification | The developer's state and QA's tests become local **checkpoint commits**; sync with `main` happens **before** verification; every report names one `VERIFIED` SHA; a later non-bookkeeping change from `main` reruns the affected roles | merge the task command (step 5) |
+| Mutations | Taken and restored against the checkpoint; the patch carries `Base: <SHA>`; green → red → green required; four causes of a survived mutation | re-sync roles (step 4) |
+| Write-boundary check | A script, `boundary-check.sh`, compares HEAD, the index and the working tree; `--none` for read-only roles; runs around **every** role called through a general-purpose mechanism | copy the script (step 2) |
+| Issues and gate 3 | Code PRs say **`Refs #N`**; the Issue stays open in `state:evidence` until a **documentation PR** (`Closes #N`) that the agent prepares and the human merges — that merge is gate 3 | re-sync templates (step 3), migrate Issues (step 6) |
+| `label-guard` | Also runs on `closed`; flags an Issue closed before gate 3 | update the workflow (step 3) |
+| Verdicts | One high or medium finding is `STOP` unless the human records an exception (owner, reason, date); shared "Verdicts" section in the contract | re-sync roles, update your contract (step 1) |
+| Fast lane | An approved fast-lane record replaces the impact map; re-checked against the real diff | merge the task command |
+| Branch protection | PR required with **0 approvals**, **`enforce_admins: true`** | change the settings (step 8) |
+| `.claude/` | Only `.claude/agents/` and local state are unversioned; commands and shared settings are versioned — now also in the contract | check `.gitignore` (step 4) |
+| Assertions | A3 pairs the tenant columns of both sides of a foreign key; a behavior test for cross-tenant references | replace A3 (step 8) |
+| CI variant B | The build is skipped only for documentation-only diffs; the gate accepts `skipped` only then | update your filter, if you use it (step 8) |
+| Cost register | New fields `invocation`, `roles`; gate rows, escapes, p50/p90 | add fields (step 7) |
+| Calibration | Methods for QA (1a) and the Security Auditor (1b); results keyed by definition, model, invocation mode and case set | recalibrate (step 9) |
+| Pinning | Step 0 posts session, worktree, branch and a roles fingerprint; a change mid-task stops it | merge the task command |
+
+### 0. Before you start
+
+**Finish or park every task in flight.** The verification flow changed (checkpoints, one `VERIFIED`
+SHA, sync before QA), and a task switched halfway has evidence that fits neither version. List them
+as in the v0.1.0 → v0.2.0 upgrade, step 0, let them pass gate 2, then upgrade.
+
+Tag the current state of the process repository and each product repository
+(`git tag pre-ninefold-v0.3.0`) so there is a way back.
+
+### 1. Process repository: take v0.3.0
+
+```bash
+git fetch upstream --tags
+git switch -c upgrade/ninefold-v0.3.0
+git merge v0.3.0
+```
+
+Expect conflicts in:
+
+- **`agents/*.md`** — keep your domain content, take the new mechanics: QA's checkpoint, restore and
+  patch rules and the four causes of a survived mutation; the verdict paragraphs in the Guardian,
+  the Reviewer and the Security Auditor; the Developer's hard stops 1, 4 and 8 and its cost figures;
+  Guardian rule 23.
+- **Your `TEAM-CONTRACT.md`** — compare with the new template: §2a rows (boundary check, general-
+  purpose invocation), §3 gate 3 as a documentation PR, the new §3a "Verdicts", hard stops 3, 5, 8
+  and 10, §5.
+- **`tools/check-links.mjs`** — take it whole; it now skips files git ignores.
+
+**Check:**
+
+```bash
+node tools/sync-agents.mjs --self-test
+node tools/sync-github.mjs --self-test && node tools/sync-github.mjs --validate
+node tools/check-links.mjs --self-test && node tools/check-links.mjs
+bash process/scripts/boundary-check.sh --self-test     # every case passes on this machine
+```
+
+### 2. Product repository: the boundary-check script
+
+```bash
+mkdir -p scripts
+cp <process-repo>/process/scripts/boundary-check.sh scripts/
+grep -q '^scripts/\*\.sh text eol=lf' .gitattributes || echo 'scripts/*.sh text eol=lf' >> .gitattributes
+git add .gitattributes scripts/boundary-check.sh && git add --renormalize scripts/
+git update-index --chmod=+x scripts/boundary-check.sh
+```
+
+**Check:** `bash scripts/boundary-check.sh --self-test` — all cases pass (the mode-change case is
+skipped where the filesystem has no executable bit).
+
+### 3. Templates and the label guard
+
+From the process repository: `node tools/sync-github.mjs`. The PR templates now carry `Refs #`,
+`Verified at:`, the mutation patch with its base, and "proposed row … entered at gate 3". Copy the
+new `process/workflows/label-guard.yml` over `.github/workflows/label-guard.yml` by hand. Commit
+both through a PR.
+
+**Check:** `node tools/sync-github.mjs --check` → `No drift.`; in the product repository,
+`grep -c "Refs #" .github/PULL_REQUEST_TEMPLATE.md` → 1 and
+`grep -c closed .github/workflows/label-guard.yml` → at least 1.
+
+### 4. Roles
+
+From the process repository: `node tools/sync-agents.mjs`, then `--check` → `No drift.`. Make sure
+the product repository ignores only `.claude/agents/`, not the whole `.claude/`.
+
+### 5. Task commands
+
+Merge by hand what changed upstream:
+
+```bash
+git diff v0.2.0 v0.3.0 -- process/task-command.md process/task-status-command.md
+```
+
+Into your `.claude/commands/task.md`:
+
+1. **Overriding rules** — the closed commit list now has verification checkpoints and the gate-3
+   documentation commit; the configuration rule (roles, commands, settings change only through
+   their own PR); the "Task started / Task stopped" comment.
+2. **How you call a role** — the general-purpose call as a weaker mode: boundary check around every
+   role, `--none` for read-only ones, `invocation` in the cost row.
+3. **Step 0** — pin session, worktree, branch and the roles fingerprint in an Issue comment.
+4. **Step 4 and "Fast lane"** — the fast-lane record as a comment approved at gate 1; the entry
+   condition of the `code` phase.
+5. **Step 10a** — checkpoint and sync before verification; the fast-lane re-check.
+6. **Steps 11, 11a, 12–14** — QA on the checkpoint, the QA checkpoint, `VERIFIED`, every report
+   naming its SHA; the "Write-boundary check" section now calls `scripts/boundary-check.sh`.
+7. **"Re-verification after a STOP"** — fixes become new checkpoints and a new `VERIFIED`.
+8. **Steps 15–19** — the freshness check against `VERIFIED`; push only on request; `Refs #N` and
+   `Verified at:` in the PR; gate 2 checks the PR head against `VERIFIED`.
+9. **Steps 21 and 23** — the gate-3 documentation PR with `Closes #N`; labels set at gate 3.
+
+Into `task-status.md`: the three new rows of the state table (Issue open at gate 3, closed before
+gate 3, a report naming a different SHA).
+
+**Check:** `grep -c "VERIFIED\|boundary-check.sh\|Refs #\|fast-lane record" .claude/commands/task.md`
+— several lines each; then `/task-status #<N>` on any Issue runs and changes nothing.
+
+### 6. Migrate Issues closed before gate 3
+
+Under v0.2.0 a code PR with `Closes #N` closed the Issue at merge, while it still waited in
+`state:evidence`. Reopen those whose register entry is not in place yet:
+
+```bash
+gh issue list --repo <owner>/<product-repo> --state closed --label state:evidence --json number,title
+gh issue reopen <N> --repo <owner>/<product-repo>
+gh issue edit <N> --repo <owner>/<product-repo> --add-label waiting-on-human
+```
+
+Then finish their gate 3 the new way — a documentation PR with `Closes #N`. An Issue whose entry is
+already in place gets `state:closed` and stays closed.
+
+**Check:** the list above is empty, and so is the label-invariant query from the v0.1.0 → v0.2.0
+upgrade, step 6.
+
+### 7. Registers
+
+Add `invocation` and `roles` to new cost rows (old rows keep "no data" — don't backfill from
+memory), and start recording gate rows (`"kind": "gate"`) and escapes as
+[`process/registers/cost-register.md`](process/registers/cost-register.md) describes. The capability
+register's mutation rows link patches with their base SHA.
+
+### 8. Settings, CI and assertions
+
+- **Branch protection (paid plan):** a required pull request with `required_approving_review_count:
+  0`, required status checks, `enforce_admins: true` — then the acceptance test from
+  [`process/ci-and-branch-protection.md`](process/ci-and-branch-protection.md) §3 on a throwaway
+  repository, never on the product's `main`.
+- **Invariant assertions:** replace A3 with the paired version, add the swapped-key case to your
+  fixture and the cross-tenant behavior test ([`process/invariant-assertions.md`](process/invariant-assertions.md)).
+- **CI variant B**, if you use it: the documentation-only allowlist and the new gate.
+
+### 9. Recalibrate the evaluating roles
+
+All four changed: the verdict semantics (Guardian, Reviewer, Security Auditor) and QA's mutation
+method. Run the methods from [`calibration/README.md`](calibration/README.md) — 1 for the Guardian, 2
+for the Reviewer, **1a for QA and 1b for the Security Auditor** (new) — and key each result by
+definition, model, invocation mode and case set. Until then, a `PASS` from them is unconfirmed at
+gate 2.
+
+### 10. Confirm on one task
+
+Drive one small task with the updated `/task`. What should be visibly different:
+
+- a "Task started" comment with the roles fingerprint on the Issue;
+- two checkpoint commits (`developer`, `qa`) on the task branch, and every report naming `VERIFIED`;
+- "boundary check: clean" after each role that was checked;
+- a PR that says `Refs #N` and `Verified at: <SHA>`;
+- after the merge the Issue **still open** in `state:evidence`, and a documentation PR with
+  `Closes #N` — its merge is your gate 3.
+
+When that holds, delete the `pre-ninefold-v0.3.0` tags.
+
+---
+
+## v0.1.0 → v0.2.0
 
 > For teams that installed the kit at **v0.1.0** (the initial commit `4a726f3`, 2026-09-17) and want
 > to move to **v0.2.0** (2026-09-23). If you are installing from scratch, follow
@@ -13,7 +214,7 @@ changes fail silently when half-done.
 
 ---
 
-## What changed, in one table
+### What changed, in one table
 
 | Area | Change | Action in a product repo |
 |---|---|---|
@@ -38,7 +239,7 @@ The full list of reasons is in the pull requests:
 
 ---
 
-## 0. Before you start
+### 0. Before you start
 
 **Pick a moment between tasks.** A task already in flight finishes under the command it started
 with: the old flow opens the PR at the end of implementation, the new one at the end of
@@ -58,7 +259,7 @@ before changing anything (`git tag pre-ninefold-upgrade`).
 
 ---
 
-## 1. Process repository: take the new version
+### 1. Process repository: take the new version
 
 Your process repository is a copy of this kit with your own edits — adapted roles, a filled-in
 configuration. Bring the new version in as a merge on a branch, not by overwriting files:
@@ -105,7 +306,7 @@ with the merge — enable Actions for the process repository if they're off.
 
 ---
 
-## 2. Product repository: protect the hook's line endings
+### 2. Product repository: protect the hook's line endings
 
 If the product repository already has the pre-push hook, make sure it can't be checked out with
 CRLF (the initial guide added this rule after copying the hook, which could leave it CRLF):
@@ -121,7 +322,7 @@ it; it is unchanged in content, so usually there is nothing to replace.
 
 ---
 
-## 3. Labels and templates
+### 3. Labels and templates
 
 From the process repository root:
 
@@ -147,7 +348,7 @@ new ids: `task-id`, `what-and-why`, `definition-of-done`, `out-of-scope`, `docum
 
 ---
 
-## 4. Roles
+### 4. Roles
 
 From the process repository root:
 
@@ -165,7 +366,7 @@ and `.claude/agents/architect.md` shows `tools: Read, Write, Edit, Grep, Glob`.
 
 ---
 
-## 5. Task commands
+### 5. Task commands
 
 Your `.claude/commands/task.md` and `task-status.md` are adapted copies, so they are merged by
 hand. See exactly what changed upstream:
@@ -203,7 +404,7 @@ runs and changes nothing.
 
 ---
 
-## 6. Migrate open Issues to the new state machine
+### 6. Migrate open Issues to the new state machine
 
 In the old machine, merging a PR moved a task straight toward `state:closed`. Now a merged task
 waits in `state:evidence` for the gate-3 documentation commit. Find tasks that were merged but whose
@@ -240,7 +441,7 @@ gh issue list --repo <owner>/<product-repo> --state open --limit 500 --json numb
 
 ---
 
-## 7. Registers
+### 7. Registers
 
 Compare what you have with [`process/registers/`](process/registers/README.md) and add what's
 missing. Two changes matter for existing registers:
@@ -257,7 +458,7 @@ If your capability register keeps mutations, add a `Patch` column for the links 
 
 ---
 
-## 8. New files and settings
+### 8. New files and settings
 
 | What | Where in the product repo | Source |
 |---|---|---|
@@ -279,7 +480,7 @@ run is red; remove one and the next run is green.
 
 ---
 
-## 9. Recalibrate before trusting the reports
+### 9. Recalibrate before trusting the reports
 
 The Guardian's and QA's definitions changed, and every role now runs on the calling session's
 model instead of a fixed one. By the kit's own rule both are a definition change
@@ -295,7 +496,7 @@ Until then, treat an evaluating role's `PASS` as unconfirmed at gate 2.
 
 ---
 
-## 10. Confirm on one task
+### 10. Confirm on one task
 
 Run one small task with the updated `/task` from start to finish, as in
 [`bootstrap-guide.md`](process/bootstrap-guide.md) step 10. What should be visibly different from
