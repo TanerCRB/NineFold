@@ -44,7 +44,10 @@ e.g. `<repo-backend>`, `<owner>`, `<Entity>`. Substitute the specifics of your o
    product repository, not here (see `FrameworkDoc.md`, section 4).
 5. **[`tools/`](tools/)** — `sync-agents.mjs` (copies role definitions from the process repository
    to the `.claude/agents/` of the product repository) and `sync-github.mjs` (distributes Issue/PR
-   templates and prints `gh` commands for labels).
+   templates and prints `gh` commands for labels). Both carry a `--self-test` of built-in contrast
+   cases (calibration Method 3) that also runs silently before every real run; this repository's
+   own CI (`.github/workflows/kit-ci.yml`) runs the self-tests, the label manifest check and
+   `check-links.mjs` (relative Markdown links) on every pull request.
 6. **[`calibration/`](calibration/)** — how to check that an evaluating role actually evaluates,
    before you start trusting it.
 7. **[`process/bootstrap-guide.md`](process/bootstrap-guide.md)** — a step-by-step sequence of
