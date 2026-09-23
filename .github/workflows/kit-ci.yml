@@ -49,10 +49,10 @@ jobs:
           node tools/check-links.mjs --self-test
 
       # Validates the real label manifest (ASCII-only, unique names, hex colors, every target
-      # subset naming existing labels) and renders the gh script. Nothing is applied — the script
-      # has no credentials and this job wouldn't give it any.
-      - name: Label manifest renders
-        run: node tools/sync-github.mjs --labels
+      # subset naming existing labels) and the Issue/PR templates. `--labels` can't run here: the
+      # kit's OWNER and TARGETS are placeholders by design, and the tool refuses to render them.
+      - name: Label manifest and templates are valid
+        run: node tools/sync-github.mjs --validate
 
       - name: Relative Markdown links resolve
         run: node tools/check-links.mjs

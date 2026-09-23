@@ -146,7 +146,8 @@ The agent **stops working and asks**, regardless of stage or role:
 ## 5. How to launch a role
 
 Definitions live in the process's source repository (`<repo-process>/agents/`). The agent operates
-in the product repository, so the definitions have to reach `<repo-backend>/.claude/agents/`:
+in the product repository, so the definitions have to reach `<repo-backend>/.claude/agents/` (the
+full installation — `.gitignore`, commands, permissions — is `process/bootstrap-guide.md`, step 4):
 
 ```bash
 node tools/sync-agents.mjs          # copies definitions to the target directories

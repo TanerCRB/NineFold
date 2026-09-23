@@ -38,8 +38,9 @@ e.g. `<repo-backend>`, `<owner>`, `<Entity>`. Substitute the specifics of your o
    in a single file with two example checklists side by side; if you have two technology stacks,
    split it into two files (see the note at the top of the file).
 4. **[`process/`](process/)** — the state machine, label manifest, Issue and PR templates, the
-   pre-push hook, the `main` protection variant without a paid plan, repository settings, release
-   versioning, the cross-repository gap channel.
+   pre-push hook, minimal register templates (`process/registers/`), the `main` protection
+   variant without a paid plan, repository settings, release versioning, the cross-repository gap
+   channel.
    **[`task-command.md`](process/task-command.md)** and
    **[`task-status-command.md`](process/task-status-command.md)** — the full content of the
    command that drives one task through the whole lifecycle (the equivalent of
@@ -61,8 +62,8 @@ e.g. `<repo-backend>`, `<owner>`, `<Entity>`. Substitute the specifics of your o
 
 If you don't have time to read everything: `FrameworkDoc.md` §1–5, one role from `agents/` as a
 sample (e.g. `invariant-guardian.md` — it has the most mechanical output format),
-`process/sdlc-flow.md`, and `process/bootstrap-guide.md` steps 0–4. `CASE-STUDY.md` can be
-skipped entirely.
+`process/sdlc-flow.md`, and `process/bootstrap-guide.md` steps 0–6 (everything up to a working
+installation; steps 9–10 before the first real task). `CASE-STUDY.md` can be skipped entirely.
 
 ## What this kit deliberately does not contain
 

@@ -151,7 +151,25 @@ function sourceRevision(path) {
 // target list, the source root, the target subdirectory, the mode, where output goes (`out` has
 // log/warn/error like console), how the source revision is described and how "is it ignored by
 // git" is answered. Returns the exit code; throws ToolError on invalid source definitions.
+// An unfilled `<placeholder>` in TARGETS is a configuration nobody finished, not a target that
+// happens to be missing. Reported as SKIPPED it would read like a path typo; refused, it says
+// exactly what to do (process/bootstrap-guide.md, step 1).
+function rejectPlaceholders(targets) {
+  for (const target of targets) {
+    for (const [field, value] of [["name", target.name], ["path", target.path]]) {
+      const placeholder = String(value).match(/<[^<>]+>/);
+      if (placeholder) {
+        fail(
+          `TARGETS still contains the placeholder "${placeholder[0]}" (field "${field}"). ` +
+            `Replace it with your product repository before running — see process/bootstrap-guide.md, step 1.`,
+        );
+      }
+    }
+  }
+}
+
 function runSync({ targets, root, targetSubdir, checkOnly, out, revision, isIgnored }) {
+  rejectPlaceholders(targets);
   const sources = loadSources(targets, root);
 
   for (const dir of sources.keys()) {
@@ -410,6 +428,18 @@ const SELF_TEST_CASES = [
         return r.code !== 0 && skipped && !r.lines.includes("No drift.")
           ? null
           : `expected non-zero exit, a SKIPPED line and no "No drift.", got exit ${r.code}: ${r.lines.join(" | ")}`;
+      }),
+  },
+  {
+    name: "unfilled <placeholder> in TARGETS is refused before anything is written",
+    run: () =>
+      withFixture({ sources: { "role-a.md": definition("role-a") } }, (f) => {
+        const targets = [{ ...f.targets[0], name: "<repo-backend>" }];
+        const r = invoke({ ...f, targets, checkOnly: false });
+        const written = existsSync(join(f.targetPath, ...TARGET_SUBDIR, "role-a.md"));
+        return r.code === 2 && /placeholder "<repo-backend>"/.test(r.error ?? "") && !written
+          ? null
+          : `expected refusal naming the placeholder and nothing written, got exit ${r.code}, error ${r.error}, written ${written}`;
       }),
   },
 ];
