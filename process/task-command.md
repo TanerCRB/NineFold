@@ -55,7 +55,9 @@ Issue returns 404, don't use it. -->
   on the main branch.
 - **Assignment for the duration of the work.** You start working a task → you assign the Issue to
   yourself. You stop working it — a STOP gate, a collision, a merged PR, anything else — → you
-  unassign yourself, even when the Issue stays open and unclosed.
+  unassign yourself, even when the Issue stays open and unclosed. When every session acts on the
+  same account, the assignment can't say *which* session holds the task — the "Task started"
+  comment from step 0 does, and a "Task stopped — <reason>" comment releases it.
 - **If you maintain a queryable code index/graph** (built without an LLM, e.g. an AST) — use it
   first for questions about code relationships (what calls X, where is Y used, a module map, the
   impact of a change) instead of manual searching. Questions about documentation/architecture are
@@ -211,6 +213,22 @@ Once the above rules out a collision and you're moving ahead, assign the Issue t
 where to create it are in step 6). Until gate 1 the branch carries only bookkeeping commits — the
 number reservation and the cost-register rows of the analysis roles; code enters it only after
 gate 1. If gate 1 rejects the task, the branch and worktree are removed like at closure.
+
+**Pin what the task runs on, and who runs it.** Post one comment on the Issue:
+
+```bash
+ROLES=$(cat .claude/agents/*.md .claude/commands/task.md | git hash-object --stdin)
+gh issue comment <N> --repo <organization>/<product-repo> --body \
+  "Task started — session: <session id>, worktree: <path>, branch: <branch>, roles: $ROLES"
+```
+
+The fingerprint covers the synchronized roles and this command; every cost-register row carries
+it (`roles`). Before each role call, recompute it: if it changed mid-task (someone ran the sync, or
+edited the command), **stop and ask** — finishing a task under two versions of a role makes its
+evidence incomparable, and switching is a decision, not a side effect. The session and worktree in
+the comment answer what an assignment can't when every session acts on the same account: *which*
+session holds the task. A second session finding such a comment with no later "Task stopped" comment
+treats the task as taken (step 0, "work already in progress elsewhere = stop").
 
 ---
 

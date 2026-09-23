@@ -65,7 +65,6 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       code: ${{ steps.detect.outputs.code }}
-      docs: ${{ steps.detect.outputs.docs }}
     steps:
       - uses: actions/checkout@<sha> # pinned to a commit identifier, not a tag
         with:
@@ -76,11 +75,14 @@ jobs:
         run: |
           git fetch --no-tags --depth=1 origin "${{ github.base_ref }}"
           changed=$(git diff --name-only "origin/${{ github.base_ref }}...HEAD")
-          code=false; docs=false
-          grep -qE '^(src/|tests/)' <<<"$changed" && code=true
-          grep -qE '^(docs/|tools/)' <<<"$changed" && docs=true
+          # Fail safe: skip the build ONLY when every changed path is documentation. Anything
+          # else — source, tests, a lockfile, package.json, Directory.Build.props, global.json, a
+          # Dockerfile, a workflow, a path nobody classified, or an empty diff — runs it. An
+          # allowlist of what may skip, never a list of what must run: a forgotten build input
+          # then costs minutes, not a green check that checked nothing.
+          code=true
+          if [ -n "$changed" ] && ! grep -qvE '^(docs/|[^/]+\.md$)' <<<"$changed"; then code=false; fi
           echo "code=$code" >> "$GITHUB_OUTPUT"
-          echo "docs=$docs" >> "$GITHUB_OUTPUT"
 
   build-and-test:
     needs: changes
@@ -95,10 +97,14 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Fail when any required job did not succeed or skip cleanly
+      - name: Fail unless the checks this diff needs actually ran and passed
         run: |
           [[ "${{ needs.changes.result }}" == "success" ]] || exit 1
-          [[ "${{ needs.build-and-test.result }}" =~ ^(success|skipped)$ ]] || exit 1
+          # "skipped" is acceptable only when the classifier said the diff doesn't need a build.
+          case "${{ needs.changes.outputs.code }}/${{ needs.build-and-test.result }}" in
+            true/success|false/skipped) ;;
+            *) exit 1 ;;
+          esac
 ```
 
 In variant B, the required check is **only `gate`**, never `build-and-test`.
