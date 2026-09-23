@@ -1,7 +1,7 @@
-# Upgrading from the initial release
+# Upgrading from v0.1.0 to v0.2.0
 
-> For teams that installed the kit from the initial commit `4a726f3` (2026-09-17) and want to move
-> to the version after PR #6 (`859be9e`, 2026-09-23). If you are installing from scratch, follow
+> For teams that installed the kit at **v0.1.0** (the initial commit `4a726f3`, 2026-09-17) and want
+> to move to **v0.2.0** (2026-09-23). If you are installing from scratch, follow
 > [`process/bootstrap-guide.md`](process/bootstrap-guide.md) instead.
 
 The upgrade touches two places: your **process repository** (your copy of this kit) and every
@@ -33,7 +33,8 @@ The full list of reasons is in the pull requests:
 [#3](https://github.com/TanerCRB/NineFold/pull/3) ·
 [#4](https://github.com/TanerCRB/NineFold/pull/4) ·
 [#5](https://github.com/TanerCRB/NineFold/pull/5) ·
-[#6](https://github.com/TanerCRB/NineFold/pull/6).
+[#6](https://github.com/TanerCRB/NineFold/pull/6) ·
+[#7](https://github.com/TanerCRB/NineFold/pull/7).
 
 ---
 
@@ -64,9 +65,9 @@ configuration. Bring the new version in as a merge on a branch, not by overwriti
 
 ```bash
 git remote add upstream <url-of-this-kit>      # once
-git fetch upstream
+git fetch upstream --tags
 git switch -c upgrade/ninefold
-git merge upstream/main
+git merge v0.2.0                               # the release, not a moving branch
 ```
 
 Expect conflicts in three places:
@@ -85,7 +86,7 @@ Expect conflicts in three places:
   `TEAM-CONTRACT-TEMPLATE.md`: classification of QA and the Architect, hard stops 3, 7 and 8, the
   §2a boundary checks and permissions, the §8 log fields.
 
-If you used `sync-github.mjs` before, note that in the initial version it only worked when run from
+If you used `sync-github.mjs` before, note that in v0.1.0 it only worked when run from
 `tools/` with adjusted paths. Run it from the repository root now.
 
 **Check:**
@@ -171,8 +172,8 @@ hand. See exactly what changed upstream:
 
 ```bash
 # in the process repository
-git diff 4a726f3 main -- process/task-command.md
-git diff 4a726f3 main -- process/task-status-command.md     # no changes
+git diff v0.1.0 v0.2.0 -- process/task-command.md
+git diff v0.1.0 v0.2.0 -- process/task-status-command.md   # no changes
 ```
 
 Carry these into your `task.md`:
