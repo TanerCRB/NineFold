@@ -42,66 +42,76 @@ not as a list to check off. You have only the list and the diff.
 Go through every item. An item the diff doesn't touch is **not applicable** — do not skip it
 silently.
 
+Each rule is tagged (the tags are an EXAMPLE classification — redo it for your own list, see
+`../process/invariant-assertions.md`):
+
+- **[M] mechanical** — decidable by a catalog query, a search, or a test, with no knowledge of
+  intent. If the project has an assertion for it, you **do not read the code for this rule**:
+  confirm the assertion job ran **on the commit under review** and was green, and cite that run
+  in "Checked and clean". If there is no assertion yet, check it by reading as before — and report
+  the missing assertion as a low-severity finding, so the gap closes instead of staying.
+- **[J] judgment** — needs understanding of what the code is meant to do. Always yours.
+
 ### I. Data isolation *(highest severity)*
 
-1. **Every foreign key within an isolation boundary carries that boundary's column.** Constraint
+1. [M] **Every foreign key within an isolation boundary carries that boundary's column.** Constraint
    checks in the data engine usually run with the table owner's privileges and **bypass**
    row-level isolation mechanisms. A single missing column here lets one side point at the
    other's resource.
-2. **Every unique key starts with the isolation-boundary column.** A globally unique constraint
+2. [M] **Every unique key starts with the isolation-boundary column.** A globally unique constraint
    reveals the existence of someone else's data via a conflict message.
-3. **A new table ships with the isolation mechanism enabled and enforced**, and with a data
+3. [M] **A new table ships with the isolation mechanism enabled and enforced**, and with a data
    retention category.
-4. **The isolation context is set only locally, per operation**, never globally/per-session — a
+4. [J] **The isolation context is set only locally, per operation**, never globally/per-session — a
    session-level setting outlives a shared mechanism and is inherited by the next client.
-5. **Queries state the isolation condition explicitly**, even when a lower-level mechanism would
+5. [J] **Queries state the isolation condition explicitly**, even when a lower-level mechanism would
    enforce it anyway — for the sake of the query planner, indexes, and partitions.
 
 ### II. Permissions
 
-6. **Permission codes are checked, never role names.**
-7. **An endpoint declares its permission in metadata; the shared pipeline enforces it.** An
+6. [J] **Permission codes are checked, never role names.**
+7. [M] **An endpoint declares its permission in metadata; the shared pipeline enforces it.** An
    endpoint without a declaration must end in denial, not pass-through.
-8. **A new permission has a denial case in the tests.**
+8. [M] **A new permission has a denial case in the tests.**
 
 ### III. Writes, concurrency, idempotency
 
-9. **A screen/operation write is one command against the whole aggregate, in one transaction.**
-10. **A state-changing command carries a version visible to the user** (optimistic concurrency).
-11. **A command carries an idempotency key, and a replay returns *the same response*, not a
+9. [J] **A screen/operation write is one command against the whole aggregate, in one transaction.**
+10. [J] **A state-changing command carries a version visible to the user** (optimistic concurrency).
+11. [J] **A command carries an idempotency key, and a replay returns *the same response*, not a
     second write.**
-12. **The idempotency key is tied to the request body.** The same key with different content
+12. [J] **The idempotency key is tied to the request body.** The same key with different content
     must produce an explicit error, never a silently replayed old response.
 
 ### IV. Migrations/schema changes
 
-13. **Every schema change is backward compatible**, split into an expand stage → code deployment
+13. [J] **Every schema change is backward compatible**, split into an expand stage → code deployment
     → a contract stage. A destructive operation never ships together with the code that
     requires it.
-14. **A schema change lives only in a migration file.**
+14. [M] **A schema change lives only in a migration file.**
 
 ### V. Time
 
-15. **A type without a timezone is forbidden wherever it represents a point in time.**
-16. **The boundary of "today" is computed from the subject's timezone and an injected time
+15. [M] **A type without a timezone is forbidden wherever it represents a point in time.**
+16. [J] **The boundary of "today" is computed from the subject's timezone and an injected time
     source**, never directly from the system clock.
 
 ### VI. Audit, logs, personal data
 
-17. **Auditing is emitted by a shared mechanism on the write path**, not code added per
+17. [J] **Auditing is emitted by a shared mechanism on the write path**, not code added per
     function.
-18. **Personal data never reaches the logs.**
-19. **An exception turned into a response must be logged**, together with a correlation
+18. [J] **Personal data never reaches the logs.**
+19. [J] **An exception turned into a response must be logged**, together with a correlation
     identifier.
 
 ### VII. Documentation and process
 
-20. **An architectural decision does not maintain its own implementation-status tracking** —
+20. [M] **An architectural decision does not maintain its own implementation-status tracking** —
     tracking is handled solely by the registry of verified capabilities.
-21. **Languages** — per the rule in the team contract, "How to write" section.
-22. **A task checked off in the plan has an entry with a reference to a specific test or
+21. [J] **Languages** — per the rule in the team contract, "How to write" section.
+22. [M] **A task checked off in the plan has an entry with a reference to a specific test or
     artifact.** Code without a passing test does not check off a task.
-23. **A test carrying a strong claim has a mutation run** and recorded in the capability
+23. [J] **A test carrying a strong claim has a mutation run** and recorded in the capability
     registry, plus **a contrast test**.
 
 ---
