@@ -34,10 +34,16 @@ Issue returns 404, don't use it. -->
 - **Status is raised by evidence, not conviction.** You don't check off the task and you don't
   raise its status.
 - **You don't commit or push without an explicit request.** Never merge a pull request. The only
-  exception is a closed list of **bookkeeping commits** you make without asking: the plan-number
-  reservation (step 2) and the role-cost register row ("How you talk to the human", point 3).
-  Each touches only its one file, lands on the task branch — never on `main` — and is not pushed
-  without a request. Anything outside this list goes back to the rule.
+  exception is a closed list of commits you make without asking, all local, on the task branch —
+  never on `main` — and none pushed without a request:
+  - **bookkeeping commits** — the plan-number reservation (step 2) and the role-cost register row
+    ("How you talk to the human", point 3); each touches only its one file;
+  - **verification checkpoints** — the developer's state before QA (step 10a) and QA's tests after
+    QA (step 11a); each holds exactly the paths that role's report lists. A checkpoint is what
+    makes the evidence refer to one fixed version of the code: mutations are measured against it
+    and every report names its SHA.
+
+  Anything outside this list goes back to the rule.
 - **Gates 1, 2 and 3 belong to the human.** You work up to them, prepare the material, and
   **stop**.
 - The agent tool's configuration directory and any directory explicitly marked as outside the
@@ -283,23 +289,43 @@ label. Either missing = go back to the `analysis` phase.
    If the full test run sometimes gets killed in the background before the result is written —
    run it so you actually wait for it to finish, not unattended in the background.
 10. **Developer report** in the format from the role's definition file, with a mandatory "What
-    this change does not prove" section and proposed entries for gate 3. No commit, no
-    check-off.
+    this change does not prove" section, the list of paths it changed, and proposed entries for
+    gate 3. The Developer doesn't commit and doesn't check anything off.
+
+10a. **Checkpoint and sync — before any verification.** Evidence is only worth something if it
+    describes the code that will be merged, so fix that code first:
+    ```bash
+    git add -- <exactly the paths listed in the developer report>
+    git status --short                       # nothing else staged or modified — say it out loud
+    git commit -m "checkpoint: <identifier> developer"     # local, not pushed
+    git fetch origin main
+    git log HEAD..origin/main --oneline      # how many commits main has ahead — say it out loud
+    git merge origin/main                    # into the task branch, NOT the other way around
+    ```
+    Anything left uncommitted that the report doesn't list is a finding — stop and ask, don't
+    commit it along. Merge conflicts follow the rules of step 15. A merge that brought something
+    in repeats the local gates from step 9. **`CHECKPOINT` = `git rev-parse HEAD`** — every
+    verification step below refers to it.
 
 ---
 
 ## Phase `verification` — before gate 2
 
-11. **QA role** — adds a contrast test, runs a mutation by removing the mechanism, and records
-    whether the test **actually failed**. The mutation label is derived from the task identifier,
-    never from a separate counter (see `../FrameworkDoc.md`, section 9). A mutation that survived
-    is a result to report, not to hide. Rows for the capability register are created as a
-    **proposal**. Don't run the mutation with an operation that can discard uncommitted work
-    (e.g. a hard checkout) — restore state from a patch/diff instead. Every mutation comes back
-    as a patch in the QA report; it goes into the PR's Mutation section as is. **After the call,
-    run the write-boundary check** with the test directory as the only allowed path — a
-    mutation left un-reverted in production code shows up here, not at gate 2.
-12. **Invariant Guardian role** — audits the diff against the hard rules. Verdict `PASS` /
+11. **QA role**, on the clean checkpoint — adds a contrast test, runs a mutation by removing the
+    mechanism, and records whether the test **actually failed**. The mutation label is derived
+    from the task identifier, never from a separate counter (see `../FrameworkDoc.md`, section
+    9). A mutation that survived is a result to report, not to hide. Rows for the capability
+    register are created as a **proposal**. QA restores production files from `HEAD` and returns
+    every mutation as a patch against `CHECKPOINT` (`Base: <SHA>`); it goes into the PR's Mutation
+    section as is. **Run the write-boundary check around the call** with the test directory as
+    the only allowed path — a mutation left un-reverted, staged or committed shows up here, not
+    at gate 2.
+
+11a. **QA checkpoint.** Commit QA's test changes — the paths its report lists, all inside the
+    test directory — as `checkpoint: <identifier> qa`. **`VERIFIED` = `git rev-parse HEAD`**: the
+    one version the reading roles audit and the PR must carry.
+
+12. **Invariant Guardian role** — audits `VERIFIED` against the hard rules. Verdict `PASS` /
     `STOP`. On `STOP` you go back to the `code` phase; the verdict goes into the PR description
     unsmoothed.
 13. **Reviewer role** — design flaws outside the rule list: concurrency, retries, load, behavior
@@ -308,35 +334,38 @@ label. Either missing = go back to the `analysis` phase.
     (see the role's definition file, "When to run you" section). Outside that set, you don't run
     it.
 
-Call roles 12–14 **in parallel** — they read, they write nothing.
+Call roles 12–14 **in parallel** — they read, they write nothing. Give each one `VERIFIED` and
+the diff `origin/main...VERIFIED`; **every report states the SHA it read**. A report that names
+another SHA, or none, doesn't count for gate 2.
 
 ### Write-boundary check
 
 A role's `tools` declaration can't restrict writes to a directory (see the team contract, §2a),
-so the boundary is checked mechanically by you, right after the call, not by a human at the gate:
+so the boundary is checked mechanically by you, around the call, not by a human at the gate. Use
+`scripts/boundary-check.sh` (copied from the process repository's
+`process/scripts/boundary-check.sh`, see `bootstrap-guide.md`, step 4):
 
 ```bash
-# Content hash of every modified, deleted or untracked file. Hashes, not `git status` letters:
-# a file already modified before the call and modified again during it keeps the same status
-# letter, and would slip through.
-snapshot() { git ls-files -m -o -d --exclude-standard | sort -u | while IFS= read -r f; do
-  if [ -e "$f" ]; then echo "$(git hash-object -- "$f") $f"; else echo "deleted $f"; fi
-done | sort; }
-
-T=$(mktemp -d)                 # outside the tree, so the snapshots don't snapshot themselves
-snapshot > "$T/before"         # immediately BEFORE the role call
+T=$(mktemp -d)                                         # outside the tree
+scripts/boundary-check.sh snapshot "$T/state"          # immediately BEFORE the role call
 # ... role call ...
-snapshot > "$T/after"          # immediately AFTER
-# paths that changed during the call, outside the allowed directory:
-comm -3 "$T/before" "$T/after" | sed 's/^\t//' | cut -d' ' -f2- | sort -u | grep -v '^<allowed-dir>/'
+scripts/boundary-check.sh verify "$T/state" tests/     # immediately AFTER; the allowed prefixes
 ```
 
-Any output = **automatic STOP**: report the paths to the human and do not continue with the
-role's result. You don't revert the paths yourself — a human decides whether it was a mutation
-left behind or a deliberate edit out of role. Empty output goes into the role's cost-register
-notes as "boundary check: clean", so the check leaves a trace that it ran.
+It compares `HEAD`, the index and the whole working tree (new files included), so an edit hidden
+by `git add` or by a commit during the call is caught too; its `--self-test` shows each of those
+cases failing. Exit 1 = **automatic STOP**: report the paths to the human and do not continue
+with the role's result. Exit 2 = the check couldn't run — also a STOP, never "clean". You don't
+revert the paths yourself — a human decides whether it was a mutation left behind or a
+deliberate edit out of role. "boundary check: clean" goes into the role's cost-register notes, so
+the check leaves a trace that it ran. It sees what git sees — ignored files and anything outside
+the repository are out of its reach.
 
 ### Re-verification after a `STOP`
+
+A fix is new code: the Developer's changes go into a new `checkpoint: <identifier> fix`, QA's into
+a new QA checkpoint, and the resulting `VERIFIED` replaces the old one. Reports tied to the old SHA
+stay valid only for the parts the fix didn't touch.
 
 After the Developer fixes the findings, **don't rerun every evaluating role on the whole change
 by default.** Rerun:
@@ -358,16 +387,21 @@ message to the human.
 
 ## Phase `pr`
 
-15. **Sync with the main branch before the PR.** The worktree may have been created hours/days
-    earlier — parallel roles and sessions have been appending to the same files in the meantime,
-    most often the role-cost register. A stale starting point means a risk of a merge conflict
-    that today only the human discovers on a finished PR. Check and align **before**
-    committing/pushing:
+15. **Is the evidence still about this code?** `main` may have moved during verification, and a
+    change that merges without conflict can still invalidate a mutation or a risk assessment — a
+    shared authorization mechanism rewritten on `main` leaves every test green and every old
+    report wrong. Check before pushing:
     ```bash
     git fetch origin main
-    git log HEAD..origin/main --oneline      # how many commits main has ahead — say it out loud
-    git merge origin/main                    # into the worktree, NOT the other way around
+    git log VERIFIED..origin/main --oneline   # what main brought since verification — say it out loud
+    git merge origin/main                     # into the task branch, NOT the other way around
+    git diff --name-only VERIFIED HEAD        # everything that differs from the audited version
     ```
+    If the last command lists **only** bookkeeping files (cost-register rows), the evidence
+    stands. If it lists any production, test, schema or configuration file, the reports tied to
+    `VERIFIED` no longer cover the code: rerun verification for the incoming diff by the rules of
+    "Re-verification after a `STOP`" — the Guardian always, QA when a mutated mechanism or its
+    tests changed — and set a new `VERIFIED`. Green CI on the new head does not replace this.
     **No conflict** — carry on.
     **Conflict in the role-cost register** — shouldn't happen with one file per row. If your
     register is still a single shared table, this is the known mechanical pattern: both sides
@@ -378,20 +412,23 @@ message to the human.
     recommendation (see "How you talk to the human"), don't resolve it yourself.
     A merge that actually brought something in (a non-empty `git log` above) repeats the local
     gates from step 9 — the main branch may have brought a code change, not just a register entry.
-16. **Commit and push only on an explicit request.** List paths explicitly, never add everything
-    at once. Push from the worktree — if the pre-push hook validates the whole tree, someone
-    else's unmerged work blocks the push.
+16. **Push only on an explicit request.** The code is already in the checkpoint commits; any
+    further commit lists paths explicitly, never everything at once. Push from the worktree — if
+    the pre-push hook validates the whole tree, someone else's unmerged work blocks the push.
 17. **PR with the full template.** Sections: the quoted completion condition and its evidence; the
-    mutation result and the row in the mutation register; the contrast test; the Guardian's
-    verdict, unsmoothed; the invariants touched by this change; the scope left out of this PR. A
-    field you can't fill stays empty with a reason. "N/A" with no justification is worse than
-    empty.
+    mutation result, its patch and base; the contrast test; the Guardian's verdict, unsmoothed;
+    the invariants touched by this change; the scope left out of this PR; **`Verified at:
+    <VERIFIED SHA>`**. The PR refers to the Issue with **`Refs #<N>`, never a closing keyword** —
+    merging this PR must leave the Issue open for gate 3 (see step 21). A field you can't fill
+    stays empty with a reason. "N/A" with no justification is worse than empty.
 18. **CI.** Wait for the required checks. Before calling red CI a defect, rule out environmental
     causes: missing checks from a merge conflict, a container image pull failure, a timeout on
     the hosting platform's endpoints, an executor that dropped out (a failure with no log, a step
     with a null result), a dependent service alive but not yet ready, secrets not reaching an
     automated bot, a green status computed against a stale base after the main branch moved on.
-19. **GATE 2 — STOP.** The human approves the merge. You don't merge yourself. Unassign yourself.
+19. **GATE 2 — STOP.** The human approves the merge. You don't merge yourself. The message names
+    `VERIFIED`, the PR head SHA, and every commit between them (expected: bookkeeping only) — if
+    anything else is there, the gate is not ready. Unassign yourself.
 
 ---
 
@@ -400,17 +437,21 @@ message to the human.
 20. **If you maintain a queryable code index/graph — refresh it before gate 3.** Applies only to
     code files; if the index doesn't exist yet, skip this step — don't set one up from scratch
     here.
-21. **GATE 3 — material for the human.** The merged task sits in the gate-3 state (e.g.
-    `state:evidence`, see `sdlc-flow.md`), not in the closed one. Prepare ready-to-paste entries, don't paste them
+21. **GATE 3 — material for the human.** After the merge the Issue is **still open**, in the
+    gate-3 state (`state:evidence` + `waiting-on-human`, see `sdlc-flow.md`) — that is what keeps
+    it in the one filter the human watches. Prepare ready-to-paste entries, don't paste them
     yourself: checking off the task in the plan with a "Done <date>" row, a row in the
-    activity/capability register, mutation rows. Status is never raised without a link to a
-    specific test or artifact.
+    activity/capability register, mutation rows with links to the patches in the merged PR.
+    Status is never raised without a link to a specific test or artifact. The human commits them
+    as a documentation PR whose description says **`Closes #<N>`** — that merge, not the code
+    merge, closes the Issue.
 22. **Ratcheted numeric counters** (e.g. a test counter), if you keep one — write the measured
     values **only on the main branch, after a full run**. On a task branch, report-only mode,
     no write.
-23. **Labels** — closing the Issue via merge does not remove process labels automatically (see
-    `../FrameworkDoc.md`, section 7). Remove them by hand and set the final state. Check that the
-    assignment is removed — if it never came off at any gate, remove it now.
+23. **Labels** — closing the Issue through the gate-3 documentation PR does not remove process
+    labels (see `../FrameworkDoc.md`, section 7). The human sets `state:closed` and removes
+    `waiting-on-human` when approving gate 3. Check that the assignment is removed — if it never
+    came off at any gate, remove it now.
 24. **Notify the other repository**, if you have more than one product repository under the shared
     process: the other side reported this task, or the change affects them and requires action on
     their end → notify through an Issue in THEIR repository (see `cross-repo-gaps.md`). One form,

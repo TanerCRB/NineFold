@@ -39,6 +39,7 @@ jobs:
           node --check tools/sync-agents.mjs
           node --check tools/sync-github.mjs
           node --check tools/check-links.mjs
+          bash -n process/scripts/boundary-check.sh
 
       # Method 3 from calibration/README.md: each tool proves on built-in contrast cases that its
       # checks still fire, before any of its green results below is worth anything.
@@ -47,6 +48,7 @@ jobs:
           node tools/sync-agents.mjs --self-test
           node tools/sync-github.mjs --self-test
           node tools/check-links.mjs --self-test
+          bash process/scripts/boundary-check.sh --self-test
 
       # Validates the real label manifest (ASCII-only, unique names, hex colors, every target
       # subset naming existing labels) and the Issue/PR templates. `--labels` can't run here: the

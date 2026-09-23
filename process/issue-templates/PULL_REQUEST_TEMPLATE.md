@@ -9,7 +9,13 @@ Base version (e.g. for backend). The frontend/infra variants have their own inva
 see PULL_REQUEST_TEMPLATE-frontend.md and PULL_REQUEST_TEMPLATE-infra.md in this directory.
 -->
 
-Closes #
+<!--
+Refs, not Closes: merging this PR must leave the Issue open, waiting for gate 3 (state:evidence).
+The gate-3 documentation PR is the one that says "Closes #<N>".
+-->
+Refs #
+
+Verified at: <!-- the VERIFIED SHA from the task command, step 11a; every report below refers to it -->
 
 ## What is changing and why
 
@@ -36,7 +42,7 @@ Remove the mechanism, confirm that the test actually fails, and add a line to th
 - Removed mechanism:
 - Result:
 - Line in the mutation register:
-- Mutation patch — the exact change QA made, so anyone can rerun it with `git apply`:
+- Mutation patch — the exact change QA made, against the checkpoint (`Base: <SHA>` on its first line), so anyone can rerun it with `git apply` on that SHA:
 
 <details><summary>mutation.patch</summary>
 

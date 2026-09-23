@@ -224,9 +224,14 @@ that repository's stack and domain (`../FrameworkDoc.md`, section 4).
 repository's shared `.claude/settings.json` — the environment refuses `gh pr merge` and force
 pushes for every role and asks before any push.
 
+**Write-boundary check.** Copy `process/scripts/boundary-check.sh` to `scripts/boundary-check.sh`
+in the product repository (versioned; add `scripts/*.sh text eol=lf` to `.gitattributes`). The
+task command runs it around every role that may write.
+
 **Check:**
 
 ```bash
+bash scripts/boundary-check.sh --self-test     # every case passes on this machine
 git check-ignore -v .claude/agents/qa.md       # -> matched by .gitignore
 git status --short --untracked-files=all .claude/   # commands and settings.json show up, agents don't
 node <process-repo>/tools/sync-agents.mjs --check   # run from the process repo: "No drift."
@@ -363,9 +368,11 @@ git diff --stat origin/main origin/<branch>     # empty = safe to delete
 ### Who cannot approve a pull request
 
 If agents operate within your own session/account, you are the author of every PR — and GitHub
-does not let an author approve their own PR. **Do not require formal approval
-(`required_pull_request_reviews`) in this situation** — require only a pull request and green
-checks; gate 2 is then your conscious click of "Merge" after reading the diff and the reports.
+does not let an author approve their own PR. **Require a pull request with zero approvals**
+(`required_approving_review_count: 0`), green checks, and **enforce the rules for administrators
+too** — the agents act on your account, so whatever your account may bypass, they may bypass.
+Gate 2 is then your conscious click of "Merge" after reading the diff and the reports
+(`ci-and-branch-protection.md`, §2).
 Return to the approval requirement once a second person joins, or once agents start operating on
 their own technical account — then you are the reviewer, not the author, and the requirement
 becomes a real gate.
@@ -379,8 +386,12 @@ gh api -X PUT repos/OWNER/REPO/branches/main/protection --input - <<'JSON'
     "strict": true,
     "contexts": ["<job-name-1>", "<job-name-2>"]
   },
-  "required_pull_request_reviews": null,
-  "enforce_admins": false,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 0,
+    "dismiss_stale_reviews": false,
+    "require_code_owner_reviews": false
+  },
+  "enforce_admins": true,
   "restrictions": null,
   "required_linear_history": false,
   "allow_force_pushes": false,
@@ -394,8 +405,8 @@ JSON
 |---|---|---|
 | `contexts` | names of **jobs**, not workflows | GitHub identifies a check by job name, not by file name or the workflow's `name:` field |
 | `strict` | `true` | The branch must be up to date with `main` before merging — otherwise green checks pertain to a state that won't be the one that lands |
-| `required_pull_request_reviews` | `null` (or configured, if you have human reviewers) | See above — an approval requirement with a single author blocks the repository |
-| `enforce_admins` | `false` | You must be able to merge your own PR — this is gate 2, not a workaround of the rule |
+| `required_pull_request_reviews` | `required_approving_review_count: 0` (raise it once there are human reviewers) | A pull request is required, an approval is not — a non-zero count with a single author blocks the repository |
+| `enforce_admins` | `true` | The agents act on your account — a bypass left to the owner is a bypass left to them. Merging your own PR doesn't need it |
 | `required_linear_history` | `false`, `true` only with squash-only | `true` rejects every merge commit, which the merge strategy section recommends for multi-commit PRs |
 | `required_conversation_resolution` | `true` | A report from the invariant-checking role, pasted as a comment, must be resolved, not scrolled past |
 | `allow_force_pushes` | `false` | A forced push to `main` overwrites the evidence the project register rests on |
@@ -403,14 +414,19 @@ JSON
 **Verification after applying — without it it's just a declaration:**
 
 ```bash
-git push origin main        # expected: rejected by branch protection
 gh api repos/OWNER/REPO/branches/main/protection | jq '{
   checks: .required_status_checks.contexts,
   strict: .required_status_checks.strict,
-  reviews: .required_pull_request_reviews,
+  reviews: .required_pull_request_reviews.required_approving_review_count,
+  admins: .enforce_admins.enabled,
   linear: .required_linear_history.enabled
 }'
 ```
+
+Reading the settings back is still a declaration. The proof is a rejected direct push (a real
+commit ahead, `--no-verify` so the hook doesn't answer first) and a refused merge of a PR with a red
+check, both as the identity the agents use — on a throwaway test repository, never on the
+product's `main`. The exact commands: `ci-and-branch-protection.md`, §3.
 
 ---
 

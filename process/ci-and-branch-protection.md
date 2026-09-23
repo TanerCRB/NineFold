@@ -122,11 +122,24 @@ your account, you will be the author of every PR. A one-approval requirement mea
 merge anything until a second person shows up, or you'll start working around your own rule — and
 a rule that's routinely worked around stops being a rule and starts being noise.
 
-**Solution: don't require approval. Require a pull request and green checks.**
+**Solution: require a pull request with zero approvals, require green checks, and enforce both
+for administrators too.**
+
+These are three separate settings, and each closes a different door:
+
+- `required_pull_request_reviews` with `required_approving_review_count: 0` — changes reach `main`
+  only through a pull request, but nobody has to approve it. Required status checks alone are
+  **not** a pull-request requirement.
+- `required_status_checks` — the checks must be green on the up-to-date head.
+- `enforce_admins: true` — the rules bind the repository owner too. This is the one that matters
+  here: the agents act **on your account**, so whatever your account may bypass, they may bypass.
+  You don't need the bypass to merge your own PR — with zero required approvals, you merge it
+  through the normal button once the checks are green.
 
 Gate 2 is then your conscious click of "Merge" — after reading the diff, the Invariant Guardian's
 report, and the mutation result from the PR template. Formal approval would add nothing beyond
-the click.
+the click. What the agent must not be able to do is change these settings: keep repository
+administration out of the token the agents use, where your platform lets you separate them.
 
 Return to the approval requirement once one of two things happens: a second person joins, or
 agents start operating on their own technical account (at that point you are the reviewer, not
@@ -153,8 +166,12 @@ gh api -X PUT repos/<owner>/<repo>/branches/main/protection --input - <<'JSON'
     "strict": true,
     "contexts": ["build-and-test", "validate"]
   },
-  "required_pull_request_reviews": null,
-  "enforce_admins": false,
+  "required_pull_request_reviews": {
+    "required_approving_review_count": 0,
+    "dismiss_stale_reviews": false,
+    "require_code_owner_reviews": false
+  },
+  "enforce_admins": true,
   "restrictions": null,
   "required_linear_history": false,
   "allow_force_pushes": false,
@@ -170,8 +187,8 @@ What each field means and why exactly that:
 |---|---|---|
 | `contexts` | names of **jobs**, not workflows | GitHub identifies a check by job name, not by file name or the workflow's `name:` field |
 | `strict` | `true` | The branch must be up to date with `main` before merging — otherwise green checks pertain to a state that won't land |
-| `required_pull_request_reviews` | `null` | See §2 — an approval requirement would lock the repository with a single author |
-| `enforce_admins` | `false` | Deliberately: you must be able to merge your own PR. This is gate 2, not a workaround |
+| `required_pull_request_reviews` | `required_approving_review_count: 0` | See §2 — a pull request is required, an approval is not; a non-zero count would lock the repository with a single author |
+| `enforce_admins` | `true` | The agents act on your account — a bypass left to the owner is a bypass left to them. Merging your own PR doesn't need it |
 | `required_linear_history` | `false` | Matches the recommended merge strategy (merge commit allowed, see [`repository-settings.md`](repository-settings.md) §1). Set `true` only if you went squash-only because a backward-compatibility harness assumes a commit's parent is the previous version of the application |
 | `required_conversation_resolution` | `true` | A Guardian report pasted as a comment must be resolved, not scrolled past |
 | `allow_force_pushes` | `false` | A forced push to `main` overwrites the evidence the register rests on |
@@ -184,10 +201,28 @@ git push origin main        # expected: protected branch hook declined
 gh api repos/<owner>/<repo>/branches/main/protection | jq '{
   checks: .required_status_checks.contexts,
   strict: .required_status_checks.strict,
-  reviews: .required_pull_request_reviews,
+  reviews: .required_pull_request_reviews.required_approving_review_count,
+  admins: .enforce_admins.enabled,
   linear: .required_linear_history.enabled
 }'
 ```
+
+The settings read back correctly are still only a declaration. **Prove them on a throwaway
+test repository with the same settings, never on the product's `main`**, using the identity the
+agents use (your account, if they act on it):
+
+```bash
+# 1. a real direct update of main — a commit ahead, and --no-verify so the local hook doesn't
+#    answer instead of the server
+git commit --allow-empty -m "protection probe" && git push --no-verify origin main
+#    expected: rejected by the server, even though you are an administrator
+# 2. a PR whose required check is red
+gh pr merge <N> --merge
+#    expected: refused — "required status check ... is failing"; no admin override offered
+```
+
+A push with nothing new to send proves nothing — git answers `Everything up-to-date` before the
+server is asked.
 
 If you switch to `required_linear_history: true`, **squash merge** or **rebase merge** must be
 enabled in repository settings, and every merge commit gets rejected — with merge commit alone,

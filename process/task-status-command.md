@@ -53,7 +53,9 @@ Determine **one** position in the process, from these signals:
 | PR open, no Mutation section in the description | before the `verification` phase |
 | PR open, CI red | see below — rule out the environment first |
 | PR open, CI green, no approval | **gate 2**, waiting on the human |
-| PR merged, plan not checked off | **gate 3**, waiting on the documentation commit |
+| PR merged, plan not checked off, Issue open | **gate 3**, waiting on the documentation PR |
+| Issue closed, but not in the closed state label | closed before gate 3 — a finding; the task has dropped out of the waiting filter |
+| a verification report names a SHA other than the PR's `Verified at:` | evidence about different code — a finding, re-verification needed |
 | plan checked off with no link to a test/artifact | status raised without evidence — a finding |
 
 Before calling red CI a defect, rule out environmental causes: missing checks from a merge

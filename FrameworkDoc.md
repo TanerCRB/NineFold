@@ -508,11 +508,12 @@ A task's progress is not tracked in anyone's head — it is encoded in visible, 
   in the lifecycle (e.g., "waiting for gate 2 — for the human's merge decision"). It always ends with
   a recommendation of the single nearest action, never a list of possibilities.
 
-An important, deliberate rule: **closing a ticket by merging the pull request does not automatically
-remove process labels**. The code-hosting platform's mechanism closes the ticket itself, but labels
-like "in progress" or "waiting for decision" remain — because whether the process actually finished
-(gate 3) is decided by the evidence entered into the registry, not by the mere fact that the code was
-merged.
+An important, deliberate rule: **merging the code does not close the ticket.** The code pull request
+refers to the ticket without a closing keyword, so the ticket stays open — and visible among
+everything waiting for the human — until gate 3; it is closed by the documentation change that
+enters the evidence into the registry. Whether the process actually finished is decided by that
+evidence, not by the mere fact that the code was merged. Process labels are never removed by the
+platform either way: the human sets the final state at gate 3.
 
 ---
 
