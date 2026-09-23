@@ -5,9 +5,18 @@
 > story: the reasons why particular things look exactly the way they do are written down only
 > where omitting them ends in undoing work.
 
-**Time:** half a day for a smooth run, excluding the section on a self-hosted runner (see
-section 5) — that one tends to be the longest, not because it's hard, but because every
+**Time:** a day for a smooth run up to the pilot, excluding the self-hosted runner (see
+section 8) — that one tends to be the longest, not because it's hard, but because every
 unrecorded host dependency surfaces separately, and only after the run.
+
+**Two repositories take part.** The **process repository** is your copy of this kit: the source
+of truth for roles, templates and labels, with no product code. The **product repository** is
+where the work happens: it receives the roles, the commands, the templates and the registers.
+Every step says which one it runs in.
+
+**The order is deliberate** (`../FrameworkDoc.md`, section 13): protection first, then the
+process in the tracker, then the roles, then calibration of the evaluating roles — and only then
+one pilot task from ticket to merge. Don't start producing code with the roles before step 10.
 
 ---
 
@@ -15,9 +24,12 @@ unrecorded host dependency surfaces separately, and only after the run.
 
 | Thing | What for | Check |
 |---|---|---|
+| `git` | everything | `git --version` |
+| Node.js 22 or newer | the sync scripts and the pre-push hook | `node --version` |
 | `gh` (GitHub CLI) authenticated | labels, templates, PRs, repository settings | `gh auth status` |
-| Repository administrator permission | branch protection, merge settings | `gh api repos/OWNER/REPO --jq .permissions.admin` |
-| Repository with a `main` branch | everything else assumes this name | — |
+| An agent environment that loads roles from a directory (e.g. Claude Code) | running the roles and the commands | Claude Code: `claude --version` |
+| Administrator permission on the product repository | branch protection, merge settings | `gh api repos/OWNER/REPO --jq .permissions.admin` |
+| A product repository with a `main` branch | everything else assumes this name | — |
 
 `gh` is sometimes installed and yet invisible on PATH — the Windows installer doesn't always
 append the directory to the environment variable. Before concluding it's not there, check the
@@ -25,71 +37,45 @@ installation directory directly.
 
 ---
 
-## 1. Labels and templates *(15 minutes)*
+## 1. Set up the process repository *(1–2 hours)* — process repository
 
-Source: [`labels.json`](labels.json), [`issue-templates/`](issue-templates/),
-[`../tools/sync-github.mjs`](../tools/sync-github.mjs).
+Create your own copy of this kit (a private fork or a fresh repository with its content) next to
+the product repository, e.g. `~/src/<repo-process>` beside `~/src/<repo-backend>`: the sync
+scripts find product repositories by path relative to the process repository.
+
+1. **Fill in the configuration of both sync scripts.**
+   - `tools/sync-agents.mjs`: `TARGETS` — one entry per product repository (`name`, `path`,
+     `dir`).
+   - `tools/sync-github.mjs`: `OWNER` (your GitHub organization or account) and `TARGETS` —
+     remove the example entries you don't have (e.g. `<repo-infra>`,
+     `<repo-order-recipient>`).
+   Both scripts refuse to run while any `<placeholder>` is left in them, and say which one.
+2. **Adapt the roles in `agents/`** before they ever reach a product repository: the domain
+   sentence, `<product-repository>`, `<decision-registry-path>`, and above all the checklists
+   marked EXAMPLE (`../FrameworkDoc.md`, section 12: *roles and gates are universal, checklists are
+   not*). With two technology stacks, split `developer.md` as its header note describes.
+3. **Adapt the team contract** — copy `TEAM-CONTRACT-TEMPLATE.md` to `TEAM-CONTRACT.md`, fill in
+   the repository names, remove what you don't have. The roles defer to it on any discrepancy.
+
+**Check:**
 
 ```bash
-node tools/sync-github.mjs --labels | bash     # labels from the manifest, idempotently
-node tools/sync-github.mjs                     # templates into .github/ — files tracked by git
+node tools/sync-agents.mjs --self-test           # all cases pass
+node tools/sync-github.mjs --self-test
+node tools/sync-github.mjs --validate            # manifest and templates are valid
+grep -rn "<product-repository>\|<decision-registry-path>" agents/   # expected: no output
+node tools/sync-agents.mjs --check               # no ERROR about a placeholder; DRIFT is expected before step 4
 ```
 
-**Check:** `gh label list` shows the labels from the manifest; a new Issue from the story
-template cannot be submitted with an empty "Definition of Done" field.
-
-### Pitfalls
-
-**The label manifest must be in pure ASCII — names and descriptions.** The path `manifest → node
-→ shell → gh` has places where Windows PowerShell 5.1 re-encodes text via the console code page —
-a dash or a diacritical mark comes back from it as multi-byte garbage, and that's in label
-descriptions, exactly where nobody looks. The sync script has an assertion that stops the run at
-the first non-ASCII character — leave it in, don't work around it.
-
-**Run both commands from the root directory of the process source repository** — that's where
-the script looks for `process/` and resolves the `TARGETS` paths. The target of the labels is set
-by an explicit `--repo` that the script puts on every generated `gh` call. Don't remove it: `gh`
-by default infers the repository from the remote of the current directory, so without it the
-labels would land **in the process repository itself**, silently, without error, because that too
-is a valid repository.
-
 ---
 
-## 2. State machine and gates *(a record, not a configuration)*
-
-Source: [`sdlc-flow.md`](sdlc-flow.md), [`../TEAM-CONTRACT-TEMPLATE.md`](../TEAM-CONTRACT-TEMPLATE.md).
-
-The one part of the state machine that *is* configuration: copy
-[`workflows/label-guard.yml`](workflows/label-guard.yml) into the product repository's
-`.github/workflows/` by hand (the sync script deliberately doesn't touch workflows). **Check:** give
-a test Issue two `state:*` labels — within a minute it gets a comment and a red run; remove one,
-and the next run is green.
-
-Three gates: **1** before code exists (scope and architecture), **2** before entering `main`
-(diff, invariant-checking role's report, mutation result), **3** before raising the status in
-the project register.
-
-One thing worth repeating, because it looks like a formality: **gate 3 gets its own commit.** The
-entry checking off a task or raising a decision's status travels separately from the code it
-describes. An agent will always be inclined to treat its own work as evidence, and the entire
-credibility of the register rests on the principle "status is raised by evidence".
-
-### 2a. Documentation next to the code, not only in one root file
-
-A single instructions file for the agent (e.g. a root `CLAUDE.md`) scales up to a point, and then
-gets so long that an agent working in one module reads every other module's rules just to reach
-its own. A pattern that holds up as the codebase grows: **keep the root file short and
-navigational**, and give each module/screen/layer its **own local rules file** sitting physically
-next to the code it covers — the root indexes them as a list of links, it doesn't copy their
-content. An agent opening a specific module finds its rules in the same directory, without reading
-everything else. Keeping this up takes discipline (new module = new file plus an index entry), but
-the cost is lower than one file that grows without bound.
-
----
-
-## 3. Protecting `main` without a paid plan *(20 minutes)*
+## 2. Protect `main` first *(20 minutes)* — product repository
 
 Source: [`branch-protection-without-paid-plan.md`](branch-protection-without-paid-plan.md), [`hooks/pre-push`](hooks/pre-push).
+
+The next steps add files to the product repository. They go in through a branch and a pull
+request — that is gate 2 — so the guard against a direct push to `main` goes in **before** them,
+not after.
 
 Branch protection and GitHub rulesets **are not enforced on a private repository on the free
 plan** — the API responds `403` to an attempt to set branch protection both through the classic
@@ -121,54 +107,192 @@ account — then protection must live server-side, not in the configuration of o
 
 ### Installing the hook
 
-```bash
-mkdir -p .githooks
-cp <framework>/process/hooks/pre-push .githooks/
-git add .githooks/pre-push
-git update-index --chmod=+x .githooks/pre-push
-git config core.hooksPath .githooks
-```
-
-**Into the target repository's `.gitattributes` — this is the load-bearing half, without it the
-hook doesn't work:**
+**First the `.gitattributes` entry — this is the load-bearing half, without it the hook doesn't
+work.** In the product repository's `.gitattributes`:
 
 ```
 .githooks/** text eol=lf
 ```
 
-Without this entry, under the rule `* text=auto`, a script written on Windows gets CRLF, and
-`#!/usr/bin/env sh` with a returned carriage return ends up with a `bad interpreter`. The hook is
-then **present, wired up, and lets every push through** — exactly the class of failure it's
-supposed to protect against.
-
-**Check, both commands, in this order:**
+Without this entry, under the rule `* text=auto`, a script checked out on Windows gets CRLF, and
+`#!/usr/bin/env sh` with a returned carriage return ends up with a `bad interpreter` on Linux and
+macOS. The hook is then **present, wired up, and lets every push through** — exactly the class of
+failure it's supposed to protect against. Add the entry **before** copying the hook, so the file is
+added with the right line endings; the process repository carries the same rule for
+`process/hooks/`.
 
 ```bash
-git config --get core.hooksPath     # -> .githooks
-git push origin main                # -> refusal
+mkdir -p .githooks
+cp <process-repo>/process/hooks/pre-push .githooks/
+git add .gitattributes .githooks/pre-push
+git add --renormalize .githooks/            # in case the copy arrived with CRLF
+git update-index --chmod=+x .githooks/pre-push
+git config core.hooksPath .githooks
 ```
 
-The second is proof **only when you have a commit ahead of `origin/main`**. On a branch that's
-already up to date, git finishes with `Everything up-to-date` before it even runs the hook — the
-response looks like success and says nothing. Without a commit, test the hook's logic directly,
-feeding it reference lines the way git does:
+**Check, in this order:**
 
 ```bash
+git ls-files --eol .githooks/pre-push       # -> i/lf ... attr/text eol=lf
+git config --get core.hooksPath             # -> .githooks
 printf 'refs/heads/x 1 refs/heads/main 2\n' | .githooks/pre-push origin url; echo "code=$?"    # 1
 printf 'refs/heads/x 1 refs/heads/feature/x 2\n' | .githooks/pre-push origin url; echo "code=$?" # 0
 ```
 
-The second line is a counter-test — without it "denies on `main`" would also be satisfied by a
-hook that always denies, regardless of branch.
+The last line is a counter-test — without it "denies on `main`" would also be satisfied by a hook
+that always denies, regardless of branch. A real `git push origin main` is proof **only when you
+have a commit ahead of `origin/main`**: on a branch that's already up to date, git finishes with
+`Everything up-to-date` before it even runs the hook — the response looks like success and says
+nothing.
 
 **What the hook doesn't give:** nothing server-side. `--no-verify` goes through, another clone
 without `core.hooksPath` doesn't have it at all, it doesn't enforce required checks before
 merging. This is a **guard, not a gate**, and should be described that way everywhere it's
-mentioned.
+mentioned. Every clone — including each machine an agent runs on — needs the
+`git config core.hooksPath .githooks` line once.
 
 ---
 
-## 4. Merge settings and repository hygiene *(20 minutes)*
+## 3. Labels and templates *(15 minutes)* — process repository → product repository
+
+Source: [`labels.json`](labels.json), [`issue-templates/`](issue-templates/),
+[`../tools/sync-github.mjs`](../tools/sync-github.mjs).
+
+Run from the root of the **process** repository:
+
+```bash
+node tools/sync-github.mjs --labels | bash          # bash: labels from the manifest, idempotently
+node tools/sync-github.mjs --labels-ps1 > labels.ps1 # PowerShell: then Invoke-Expression (Get-Content labels.ps1 -Raw)
+node tools/sync-github.mjs                          # templates into the product repo's .github/
+```
+
+The templates land as files tracked by the product repository: commit them there on a branch and
+merge through a pull request.
+
+**Check:** `gh label list --repo OWNER/REPO` shows the labels from the manifest (without
+`--repo`, run from the process repository, it lists the process repository's own labels); a new
+Issue from the story template cannot be submitted with an empty "Definition of done" field.
+
+### Pitfalls
+
+**The label manifest must be in pure ASCII — names and descriptions.** The path `manifest → node
+→ shell → gh` has places where Windows PowerShell 5.1 re-encodes text via the console code page —
+a dash or a diacritical mark comes back from it as multi-byte garbage, and that's in label
+descriptions, exactly where nobody looks. The sync script has an assertion that stops the run at
+the first non-ASCII character — leave it in, don't work around it.
+
+**The target of the labels is the explicit `--repo`** that the script puts on every generated
+`gh` call. Don't remove it: `gh` by default infers the repository from the remote of the current
+directory, so without it the labels would land **in the process repository itself**, silently,
+without error, because that too is a valid repository.
+
+---
+
+## 4. Roles and commands *(30 minutes)* — product repository
+
+**Roles.** The agent environment loads roles only from the configuration directory of the
+repository it runs in (`.claude/agents/` for Claude Code). That directory is **not versioned** in
+the product repository — the process repository is the source, the copy is reproducible. First,
+in the product repository's `.gitignore`:
+
+```
+.claude/agents/
+```
+
+Ignore only that directory, not the whole `.claude/` — the commands and the shared settings below
+are versioned. Then, from the root of the **process** repository:
+
+```bash
+node tools/sync-agents.mjs            # copies the 8 roles; prints the source commit it read
+node tools/sync-agents.mjs --check    # afterwards: "No drift."
+```
+
+**Commands.** Copy the two commands into the product repository's command directory and adapt
+them — remove the template quote at the top (the frontmatter must be the first thing in the
+file), fill in `<product-repo>`, `<organization>`, the register paths from step 5, and the local
+quality gates in step 9 of the command:
+
+| Source (process repository) | Target (product repository) | Invoked as |
+|---|---|---|
+| `process/task-command.md` | `.claude/commands/task.md` | `/task #<N>` |
+| `process/task-status-command.md` | `.claude/commands/task-status.md` | `/task-status #<N>` |
+
+These are versioned in the product repository and change through review, like code: they carry
+that repository's stack and domain (`../FrameworkDoc.md`, section 4).
+
+**Permissions.** Put the permission rules from `../TEAM-CONTRACT-TEMPLATE.md` §2a into the product
+repository's shared `.claude/settings.json` — the environment refuses `gh pr merge` and force
+pushes for every role and asks before any push.
+
+**Check:**
+
+```bash
+git check-ignore -v .claude/agents/qa.md       # -> matched by .gitignore
+git status --short --untracked-files=all .claude/   # commands and settings.json show up, agents don't
+node <process-repo>/tools/sync-agents.mjs --check   # run from the process repo: "No drift."
+```
+
+In a Claude Code session started in the product repository: `/agents` lists the 8 roles, and
+`/task-status` is available.
+
+---
+
+## 5. Registers *(1 hour)* — product repository
+
+Source: [`registers/`](registers/).
+
+Copy the templates into the product repository's documentation (e.g. `docs/`) and adapt them: a
+plan, a capability register with its mutation table, a decision directory with the decision
+template, the list of architecture-sensitive paths, the cost-register directory, and a gap
+register if you have a second product repository. [`registers/README.md`](registers/README.md)
+says who writes each one and which placeholders in the command and the roles point at them.
+
+A first pass of the capability register that comes out mostly "none" is the correct result: the
+register has only started measuring what nobody measured before (`../FrameworkDoc.md`, section 7).
+
+**Check:** every register path named in `.claude/commands/task.md` and in the roles exists:
+
+```bash
+grep -rhoE "docs/[A-Za-z0-9_./-]+" .claude/commands/ | sort -u | while read -r p; do [ -e "$p" ] || echo "missing: $p"; done
+```
+
+(expected: no output — adapt the `docs/` prefix to where you put them).
+
+---
+
+## 6. State machine and gates *(a record, not a configuration)*
+
+Source: [`sdlc-flow.md`](sdlc-flow.md), [`../TEAM-CONTRACT-TEMPLATE.md`](../TEAM-CONTRACT-TEMPLATE.md).
+
+The one part of the state machine that *is* configuration: copy
+[`workflows/label-guard.yml`](workflows/label-guard.yml) into the product repository's
+`.github/workflows/` by hand (the sync script deliberately doesn't touch workflows). **Check:** give
+a test Issue two `state:*` labels — within a minute it gets a comment and a red run; remove one,
+and the next run is green.
+
+Three gates: **1** before code exists (scope and architecture), **2** before entering `main`
+(diff, invariant-checking role's report, mutation result), **3** before raising the status in
+the project register.
+
+One thing worth repeating, because it looks like a formality: **gate 3 gets its own commit.** The
+entry checking off a task or raising a decision's status travels separately from the code it
+describes. An agent will always be inclined to treat its own work as evidence, and the entire
+credibility of the register rests on the principle "status is raised by evidence".
+
+### 6a. Documentation next to the code, not only in one root file
+
+A single instructions file for the agent (e.g. a root `CLAUDE.md`) scales up to a point, and then
+gets so long that an agent working in one module reads every other module's rules just to reach
+its own. A pattern that holds up as the codebase grows: **keep the root file short and
+navigational**, and give each module/screen/layer its **own local rules file** sitting physically
+next to the code it covers — the root indexes them as a list of links, it doesn't copy their
+content. An agent opening a specific module finds its rules in the same directory, without reading
+everything else. Keeping this up takes discipline (new module = new file plus an index entry), but
+the cost is lower than one file that grows without bound.
+
+---
+
+## 7. Merge settings and repository hygiene *(20 minutes)*
 
 Source: [`repository-settings.md`](repository-settings.md), [`ci-and-branch-protection.md`](ci-and-branch-protection.md).
 
@@ -290,7 +414,11 @@ gh api repos/OWNER/REPO/branches/main/protection | jq '{
 
 ---
 
-## 5. CI pipeline *(half an hour + pitfalls)*
+## 8. CI pipeline *(half an hour + pitfalls)*
+
+Beyond build and tests, this is where the mechanical half of the Guardian's checklist belongs:
+[`invariant-assertions.md`](invariant-assertions.md) shows how to turn the rules tagged [M] into
+assertions with a silent-zero guard and a contrast fixture.
 
 Elements worth having in every workflow job:
 
@@ -351,7 +479,49 @@ a separate project with its own gate 1, not a bullet on this list.
 
 ---
 
-## 6. Pre-merge audit — three different questions
+## 9. Calibrate the evaluating roles *(half a day)* — before trusting their reports
+
+Source: [`../calibration/README.md`](../calibration/README.md).
+
+A green report from the Guardian, the Reviewer or QA is worth something only once the role has
+been shown to find what's there and stay silent on what isn't. Run, per evaluating role:
+
+- **Invariant Guardian** — method 1: a seeded set with decoys (run B) plus one run on real,
+  approved code (run A). Build the answer key from your own checklist, independently of the
+  examples in the role's definition.
+- **Reviewer** — method 2: a historical change with a documented human review, the tree restored
+  to its state before the fixes.
+
+Record each result with the date **and the model the role ran on** — roles inherit the calling
+session's model, and a result holds only for that model.
+
+**Check:** the calibration log has, for each evaluating role, a result like
+`<model-id>: 12/12 detected, 0/5 decoys reported` and a clean-code run with zero findings. A role
+without one is not trusted with a real pull request yet.
+
+---
+
+## 10. Pilot: one task, ticket to merge — product repository
+
+Start read-only: `/task-status #<N>` on an existing Issue changes nothing and shows whether the
+command can read the Issue, the PR, CI and the registers. Then drive **one** small, real task with
+`/task #<N>` all the way through the three gates.
+
+Watch, and note in the run log, what the kit can't check for you:
+
+- the write-boundary check after the Architect and QA leaves a "boundary check: clean" note;
+- a cost-register row lands as its own commit on the task branch after every role call;
+- the PR description carries the mutation patch and the Guardian's verdict unsmoothed;
+- at gate 3 the agent only **proposes** the register entries — you paste them.
+
+**Check:** the pilot task is merged, its plan entry has a `Done <date>:` line with a link to the
+test, and the cost register has one row per role call. Count the times you had to step in
+**outside** the three gates — that number, falling over the next ten tasks, is the signal that the
+process works (`../FrameworkDoc.md`, section 13).
+
+---
+
+## 11. Pre-merge audit — three different questions
 
 Sources: [`../agents/invariant-guardian.md`](../agents/invariant-guardian.md),
 [`../agents/security-auditor.md`](../agents/security-auditor.md),
@@ -376,7 +546,7 @@ it didn't exist yet — e.g. a defect introduced by the fix to the previous issu
 
 ---
 
-## 7. Pitfalls that cost the most time
+## 12. Pitfalls that cost the most time
 
 Collected separately, because each of them takes an hour unrecognized, and a minute recognized.
 
@@ -417,7 +587,7 @@ anything else.
 
 ---
 
-## 8. Merge order with several branches at once
+## 13. Merge order with several branches at once
 
 Branches stacked one on top of another (each next one branching off the previous) should be
 merged **starting from the oldest**. Merging in a different order shifts the base, and the diff
@@ -434,6 +604,6 @@ it, and identical content on both sides doesn't produce a merge conflict.
 Setting up an account/organization in the code-hosting system, granting permissions in it, or
 rotating access tokens — those are actions in the provider's interface, performed by the project
 owner. It also does not cover full configuration of a self-hosted runner (see the caveat in
-section 5), nor server-side branch protection for plans that don't provide it — that comes back
-only with the appropriate plan, and at that point it **replaces** step 3 rather than supplementing
+section 8), nor server-side branch protection for plans that don't provide it — that comes back
+only with the appropriate plan, and at that point it **replaces** step 2 rather than supplementing
 it.

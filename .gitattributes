@@ -1,0 +1,5 @@
+# Normalise text files; hooks must stay LF even on a Windows checkout, or the shebang ends in
+# a carriage return and the hook fails with "bad interpreter" on Linux/macOS (process/bootstrap-guide.md, step 2).
+* text=auto
+process/hooks/** text eol=lf
+*.sh text eol=lf
