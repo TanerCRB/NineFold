@@ -18,6 +18,25 @@ All project names, organization, business domain, and specific identifiers (ADR 
 PR, hosts, accounts) have been removed or replaced with placeholders in angle brackets,
 e.g. `<repo-backend>`, `<owner>`, `<Entity>`. Substitute the specifics of your own project for them.
 
+## The process at a glance
+
+**Where the process lives.** One process repository is the source of truth; product repositories
+inherit roles and process from it, the infrastructure repository only the process
+(`FrameworkDoc.md`, sections 3 and 11).
+
+![Process repository distributing roles and process to the backend and frontend repositories, and only the process to the infrastructure repository](docs/images/repository-topology.png)
+
+**How one task moves.** Agents work between the stops; the three human approvals (HIL 1–3) —
+scope, merge, and the status raised in the registers — are never skipped (`FrameworkDoc.md`,
+sections 4 and 5).
+
+![Task lifecycle: Specification, HIL 1, Code, Verification, PR + CI, HIL 2, Registers, HIL 3](docs/images/task-lifecycle.png)
+
+**What counts as proof.** A status is raised only at the end of the chain, and an empty link
+anywhere zeroes out the rest (`FrameworkDoc.md`, section 6).
+
+![Chain of evidence: Decision, Criterion, Test and contrast, Mutation, Status](docs/images/evidence-chain.png)
+
 ## How to read this directory
 
 1. **[`FrameworkDoc.md`](FrameworkDoc.md)** — the philosophy and mechanics of the process: nine
