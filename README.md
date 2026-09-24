@@ -136,3 +136,11 @@ and its product repositories forward one version at a time (v0.1.0 → v0.2.0 �
   watchdog, `runs-on` as an expression) — not ready-made workflow files.
 - **A persistent orchestrator.** FrameworkDoc.md §3 describes the entry condition under which it's
   even worth building one. This kit assumes you haven't reached it yet.
+
+## License
+
+Licensed under the [Apache License, Version 2.0](LICENSE) — free to use, modify and distribute,
+commercially or not. Keep the [`LICENSE`](LICENSE) and [`NOTICE`](NOTICE) files with any copy or
+derivative, and mark the files you changed.
+
+Copyright 2026 Mariusz Miziołek.
