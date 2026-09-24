@@ -113,9 +113,10 @@ Stack-independent rules:
   never guessed separately in each component.
 - A navigation item never unlocks without its corresponding route/screen.
 
-- Languages: establish (see the team contract, "How to write" section) what goes in the team's
-  language versus the technical surface's language, and stick to it consistently — a file
-  carrying both at once teaches the next person the rule by guesswork.
+- Languages: per the team contract, "How to write" section — comments in the artifact language
+  (English unless the human explicitly named another), never in the language of the conversation;
+  identifiers and log messages always in English. Stick to it consistently — a file carrying two
+  languages at once teaches the next person the rule by guesswork.
 
 ### 4. Tests
 

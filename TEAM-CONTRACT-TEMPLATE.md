@@ -230,10 +230,19 @@ The full rules, along with the required report fields and two-sided closure:
 
 ## 7. How to write
 
-**In Polish (or your team's language):** comments in code and scripts, commit messages, pull
-request descriptions, the content of Issues and comments, documentation. **In English:**
-identifiers, error and log messages, the API surface — this is independent of the team's language,
-because it is a surface read by tools and, potentially, other teams.
+**The conversation — in the human's language.** An agent answers in the language the human writes
+in: a message in Polish gets an answer in Polish. This applies only to the conversation in the
+session window.
+
+**Artifacts — in English, unless the human explicitly names another language.** Comments in code
+and scripts, commit messages, pull request descriptions, the content of Issues and comments,
+register entries, documentation — everything someone else reads later. Another language for
+artifacts is an explicit choice: written in this section, or stated by the human for a given task.
+The language of the conversation is not such a choice — a task discussed in Polish still produces
+English artifacts.
+
+**Always in English:** identifiers, error and log messages, the API surface — regardless of the
+artifact language, because it is a surface read by tools and, potentially, other teams.
 
 **Short and to the point.** One sentence instead of a paragraph. Fact and reason — without an
 elaborate justification and without repeating the same thought in different words across
