@@ -124,7 +124,7 @@ anywhere zeroes out the rest (`FrameworkDoc.md`, section 6).
    to **act**, not just understand.
 
 **Already installed an earlier version?** [`UPGRADING.md`](UPGRADING.md) takes a process repository
-and its product repositories forward one version at a time (v0.1.0 → v0.2.0 → v0.3.0).
+and its product repositories forward one version at a time (v0.1.0 → v0.2.0 → v0.3.0 → v0.4.0).
 
 ## What this kit deliberately does not contain
 

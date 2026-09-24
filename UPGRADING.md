@@ -5,7 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
-- [Unreleased (after v0.3.0)](#unreleased-after-v030)
+- [v0.3.0 → v0.4.0](#v030--v040)
 - [v0.2.0 → v0.3.0](#v020--v030)
 - [v0.1.0 → v0.2.0](#v010--v020)
 
@@ -14,7 +14,16 @@ instead.
 
 ---
 
-## Unreleased (after v0.3.0)
+## v0.3.0 → v0.4.0
+
+v0.4.0 licenses the kit and reverses the language rule. The reasons are in the pull requests
+[#17](https://github.com/TanerCRB/NineFold/pull/17) (license) and
+[#18](https://github.com/TanerCRB/NineFold/pull/18) (language).
+
+**Time:** under an hour per product repository.
+
+**License.** The kit is now under the Apache License 2.0 (`LICENSE`, `NOTICE`). Nothing to do in a
+product repository; keep both files in your process repository when you merge the tag.
 
 **Language rule reversed.** Until now the team contract put artifacts in the team's language and
 only the technical surface in English. Now the conversation follows the human's language, and
@@ -22,7 +31,7 @@ artifacts — commits, pull requests, Issues and comments, registers, documentat
 are in English unless the human explicitly names another language. Identifiers, error and log
 messages and the API surface stay in English, as before.
 
-1. **Process repository:** merge the new "How to write" section into your contract. If your team
+1. **Process repository:** merge the `v0.4.0` tag, including the new "How to write" section into your contract. If your team
    keeps artifacts in its own language, say so explicitly in that section — otherwise the agents
    switch to English.
 2. **Product repositories:** re-sync the roles (`developer.md` changed) and hand-merge section 2
