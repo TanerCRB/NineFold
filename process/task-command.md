@@ -135,6 +135,11 @@ You also drop the compression anywhere it creates ambiguity: a warning about an 
 action, a step order where a dropped conjunction changes the meaning, anything touching security
 or personal data. After such a passage, go back to the compressed mode.
 
+The same boundary holds for the language (team contract, "How to write" section): answer the human
+in the language they write in, but write every artifact in English, unless the human explicitly
+names another language — a conversation held in Polish is not such a choice. Pass the artifact
+language to every role you invoke.
+
 ### 3. After every role invocation — a row in the cost register
 
 If you keep a role-cost register (see `../FrameworkDoc.md`, section 6) — after every invocation of
@@ -312,8 +317,9 @@ Issue carries the implementation-phase label. Anything missing = go back to the 
      sub-boundary guarded by the application;
    - a state-changing command: a version and an idempotency key tied to the request content;
    - time from an injected clock source, formatting in an invariant culture;
-   - the language used to talk to the human differs from the language of the technical surface
-     (see the team contract, "How to write" section);
+   - code comments in the artifact language — English unless the human explicitly named another —
+     not in the language of the conversation; identifiers and log messages always in English (see
+     the team contract, "How to write" section);
    - a new configuration threshold / new rule comes with an entry in the relevant register, if you
      keep one.
 8. **Tests per criterion**, against real infrastructure wherever a fake has no credible
