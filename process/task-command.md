@@ -322,9 +322,10 @@ Issue carries the implementation-phase label. Anything missing = go back to the 
      the team contract, "How to write" section);
    - a new configuration threshold / new rule comes with an entry in the relevant register, if you
      keep one.
-8. **Tests per criterion**, against real infrastructure wherever a fake has no credible
-   equivalent. The test count before and after the change belongs in the report; an unexplained
-   drop is a finding.
+8. **Tests per criterion, each written before the code it proves and seen failing first** (see
+   the role's definition file, Method, section 3), against real infrastructure wherever a fake
+   has no credible equivalent. The test count before and after the change belongs in the report;
+   an unexplained drop is a finding, and so is a test the report says passed at its first run.
 9. **Local quality gates** (from the repository root) — **EXAMPLE, replace with your own**:
    ```bash
    <build command and full test suite>
@@ -415,6 +416,12 @@ A fix is new code: the Developer's changes go into a new `checkpoint: <identifie
 a new QA checkpoint, and the resulting `VERIFIED` replaces the old one. Reports tied to the old SHA
 stay valid only for the parts the fix didn't touch.
 
+The Developer gets every `STOP` report in full and answers each finding by the role's procedure
+for receiving findings (Method, section 8): `FIXED` with a test, `DISPUTED` with evidence, or
+`NEEDS A HUMAN`. Pass a `DISPUTED` finding back to the role that raised it together with the
+evidence; if the role still holds it, it goes to the human — like any disagreement between roles.
+A `NEEDS A HUMAN` finding stops the loop until the human answers.
+
 After the Developer fixes the findings, **don't rerun every evaluating role on the whole change
 by default.** Rerun:
 
@@ -474,6 +481,9 @@ message to the human.
     the hosting platform's endpoints, an executor that dropped out (a failure with no log, a step
     with a null result), a dependent service alive but not yet ready, secrets not reaching an
     automated bot, a green status computed against a stale base after the main branch moved on.
+    Ruled all of them out → it is a defect: the Developer takes it through the root-cause
+    procedure (the role's definition file, Method, section 7), never a re-run until it turns
+    green.
 19. **GATE 2 — STOP.** The human approves the merge. You don't merge yourself. The message names
     `VERIFIED`, the PR head SHA, and every commit between them (expected: bookkeeping only) — if
     anything else is there, the gate is not ready. Unassign yourself.
