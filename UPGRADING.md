@@ -5,7 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
-- [Unreleased (after v0.5.0)](#unreleased-after-v050)
+- [v0.5.0 → v0.6.0](#v050--v060)
 - [v0.4.0 → v0.5.0](#v040--v050)
 - [v0.3.0 → v0.4.0](#v030--v040)
 - [v0.2.0 → v0.3.0](#v020--v030)
@@ -16,7 +16,19 @@ instead.
 
 ---
 
-## Unreleased (after v0.5.0)
+## v0.5.0 → v0.6.0
+
+v0.6.0 extends calibration to the producing roles and answers, in the Developer's test-first rule,
+the excuses that calibration measured. Method 4 follows the RED step of obra/superpowers'
+`writing-skills`. The reasons are in the pull requests
+[#23](https://github.com/TanerCRB/NineFold/pull/23) (Method 4),
+[#24](https://github.com/TanerCRB/NineFold/pull/24) (trial runs) and
+[#25](https://github.com/TanerCRB/NineFold/pull/25) (excuse table).
+
+**Time:** under an hour per product repository. Nothing to recalibrate among the evaluating
+roles.
+
+### Calibrating producing roles
 
 **Producing roles can be calibrated.** Until now only the evaluating roles were calibrated; nothing
 checked that a producing role keeps its own rules. Method 4 in `calibration/README.md` does this
@@ -25,22 +37,24 @@ rule cut out of the definition (arm A) and with the definition as it is (arm B).
 as working only when the two differ, and arm A's excuses are recorded verbatim.
 `calibration/example-pressure-scenarios.md` has example scenarios for the Developer.
 
-1. **Process repository:** merge Method 4 and the example file into your `calibration/`, and the
-   updated roles paragraph (section 2) into your team contract.
+1. **Process repository:** merge the `v0.6.0` tag, including Method 4 and the example file in
+   `calibration/`, and the updated roles paragraph (section 2) in your team contract.
 2. **Product repositories:** nothing to sync. Calibration runs in a throwaway repository, never in
    a product repository.
-3. **Check (optional — nothing is blocked without it):** run scenario P-01 for the Developer, three
-   times per arm. Arm A must break the rule at least once, otherwise the scenario's pressure is
-   too weak. Arm B must keep the rule in every run. For comparison, the kit's own trial with the
-   pressure in the example table got A 4/5 broken and B 0/5 broken.
+3. **Check (optional — nothing is blocked without it):** read the two P-01 trials in the example
+   file. The first pressure measured nothing; the second gave A 4/5 broken against B 0/5. To try
+   the method on your own team, write a scenario for a rule your Developer actually leans on,
+   with a pressure the definition doesn't quote. P-01 now only checks for regressions (below).
+
+### The Developer's excuse table
 
 **The test-first rule answers its two measured excuses.** `developer.md` §3 gains a short table
 with the two excuses a Developer without the rule gave in P-01: "I did it in the order the human
 asked" and "I put the old code back for one run to make up for it". Each comes with the reason it
 doesn't hold.
 
-1. **Process repository:** merge the table into `agents/developer.md` (into each file, if yours is
-   split per stack).
+1. **Process repository:** the same tag brings the table in `agents/developer.md`. If yours is
+   split per stack, carry it into each file.
 2. **Product repositories:** re-sync the roles (`developer.md` changed).
 3. **Check:** P-01 now only checks for regressions, because its excuses are quoted in the
    definition. If you calibrate, run arm B and expect the rule kept in every run. A fresh
