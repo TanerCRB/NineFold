@@ -36,9 +36,10 @@ A second principle, binding on every role:
 ## 2. Roles
 
 Eight definitions per production repository. Four **evaluating** (Guardian, Reviewer, Security
-Auditor, QA — their only output is a verdict on someone else's work, so they are the ones
-calibrated, see `calibration/README.md`) and four **producing** (Product Owner, Analyst,
-Architect, Developer).
+Auditor, QA — their only output is a verdict on someone else's work, so they are calibrated before
+anyone trusts that verdict, see `calibration/README.md`) and four **producing** (Product Owner,
+Analyst, Architect, Developer — their work is judged downstream; whether they keep their own rules
+under pressure is checked with pressure scenarios, Method 4 of the same document).
 
 | Role | Output artifact | Tools | What it **cannot** do |
 |---|---|---|---|

@@ -118,7 +118,7 @@ anywhere zeroes out the rest (`FrameworkDoc.md`, section 6).
    own CI (`.github/workflows/kit-ci.yml`) runs the self-tests, the label manifest check and
    `check-links.mjs` (relative Markdown links) on every pull request.
 6. **[`calibration/`](calibration/)** — how to check that an evaluating role actually evaluates,
-   before you start trusting it.
+   before you start trusting it, and that a producing role keeps its rules under pressure.
 7. **[`process/bootstrap-guide.md`](process/bootstrap-guide.md)** — a step-by-step sequence of
    actions to go from an empty repository to a working pipeline with gates. Start here if you want
    to **act**, not just understand.
