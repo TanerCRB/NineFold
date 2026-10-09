@@ -144,7 +144,8 @@ language to every role you invoke.
 
 If you keep a role-cost register (see `../FrameworkDoc.md`, section 6) — after every invocation of
 any of the eight roles, record one row: date, role, task, phase, **model**, **invocation**
-(`registered` / `general-purpose`), complexity, tokens, tool calls, time, **rework cause**, notes.
+(`registered` / `general-purpose`), complexity, tokens, tool calls, time, **fix round**, **rework
+cause**, notes.
 
 **One file per row, not one shared table.** Write each row as its own small file, e.g.
 `<cost-register-dir>/<date>_<task>_<phase>_<role>_<n>.json`, and build the table from the
@@ -162,6 +163,10 @@ from a model difference. A role's calibration result holds only for the model it
 re-verification): which finding caused it and **which earlier role could have caught it** (the
 Developer's self-check, the Guardian, the Analyst's criteria, nobody). This is the data for
 deciding where to move checks earlier; leave it empty on first runs.
+
+**Fix round** — `0` on every call before the first `STOP`, then the number of the round the call
+belongs to (see "Round limit"). Without it the rework rows of one task cannot be told apart, and
+the round limit cannot be checked against what actually happened.
 
 Take the numbers (tokens, tool calls, time) from the invocation's usage field — never estimate. If
 a given invocation doesn't return a number, write "no data" in that column instead of guessing: an
@@ -437,6 +442,42 @@ A role that returned `PASS` and whose area the fix didn't touch is not rerun. **
 full rerun** when the fix touches files outside the previous findings, or when two roles disagree
 on the same facts — then each needs the full picture. Say which variant you chose and why in the
 message to the human.
+
+### Round limit
+
+A **fix round** is one return from `qa` to `implementation` on a `STOP`: the Developer's fix and
+the re-verification after it, however many findings it carries. Count rounds per task from the
+first `VERIFIED`. These are not rounds: a `DISPUTED` finding passed back with no code change, the
+re-verification in step 15 after `main` moved, and a return from gate 2 on the human's PR
+feedback.
+
+**Two rounds, then the human.** In the source project one round cost 29–36% of the task's final
+cost (`../FrameworkDoc.md`, section 6), so a second round brings the task close to double what
+it would have cost without either. A third `STOP` rarely means the code needs one more fix. More
+often the criteria, the impact map or the size of the task were wrong, and no fix round can
+repair that. **The loop also stops at once, in any round, when a finding the Developer marked
+`FIXED` comes back unresolved** — the fix missed what the finding meant, and a second attempt
+at the same reading costs a round and teaches nothing.
+
+When the loop stops:
+1. Leave the Issue in `state:implementation`, apply `waiting-on-human`, and unassign yourself.
+2. Do not start another round.
+3. The message to the human lists every round: its findings, the verdicts, and what each
+   re-verification found. It ends with a recommendation in the usual shape:
+
+```
+Question: the fix loop on <identifier> hit its limit — how do we go on?
+Options:  A — split the task: the part that passed goes on, the rest is a new Story.
+          B — back to the Analyst or the Architect: a criterion or the impact map is wrong.
+          C — a recorded exception for the open findings (owner, reason, date), then gate 2.
+          D — one more round, with a reason this one will converge.
+Recommendation: <A–D>, because <evidence from the rounds>.
+What would change it: <…>
+```
+
+The limit is the kit's default. Change it in your copy only on your own cost register's numbers:
+the `fixRound` field (see `registers/cost-register.md`) shows how often a third round would have
+converged.
 
 ---
 

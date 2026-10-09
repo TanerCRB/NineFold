@@ -62,6 +62,10 @@ The `waiting-on-human` label accompanies every gate state. Thanks to it you don'
 remember which states are gates — one filter shows everything that is standing and waiting for
 you. An agent that enters a gate state **applies this label and stops working**.
 
+The label also appears outside a gate state when work stops on a question only you can answer —
+for example `state:implementation` after the fix loop hits its limit (`task-command.md`, "Round
+limit"). The state doesn't change; you remove the label when you choose how to go on.
+
 ## Rules we don't break
 
 **An agent does not remove the `waiting-on-human` label.** Removing it is equivalent to making a

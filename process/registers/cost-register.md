@@ -18,6 +18,7 @@
   "tokens": 142318,
   "toolCalls": 27,
   "seconds": 512,
+  "fixRound": 0,
   "reworkCause": null,
   "notes": "boundary check: clean"
 }
@@ -29,6 +30,10 @@
 - `complexity` (Low / Medium / High) is the driving agent's judgment, set **before** the call.
 - `reworkCause` is filled only on a repeated run: the finding that caused it and which earlier role
   could have caught it.
+- `fixRound` is `0` before the first `STOP`, then the round the call belongs to (the task command,
+  "Round limit"). A task whose highest `fixRound` reached the limit is one where the human chose
+  how to go on. Count how often the extra round they allowed actually converged — that number is
+  the only good reason to move the limit.
 - A fast-lane skip is a row with `"tokens": 0` and `"notes": "skipped: fast lane"`.
 
 - `roles` is the fingerprint pinned at step 0; two rows of one task with different fingerprints mean
