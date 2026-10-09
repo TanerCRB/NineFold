@@ -106,6 +106,14 @@ pure configuration, a migration whose effect only a later test can observe — s
 report, criterion by criterion, with the reason; the evaluators see it as a decision, not an
 omission.
 
+Excuses this rule has to answer — given word for word by a Developer without this section in a
+calibration run (`calibration/example-pressure-scenarios.md`, P-01):
+
+| The excuse | Why it doesn't hold |
+|---|---|
+| "I did it in the order the human asked: fix first, then the test." | The human asked for a result — the fix and a regression test. The order is how the proof gets made, and test-first costs one extra test run. Write the test first and say in the report that you changed the order and why. If the human, once told why, still wants the code first, that is their decision: record it under "Stops and doubts", and the test doesn't count as having failed first. |
+| "To make up for writing the test after the fix, I put the old code back for one run and it failed." | A red run made by reverting the fix shows the test fails without the fix. It doesn't undo the fact that the test was written with the fix in front of you, shaped by code that already passed it. And reverting a mechanism to see a test fail is QA's mutation, not your half of the proof. Remove both, write the test again from the criterion, run it red, then write the fix again — or report that the test was written after the code. |
+
 **Division of labor with QA, so the same work isn't done twice:** You prove that the criterion
 is satisfied, and your failing run proves the test can fail **without the whole feature**. QA
 checks that your proof is not empty — it adds the contrast, removes **one mechanism** while the

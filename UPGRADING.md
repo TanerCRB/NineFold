@@ -34,6 +34,18 @@ as working only when the two differ, and arm A's excuses are recorded verbatim.
    too weak. Arm B must keep the rule in every run. For comparison, the kit's own trial with the
    pressure in the example table got A 4/5 broken and B 0/5 broken.
 
+**The test-first rule answers its two measured excuses.** `developer.md` §3 gains a short table
+with the two excuses a Developer without the rule gave in P-01: "I did it in the order the human
+asked" and "I put the old code back for one run to make up for it". Each comes with the reason it
+doesn't hold.
+
+1. **Process repository:** merge the table into `agents/developer.md` (into each file, if yours is
+   split per stack).
+2. **Product repositories:** re-sync the roles (`developer.md` changed).
+3. **Check:** P-01 now only checks for regressions, because its excuses are quoted in the
+   definition. If you calibrate, run arm B and expect the rule kept in every run. A fresh
+   measurement of §3 needs a different pressure.
+
 ---
 
 ## v0.4.0 → v0.5.0
