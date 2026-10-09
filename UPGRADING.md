@@ -5,7 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
-- [Unreleased (after v0.4.0)](#unreleased-after-v040)
+- [v0.4.0 → v0.5.0](#v040--v050)
 - [v0.3.0 → v0.4.0](#v030--v040)
 - [v0.2.0 → v0.3.0](#v020--v030)
 - [v0.1.0 → v0.2.0](#v010--v020)
@@ -15,7 +15,16 @@ instead.
 
 ---
 
-## Unreleased (after v0.4.0)
+## v0.4.0 → v0.5.0
+
+v0.5.0 tightens the Developer role and puts a limit on the fix loop. Both changes come from a
+comparison with [obra/superpowers](https://github.com/obra/superpowers), adapted to this kit's
+rules. The reasons are in the pull requests [#20](https://github.com/TanerCRB/NineFold/pull/20)
+(Developer) and [#21](https://github.com/TanerCRB/NineFold/pull/21) (round limit).
+
+**Time:** about an hour per product repository. Nothing to recalibrate.
+
+### The Developer: test first, root cause, findings
 
 **The Developer writes the test first, debugs from a reproduction and answers findings with
 evidence.** Three gaps in the Developer role are closed:
@@ -28,7 +37,7 @@ evidence.** Three gaps in the Developer role are closed:
 The task command states the same in step 8, in the red-CI triage of step 18 and in
 "Re-verification after a `STOP`".
 
-1. **Process repository:** merge the changes to `agents/developer.md`, the Developer row and the
+1. **Process repository:** merge the `v0.5.0` tag, including the changes to `agents/developer.md`, the Developer row and the
    Developer-vs-QA note in your team contract, and the three places in the task command. If your
    `developer.md` is split per stack, apply the new Method sections 3, 7 and 8, hard stop 9 and
    the report sections to each file.
@@ -41,13 +50,15 @@ The task command states the same in step 8, in the red-CI triage of step 18 and 
 Nothing to recalibrate: the Developer is a producing role, and none of the evaluating roles
 changed.
 
+### The fix-round limit
+
 **The fix loop has a limit.** Before, "`STOP` → fix → re-verify" could repeat without end. Now
 the task goes to the human after two fix rounds, or at once when a finding marked `FIXED` comes
 back unresolved. The Issue stays in `state:implementation` with `waiting-on-human`, and the
 message offers four ways on: split, back to the Analyst or Architect, a recorded exception, or
 one more round. Cost-register rows gain a `fixRound` field.
 
-1. **Process repository:** merge the "Round limit" subsection of the task command, the
+1. **Process repository:** the same tag brings the "Round limit" subsection of the task command, the
    `waiting-on-human` note in `sdlc-flow.md` and the `fixRound` field in the cost-register format.
 2. **Product repositories:** hand-merge "Round limit" and the cost-register paragraph ("Fix round")
    into the task command. Existing rows without `fixRound` read as unknown, not as `0`.
