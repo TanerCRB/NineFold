@@ -1,0 +1,10 @@
+Generator: built-in image_gen
+Asset: ninefold-logo-v1.png
+
+Use case: logo-brand.
+Create a finished, distinctive professional logo for "Ninefold", an engineering process combining eight specialized AI agent roles and one human decision maker. It is a spec-driven software lifecycle with evidence, independent review, and three deliberate human approval gates. The identity should communicate coordinated work, precision, accountability and thoughtful human control.
+Asset: clean primary logo, symbol plus wordmark, suitable for a GitHub README, documentation and presentation title slides.
+Design direction: a compact sculptural but completely flat geometric N monogram constructed from nine broad, crisply separated folded ribbon facets. Eight facets are deep blue-green ink; one pivotal facet is warm amber, representing the human. The fold geometry and negative space should give a strong recognizable N silhouette, engineered and architectural, with optical balance. Make the N memorable, simple enough to recognize at small sizes, with consistent angles and restrained negative-space seams; not an intricate knot or network diagram.
+Place the symbol to the left of the exact wordmark "Ninefold" in refined bold contemporary sans-serif lettering, carefully kerned, dark ink. Wordmark text must be exactly Ninefold, with only initial N uppercase. No tagline or additional text.
+Composition: one horizontal logo lockup centered, generous but not excessive clear space, the symbol and lettering feel equally intentional. Flat two-color identity, razor-sharp vector-like edges, no shading, no gradients, no texture, no mockup, no perspective, no 3D, no frame, no watermark. Avoid generic robot heads, brains, gears, shields, checkmarks, hexagonal badges, and AI sparkles.
+Background: genuinely transparent alpha, not a checkerboard painted into the image. High resolution, landscape composition.
