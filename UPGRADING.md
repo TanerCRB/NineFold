@@ -5,12 +5,41 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
+- [Unreleased (after v0.4.0)](#unreleased-after-v040)
 - [v0.3.0 → v0.4.0](#v030--v040)
 - [v0.2.0 → v0.3.0](#v020--v030)
 - [v0.1.0 → v0.2.0](#v010--v020)
 
 If you are installing from scratch, follow [`process/bootstrap-guide.md`](process/bootstrap-guide.md)
 instead.
+
+---
+
+## Unreleased (after v0.4.0)
+
+**The Developer writes the test first, debugs from a reproduction and answers findings with
+evidence.** Three gaps in the Developer role are closed:
+- Tests were written after the code. Now each test is seen failing before the code it proves.
+- There was no procedure for a defect. Now a fix comes after a reproduction and one hypothesis
+  at a time, and three disproved hypotheses stop the work (hard stop 9).
+- There was no procedure for findings from the evaluating roles. Now each finding gets a verdict
+  with evidence: `FIXED`, `DISPUTED` or `NEEDS A HUMAN`.
+
+The task command states the same in step 8, in the red-CI triage of step 18 and in
+"Re-verification after a `STOP`".
+
+1. **Process repository:** merge the changes to `agents/developer.md`, the Developer row and the
+   Developer-vs-QA note in your team contract, and the three places in the task command. If your
+   `developer.md` is split per stack, apply the new Method sections 3, 7 and 8, hard stop 9 and
+   the report sections to each file.
+2. **Product repositories:** re-sync the roles (`developer.md` changed) and hand-merge steps 8 and
+   18 and "Re-verification after a `STOP`" into the task command.
+3. **Check:** run one task. The Developer report's Criteria table must say, for each test, why it
+   failed before the code. On a fix round the report must carry a "Findings received" table with
+   one verdict per finding.
+
+Nothing to recalibrate: the Developer is a producing role, and none of the evaluating roles
+changed.
 
 ---
 

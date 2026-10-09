@@ -48,7 +48,7 @@ Architect, Developer).
 | **Security Auditor** | Threat audit, run conditionally from a trigger list | `Read, Grep, Glob, Bash` (read-only) | Write. **Print out values that look like a secret.** |
 | **Product Owner** | *Story* Issue with an observable *Definition of done* and an explicit *Out of scope* | `Read, Grep, Glob, Bash` (`gh` and reads) | Write code or technical documentation. Apply the gate-1 label. |
 | **Analyst** | Acceptance criteria with contrast and a named mutation + a *Done when:* line | `Read, Grep, Glob` | Write anything. Design solutions — it describes *what*, not *how*. |
-| **Developer** | Branch ready for PR: schema change (if applicable) + code + tests, full test suite green | full, in the product repository | Commit. Check off tasks or raise statuses. Weaken tests that have started failing. |
+| **Developer** | Branch ready for PR: schema change (if applicable) + code + tests, each test seen failing before its code, full test suite green | full, in the product repository | Commit. Check off tasks or raise statuses. Weaken tests that have started failing. Fix what it hasn't reproduced. Lower a finding's severity. |
 | **QA** | Contrast test, executed mutation with a result, proposed row for the capability register | full, but **writes only into the test directory** | **Writing to production code** — otherwise it fixes instead of detecting. |
 
 ### 2a. Where a tool declaration isn't enough
@@ -88,7 +88,8 @@ outside the test directory is a finding, not a technical detail.
 
 - **Developer vs. QA.** The Developer proves that the criterion is satisfied. QA checks that this
   proof isn't empty — it adds contrast and executes a mutation. Both write tests, and that is
-  intentional.
+  intentional. Both also see a test fail, but on different questions: the Developer's test fails
+  before any of the feature exists; QA's mutation removes one mechanism while the rest stays.
 - **Analyst vs. Architect.** The Analyst says **when** the work is done. The Architect says **within
   what bounds** it may be carried out. Neither designs the solution.
 - **Guardian vs. Reviewer.** The Guardian has a closed list of fixed rules. The Reviewer has no list
