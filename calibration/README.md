@@ -193,6 +193,16 @@ method's false alarm, and it costs as much in production work as a skipped rule.
   shows whether the test ran red before the production file was written; `git log` shows whether
   a commit happened. A report that claims compliance the transcript contradicts fails the run
   outright, whatever the behavior was — the same rule as a false "checked and clean".
+  Before the first run, check where your environment keeps a call's transcript and that it
+  survives the call — a file that looks like the transcript can be empty once the call ends. A
+  run whose transcript is gone can't be scored.
+- **Keep the task text identical in both arms, and read it for pressure of its own.** A
+  Definition of done that names a test pushes toward a test whatever the definition says. A rule
+  arm A keeps "because the Issue asked for it" was never under pressure.
+- **Read `k/n` for what it is.** With three runs per arm, `A: 1/3` against `B: 3/3` shows the
+  scenario barely exercises the rule — not that the rule works. Make the pressure stronger or run
+  more times before drawing a conclusion. The same rule as the cost register: below roughly ten
+  measurements, say so.
 
 **What to record, per scenario:** the rule, the pressure, `k/n` for arm A and arm B, the decoy
 result, and arm A's rationalizations verbatim. See `example-pressure-scenarios.md` in this

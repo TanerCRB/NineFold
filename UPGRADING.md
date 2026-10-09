@@ -31,7 +31,9 @@ as working only when the two differ, and arm A's excuses are recorded verbatim.
    a product repository.
 3. **Check (optional — nothing is blocked without it):** run scenario P-01 for the Developer, three
    times per arm. Arm A must break the rule at least once, otherwise the scenario's pressure is
-   too weak. Arm B must keep the rule in every run.
+   too weak. Arm B must keep the rule in every run. The kit's own trial got A 1/3 and B 3/3,
+   which is too close to tell anything. Start from the stronger pressure suggested at the end of
+   the example file.
 
 ---
 

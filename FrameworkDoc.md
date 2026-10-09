@@ -430,7 +430,9 @@ small task with a built-in reason to skip one rule, run once with that rule cut 
 definition and once with the definition as it is. The rule is shown to work only when the two
 differ. The run without the rule also yields the excuses the agent gives, verbatim — the best
 material for writing the rule. This method came later than the other two and has no recorded
-result from the source project yet (`calibration/README.md`, Method 4).
+result from the source project yet (`calibration/README.md`, Method 4). The kit's one trial run, on
+a toy repository, mostly taught something about the method itself: the task text can carry the
+pressure's answer on its own (`calibration/example-pressure-scenarios.md`).
 
 Two conclusions were drawn from the calibration runs, both named as general, not one-off:
 
