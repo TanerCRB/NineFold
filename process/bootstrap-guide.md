@@ -516,6 +516,12 @@ session's model, and a result holds only for that model.
 `<model-id>: 12/12 detected, 0/5 decoys reported` and a clean-code run with zero findings. A role
 without one is not trusted with a real pull request yet.
 
+**Optional at this step — the producing roles.** Method 4 (pressure scenarios) checks that a
+producing role keeps its rules when the task pushes against them. It doesn't block the pilot: the
+evaluators judge a producing role's work on every task anyway. Run it for the Developer once the
+pilot (step 10) has shown which rules your team actually leans on; start from
+[`../calibration/example-pressure-scenarios.md`](../calibration/example-pressure-scenarios.md).
+
 ---
 
 ## 10. Pilot: one task, ticket to merge — product repository

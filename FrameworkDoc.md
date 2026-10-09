@@ -423,6 +423,15 @@ not flag what isn't there. The project uses two calibration methods, depending o
   listed in the role definition, sensitivity to those that were, precision (the share of findings
   that are actually valid), and surplus beyond what the human found.
 
+A **producing** role (Product Owner, Analyst, Architect, Developer) returns work, not a verdict.
+Its work is judged downstream on every task, but whether it **keeps its own rules** — the test
+before the code, a stop at a hard stop — is not. It is calibrated with **pressure scenarios**: a
+small task with a built-in reason to skip one rule, run once with that rule cut out of the
+definition and once with the definition as it is. The rule is shown to work only when the two
+differ. The run without the rule also yields the excuses the agent gives, verbatim — the best
+material for writing the rule. This method came later than the other two and has no recorded
+result from the source project yet (`calibration/README.md`, Method 4).
+
 Two conclusions were drawn from the calibration runs, both named as general, not one-off:
 
 1. **A false "checked and clean" is more expensive than an oversight.** In one run, the most serious

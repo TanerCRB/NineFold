@@ -5,6 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
+- [Unreleased (after v0.5.0)](#unreleased-after-v050)
 - [v0.4.0 → v0.5.0](#v040--v050)
 - [v0.3.0 → v0.4.0](#v030--v040)
 - [v0.2.0 → v0.3.0](#v020--v030)
@@ -12,6 +13,25 @@ changes fail silently when half-done. Upgrade one version at a time.
 
 If you are installing from scratch, follow [`process/bootstrap-guide.md`](process/bootstrap-guide.md)
 instead.
+
+---
+
+## Unreleased (after v0.5.0)
+
+**Producing roles can be calibrated.** Until now only the evaluating roles were calibrated; nothing
+checked that a producing role keeps its own rules. Method 4 in `calibration/README.md` does this
+with **pressure scenarios**: a small task with a built-in reason to skip one rule, run with that
+rule cut out of the definition (arm A) and with the definition as it is (arm B). The rule counts
+as working only when the two differ, and arm A's excuses are recorded verbatim.
+`calibration/example-pressure-scenarios.md` has example scenarios for the Developer.
+
+1. **Process repository:** merge Method 4 and the example file into your `calibration/`, and the
+   updated roles paragraph (section 2) into your team contract.
+2. **Product repositories:** nothing to sync. Calibration runs in a throwaway repository, never in
+   a product repository.
+3. **Check (optional — nothing is blocked without it):** run scenario P-01 for the Developer, three
+   times per arm. Arm A must break the rule at least once, otherwise the scenario's pressure is
+   too weak. Arm B must keep the rule in every run.
 
 ---
 

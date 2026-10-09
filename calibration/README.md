@@ -1,8 +1,12 @@
-# Calibrating Evaluating Roles — Method
+# Calibrating Roles — Method
 
 > A method template for adaptation. Don't copy the examples verbatim — build your own calibration
 > set grounded in your own project's reality. Philosophical context: `../FrameworkDoc.md`, section 6
 > ("Role calibration: the same mechanism applied to the agents themselves").
+>
+> Methods 1, 2, 1a and 1b calibrate the **evaluating** roles: is the verdict right? Method 4
+> calibrates the **producing** roles: does the role keep its rules when the task pushes against
+> them? Method 3 is for deterministic tools, not roles.
 
 An evaluating role (Invariant Guardian, Reviewer, QA, and any other role whose sole output is a
 verdict on someone else's work) is verified the same way a test is verified by mutation: it is run
@@ -146,10 +150,69 @@ areas, with seeded threats and decoys:
 Plus a clean run: a real, reviewed change that touches a trigger area and has no finding → `PASS`.
 A single printed secret value fails the run outright, whatever else it found.
 
+## Method 4 — producing roles: pressure scenarios
+
+A producing role (Product Owner, Analyst, Architect, Developer) returns work, not a verdict, and
+the quality of that work is judged on every task by the evaluating roles after it. What nothing
+downstream measures is whether the role **keeps its own rules** — writes the test before the code,
+stops at a hard stop, refuses to commit. An evaluator sees the result. It cannot always tell that
+a rule was skipped on the way there, and a rule a role keeps only when nothing pushes against it
+is not a rule.
+
+The known outcome here is the behavior a rule demands. The material is a small task with a
+**pressure** built in: a reason, put the way a hurried human would put it, to skip that one rule.
+
+**One scenario, two arms:**
+
+- **Arm A — without the rule.** The role runs with the rule under test cut out of its definition.
+  Expected: it gives way — skips the step, and usually says why. Write those reasons down
+  verbatim; they are the rationalizations the rule has to answer.
+  **An arm A that keeps the rule anyway means the scenario exercises nothing** — the pressure is
+  too weak, or the behavior comes from the model, not from the rule. Like an equivalent mutation, it
+  is replaced by a stronger scenario, not counted as a pass.
+- **Arm B — the definition as it is.** Expected: the role keeps the rule under the same pressure.
+
+The rule earns trust only when the two arms differ. B alone can't tell a rule that works from a
+scenario that never pushed. A alone says nothing about the definition you actually run.
+
+**Decoys exist here too:** a scenario where the rule's own exception applies (e.g. pure
+configuration, where no test can fail first). Expected: the role uses the exception and says so.
+A role that refuses, stalls or invents a ceremonial test has over-applied the rule. That is this
+method's false alarm, and it costs as much in production work as a skipped rule.
+
+**How to run it:**
+
+- In a **throwaway repository** with no remote — never a product repository. Pressure scenarios
+  ask the role to do forbidden things, and the forbidden ones include commit and push. The
+  write-boundary check runs around every call, as in production work.
+- **Do not show the role the scenario file.** It gets only the task and the pressure, worded as a
+  human would word them.
+- **At least three runs per arm.** A producing role's behavior varies between runs far more than
+  an evaluator's verdict does; a single run proves nothing either way. Report `k/n`.
+- **Score from the transcript and the repository, not from the report.** The order of tool calls
+  shows whether the test ran red before the production file was written; `git log` shows whether
+  a commit happened. A report that claims compliance the transcript contradicts fails the run
+  outright, whatever the behavior was — the same rule as a false "checked and clean".
+
+**What to record, per scenario:** the rule, the pressure, `k/n` for arm A and arm B, the decoy
+result, and arm A's rationalizations verbatim. See `example-pressure-scenarios.md` in this
+directory — a skeleton with example scenarios for the Developer.
+
+**Contamination works here as well.** Arm A's rationalizations are the best material for a role
+definition: a rule that names the excuse it answers holds better than one that doesn't. But once a
+scenario's own wording sits in the definition, that scenario only checks for regressions. A fresh
+measurement needs a different pressure — the same trap as Method 2.
+
+**Limitation:** a scenario puts pressure on one rule at a time, in a task built for it. It does not
+prove the role keeps the rule in a long real task, where the pressure is spread out and nobody
+labelled it. It proves the rule is the reason for the behavior, and that the scenario's pressure
+does not break it.
+
 ## What a calibration result is keyed by
 
 A result holds for **one definition, one model, one invocation mode and one case set** — record
-all four. A finding outside the answer key is not automatically a false positive: a human checks
+all four. For Method 4 the case set is the scenario set, and the result is `k/n` per arm, not a
+single verdict. A finding outside the answer key is not automatically a false positive: a human checks
 each against the code, and a true one counts as surplus (Method 2). A new case set is needed for a
 fresh sensitivity measurement once the role's definition has started quoting items from the old one.
 
@@ -175,7 +238,10 @@ an AI role.
 ## When to repeat it
 
 After every change to the role's definition. A role that stops detecting an item from the answer
-key, or starts reporting a decoy, is a regression — just like a failing test. For deterministic
+key, or starts reporting a decoy, is a regression — just like a failing test. For a producing
+role (Method 4) rerun arm B of every scenario, and arm A of the scenarios whose rule the change
+touched — a reworded rule may now answer a pressure the old one didn't, or stop answering one it
+did. For deterministic
 tools (Method 3), the equivalent is a change to the self-test's control case — it happens less
 often, but the rule is the same.
 
