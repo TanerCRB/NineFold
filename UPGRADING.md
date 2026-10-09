@@ -41,6 +41,19 @@ The task command states the same in step 8, in the red-CI triage of step 18 and 
 Nothing to recalibrate: the Developer is a producing role, and none of the evaluating roles
 changed.
 
+**The fix loop has a limit.** Before, "`STOP` → fix → re-verify" could repeat without end. Now
+the task goes to the human after two fix rounds, or at once when a finding marked `FIXED` comes
+back unresolved. The Issue stays in `state:implementation` with `waiting-on-human`, and the
+message offers four ways on: split, back to the Analyst or Architect, a recorded exception, or
+one more round. Cost-register rows gain a `fixRound` field.
+
+1. **Process repository:** merge the "Round limit" subsection of the task command, the
+   `waiting-on-human` note in `sdlc-flow.md` and the `fixRound` field in the cost-register format.
+2. **Product repositories:** hand-merge "Round limit" and the cost-register paragraph ("Fix round")
+   into the task command. Existing rows without `fixRound` read as unknown, not as `0`.
+3. **Check:** run `/task-status` on an Issue in `state:implementation` carrying `waiting-on-human`.
+   It must report the Issue as waiting on a human decision, not on work.
+
 ---
 
 ## v0.3.0 → v0.4.0

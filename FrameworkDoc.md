@@ -478,7 +478,8 @@ or because the role read more than the task required.
 - One task tracked from ticket to merge through all roles cost 1,728,225 tokens (backend) and
   1,282,807 tokens (frontend) of expert-role time. **One corrective iteration** — a Reviewer STOP,
   a fix, and re-verification — made up **36%** and **29%** of the task's final cost respectively
-  (**57%** and **41%** on top of what each task would have cost without it): the countable price of "it's cheaper to stop earlier than later" (section 5). The
+  (**57%** and **41%** on top of what each task would have cost without it): the countable price of "it's cheaper to stop earlier than later" (section 5), and the reason the task
+  command hands the task to the human after two such rounds instead of starting a third. The
   frontend run also ended with an explicitly named dispute between two evaluating roles, handed to
   the human instead of being resolved automatically
   ([backend example](CASE-STUDY.md#example-the-cost-of-one-task-tracked-from-ticket-to-merge-backend),
