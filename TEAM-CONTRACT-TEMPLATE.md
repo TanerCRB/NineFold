@@ -113,6 +113,12 @@ Three points at which a human stops the work. Outside of them, the agent acts in
 Gate 3 exists because an agent will always tend to treat its own work as proof, and the entire
 credibility of the register rests on the principle *"status is raised by proof."*
 
+**What gate 1 approved is locked.** The *Definition of done*, the *Out of scope* and the
+acceptance criteria in the Issue get a fingerprint when they go to gate 1; any later edit, by
+anyone, sends the task back to gate 1. A gap the Developer meets during implementation doesn't
+reopen the criteria — it is recorded as a numbered assumption and decided by you at gate 2, and
+your answer becomes an amendment to the criteria, locked again (task command, "Scope lock").
+
 **That's why no role raises a status on its own.** The Product Owner proposes an entry to the plan,
 the developer proposes a "Done `<date>`:" row, QA proposes a mutation-table row — in their reports.
 After the code merge, the driving agent collects them into **one documentation PR**, each entry

@@ -81,6 +81,17 @@ outside the change): the criterion, what was missing, what the tests show, and t
 decision at gate 2. "None" if no role returned one.
 -->
 
+## Assumptions — the human's decisions
+
+<!--
+Every gap in the spec the Developer closed by assumption (the developer report's ledger): A-01,
+the criterion, what was unclear, what was assumed, the test that shows it — and the human's
+decision at gate 2. Accepted: the assumption is written into the criteria as an amendment.
+Rejected: the decision says what the behavior must be instead. "None" if the ledger is empty.
+
+Scope lock: holds / re-locked at gate 2 (fingerprint) — see the task command, "Scope lock".
+-->
+
 ## Dependency on the backend
 
 <!--

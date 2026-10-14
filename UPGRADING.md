@@ -116,6 +116,35 @@ never counts as `PASS`. It came from issue [#30](https://github.com/TanerCRB/Nin
    other two. On the next real task, the Analyst's output must carry an "Edge sweep" table with
    every category accounted for.
 
+### Scope lock and the assumption ledger
+
+**The scope approved at gate 1 is the scope that reaches gate 2, and every gap the Developer
+closed on the spot is decided by the human.** At gate 1 the task command writes the Analyst's
+criteria into the Issue between `<!-- criteria:start -->` and `<!-- criteria:end -->`, and posts a
+fingerprint of the *Definition of done*, the *Out of scope* and the criteria as a comment. The
+fingerprint is checked again at the start of every later phase and in the gate-2 message; a
+mismatch sends the task back to gate 1. The Developer records each small gap as a numbered
+assumption (`A-01`, …) with the test that shows it, and stops (new hard stop 10) when the gap
+touches a criterion's meaning, *Out of scope*, a public contract, the schema, authorization,
+personal data or money. At gate 2 the human accepts or rejects every assumption; either answer is
+written into the criteria as an amendment and locked again. It came from issue
+[#32](https://github.com/TanerCRB/NineFold/issues/32).
+
+1. **Process repository:** merge `agents/developer.md` (hard stop 10, Method 4a, the report's
+   "Assumptions" section), "Scope lock" and steps 5, 10, 11, 15, 17 and 19 in
+   `process/task-command.md`, the scope-lock rows in `process/task-status-command.md`, the
+   paragraph in §3 of your team contract, the rule in `process/sdlc-flow.md`, and the new section
+   in all three PR templates. If your Story form names its sections differently, change the two
+   headings the `scope_text` function looks for.
+2. **Product repositories:** re-sync the roles and the PR templates
+   (`node tools/sync-github.mjs`), and merge the task and task-status command changes into
+   `.claude/commands/` by hand.
+3. **Check:** tasks already past gate 1 have no fingerprint, and `/task-status` reports them as
+   never locked. Post the fingerprint for each one only after the human confirms its current
+   scope is the approved one. The Developer's role changed, so its pressure scenarios no longer
+   hold: run P-07, P-08 and the decoy D-03 from `calibration/example-pressure-scenarios.md`,
+   rewritten for your stack — the decoy is what catches a ledger padded to look diligent.
+
 ---
 
 ## v0.5.0 → v0.6.0

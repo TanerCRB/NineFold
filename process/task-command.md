@@ -264,10 +264,60 @@ treats the task as taken (step 0, "work already in progress elsewhere = stop").
    (each with options and consequences, not "should we do X?"), the Analyst's edge sweep — the
    lines it proposes for *Out of scope* and the edges it turned into questions — and every
    criterion marked **Judged by: human**, so the human knows at gate 1 which answers will come
-   back to them at gate 2. You wait for the human's decision
+   back to them at gate 2. Before you stop, write the criteria into the Issue and post the scope
+   fingerprint (see "Scope lock" below) — what the human approves is what gets locked. You wait
+   for the human's decision
    and for the move to the implementation phase. Without this, you don't enter the `code` phase.
    **You don't remove the waiting-on-human label yourself** — removing it is equivalent to making
    the decision. Unassign yourself — you're waiting on the human, not working.
+
+### Scope lock
+
+The human approves a scope at gate 1, and the same scope has to reach gate 2. An Issue can be
+edited at any time, by anyone, without a trace in the task's evidence — so the approved scope is
+pinned by a fingerprint, the same way step 0 pins the roles.
+
+**What is locked:** the Issue's *Definition of done* and *Out of scope* sections, and the
+acceptance criteria. At step 5 you append the Analyst's *Criteria* section to the Issue body,
+verbatim, between two marker lines, so the criteria live in the Issue and not only in a report:
+
+```
+### Acceptance criteria
+<!-- criteria:start -->
+<the Analyst's criteria, K-01 … K-0n>
+<!-- criteria:end -->
+```
+
+**The fingerprint** is a hash of exactly those three parts, read back from the Issue:
+
+```bash
+scope_text() {
+  gh issue view "$1" --repo <organization>/<product-repo> --json body --jq .body | tr -d '\r' |
+    awk '/<!-- criteria:start -->/ { c = 1 }
+         c { print; if (/<!-- criteria:end -->/) c = 0; next }
+         /^### / { s = ($0 ~ /^### (Definition of done|Out of scope)/) }
+         s'
+}
+SCOPE=$(scope_text <N> | git hash-object --stdin)
+gh issue comment <N> --repo <organization>/<product-repo> --body \
+  "Scope for gate 1 — fingerprint: $SCOPE"
+```
+
+The lock is the fingerprint in the **latest** comment that carries one; the human's move past gate
+1 is what makes it binding. You post a fingerprint comment in two places only — at gate 1, and when
+gate 2 amends the criteria (step 19). Posting one anywhere else is re-locking the scope on your own,
+which is passing a gate.
+
+**Checked at the start of every phase after gate 1** — entering `code`, before QA (step 11),
+before pushing (step 15) — and in the gate-2 message: recompute `SCOPE` and compare. A mismatch
+means the scope changed after the human approved it, however small the edit looks. Stop: move the
+Issue back to `state:decision` with `waiting-on-human`, post the new fingerprint, and tell the
+human which part changed — the Issue's edit history shows the difference. Work goes on only after
+they approve the changed scope at gate 1 again. You never "repair" the Issue back to the locked
+text yourself: which version is right is the human's decision.
+
+A gap the criteria don't settle is not a reason to edit them either. The Developer records it as
+an assumption (role definition, "Assumptions"), and the human decides it at gate 2.
 
 ### Fast lane: when the Architect is skipped
 
@@ -307,7 +357,8 @@ anyone. Record the fast-lane skip in the cost register as a row with 0 tokens an
 ## Phase `code` — implementation
 
 Entry condition: criteria **and** either an impact map or an approved fast-lane record exist, the
-Issue carries the implementation-phase label. Anything missing = go back to the `analysis` phase.
+Issue carries the implementation-phase label, and the scope lock holds (see "Scope lock"). Anything
+missing = go back to the `analysis` phase; a broken lock = back to gate 1.
 
 6. **Working directory.** Already created in step 0 — confirm you're working in it. A task that
    writes: its own worktree on its own branch, the branch name carries the task identifier. A
@@ -343,8 +394,8 @@ Issue carries the implementation-phase label. Anything missing = go back to the 
    If the full test run sometimes gets killed in the background before the result is written —
    run it so you actually wait for it to finish, not unattended in the background.
 10. **Developer report** in the format from the role's definition file, with a mandatory "What
-    this change does not prove" section, the list of paths it changed, and proposed entries for
-    gate 3. The Developer doesn't commit and doesn't check anything off.
+    this change does not prove" section, the list of paths it changed, the assumption ledger, and
+    proposed entries for gate 3. The Developer doesn't commit and doesn't check anything off.
 
 10a. **Checkpoint and sync — before any verification.** Evidence is only worth something if it
     describes the code that will be merged, so fix that code first:
@@ -373,7 +424,7 @@ Issue carries the implementation-phase label. Anything missing = go back to the 
 
 ## Phase `verification` — before gate 2
 
-11. **QA role**, on the clean checkpoint — adds a contrast test, runs a mutation by removing the
+11. **QA role**, on the clean checkpoint, once the scope lock still holds — adds a contrast test, runs a mutation by removing the
     mechanism, and records whether the test **actually failed**. The mutation label is derived
     from the task identifier, never from a separate counter (see `../FrameworkDoc.md`, section
     9). A mutation that survived is a result to report, not to hide. Rows for the capability
@@ -547,7 +598,8 @@ converged.
     `VERIFIED` no longer cover the code: rerun verification for the incoming diff by the rules of
     "Re-verification after a `STOP`" — the Guardian always, QA when a mutated mechanism or its
     tests changed — and set a new `VERIFIED`. Green CI on the new head does not replace this.
-    **No conflict** — carry on.
+    **No conflict** — carry on, after checking the scope lock once more: an Issue edited during
+    verification sends the task back to gate 1, not to the PR.
     **Conflict in the role-cost register** — shouldn't happen with one file per row. If your
     register is still a single shared table, this is the known mechanical pattern: both sides
     appended a row at the same spot, neither is a duplicate. You resolve it **yourself, without a
@@ -563,7 +615,8 @@ converged.
 17. **PR with the full template.** Sections: the quoted completion condition and its evidence; the
     mutation result, its patch and base; the contrast test; the Guardian's verdict, unsmoothed;
     the invariants touched by this change; the scope left out of this PR; the `UNDECIDABLE`
-    criteria, each waiting for the human's decision at gate 2; **`Verified at:
+    criteria and the Developer's assumptions, each waiting for the human's decision at gate 2;
+    **`Verified at:
     <VERIFIED SHA>`**. The PR refers to the Issue with **`Refs #<N>`, never a closing keyword** —
     merging this PR must leave the Issue open for gate 3 (see step 21). A field you can't fill
     stays empty with a reason. "N/A" with no justification is worse than empty.
@@ -580,7 +633,20 @@ converged.
     anything else is there, the gate is not ready. **Every `UNDECIDABLE` from any role is listed
     in that message as its own question** — the criterion, the fact the role said was missing,
     what the tests show, and your recommendation. The human's answer on each goes into the PR
-    description; one left unanswered means the gate is not ready. Unassign yourself.
+    description; one left unanswered means the gate is not ready. **So is every assumption in
+    the Developer's ledger** — what was unclear, what was assumed, the test that shows it, and
+    your recommendation — and the message states whether the scope lock still holds. Unassign
+    yourself.
+
+    **What the human's answer on an assumption does.** Accepted — the assumed behavior becomes
+    part of the scope. Rejected — the human's answer says what the behavior must be instead, and
+    the task goes back to `code` (a return on PR feedback, not a fix round). Either way you
+    append an amendment line under the criterion it concerns, inside the criteria markers —
+    `Amended at gate 2, <date>, A-02: <the behavior now required>` — and post a new fingerprint as
+    "Scope amended at gate 2 — A-02 — fingerprint: <hash>". The human's answer is the approval;
+    writing it down is the only edit you make to the criteria, and the new fingerprint is what
+    the next check compares against. An accepted assumption with no test behind it gets one before
+    merge, like any criterion.
 
 ---
 

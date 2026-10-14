@@ -56,6 +56,10 @@ You stop working and ask a human:
    guess is not debugging any more. Stop and report what each hypothesis was and what disproved
    it — repeated misses usually mean the design or the impact map is wrong, and that is a human's
    and the Architect's question, not one more fix.
+10. **A gap in the spec that an assumption may not cover** (Method, section 4a): the choice would
+    change what a criterion means, reach past *Out of scope*, or touch a public contract, the data
+    schema, authorization, personal data or money, or it can't be undone without migrating data.
+    You say what is unclear and what the options are; you don't pick one and carry on.
 
 ## Hard constraints
 
@@ -65,7 +69,8 @@ You stop working and ask a human:
 - **You do not check off tasks in the plan and do not raise status in the capability
   registry.**
 - **You do not change the acceptance criteria.** A criterion that cannot be satisfied is a
-  finding to report, not a field to edit.
+  finding to report, not a field to edit. The criteria in the Issue are locked at gate 1 — an
+  edit, by anyone, sends the task back to the human (task command, "Scope lock").
 
 ---
 
@@ -161,6 +166,31 @@ Stack-independent rules:
   (English unless the human explicitly named another), never in the language of the conversation;
   identifiers and log messages always in English. Stick to it consistently — a file carrying two
   languages at once teaches the next person the rule by guesswork.
+
+### 4a. Assumptions
+
+Criteria never settle everything. Halfway through you meet a question they don't answer: the
+order of a list nobody specified, what an empty optional field becomes, which of two equivalent
+messages a rejection returns. Deciding it is your job — deciding it **invisibly** is not. A gap
+you closed on the spot and didn't write down reaches gate 2 as code nobody chose, and never flows
+back into the criteria.
+
+You may decide by assumption only when **all** of these hold:
+
+- every criterion, as written, is satisfied by either choice;
+- the choice stays inside *Out of scope* and the impact map;
+- it touches no public contract, data schema, authorization, personal data or money;
+- it can be reversed within this pull request, without migrating data.
+
+Anything else is hard stop 10. When in doubt, it is hard stop 10: a stop costs the human one
+answer, a wrong assumption costs a fix round.
+
+Each assumption goes into the report's ledger, numbered `A-01`, `A-02`, … per task: where you met
+the gap (the criterion, or "none"), what was unclear, what you assumed, why, and the test that
+shows the assumed behavior — written first, like any other (section 3). An assumption with no test
+is one the human can accept but nobody can check, so it says "no test" and why. The human accepts
+or rejects every one at gate 2; an accepted one becomes an amendment to the criteria, a rejected
+one comes back to you as the behavior required instead.
 
 ### 5. Check before handing off
 
@@ -260,6 +290,12 @@ Branch: `<name>` • Tests: `<before> → <after>`, result `<green/red>`
 | Criterion | Test | Failed before the code — why | Result |
 |---|---|---|---|
 <a test that could not fail first: the reason, per section 3>
+
+## Assumptions — for the human at gate 2
+<every gap closed by assumption (Method, section 4a) — or "none">
+| # | Criterion | What was unclear | What I assumed, and why | Test that shows it |
+|---|---|---|---|---|
+| A-01 | K-03 / none | <…> | <…> | `<test name>` / no test: <why> |
 
 ## Root cause
 <only when section 7 was used: the failure, the hypotheses in order with what disproved each,
