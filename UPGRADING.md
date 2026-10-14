@@ -194,6 +194,29 @@ goes to *Gaps in the Story* and the task isn't ready for gate 1. The Analyst has
    The decoy matters: a role that invents a round on a complete Story costs the human the same
    time the rule was meant to save.
 
+### The task journal and its SessionStart hook
+
+**A long task survives a compaction or a `/clear`.** The task command now keeps
+`.task/journal.md` in the task's worktree, ignored by git: a header line, then one line per
+completed step — time, phase, step, role or action, result, SHA, and the next step. Roles' full
+reports are saved as `.task/handoff/<step>-<role>-<n>.md` and handed to later roles as paths
+instead of pasted copies. On resume, step 0 reads the journal first and checks it against
+`git log` and the Issue's labels, which win where they disagree. A new SessionStart hook,
+`process/hooks/task-journal-context.sh` (10 self-test cases, run in kit-ci), puts the journal's
+last lines and next step back into a session that starts, is cleared or is compacted inside a
+task worktree. It came from issue [#34](https://github.com/TanerCRB/NineFold/issues/34).
+
+1. **Process repository:** merge "Task journal and hand-offs" and the resume rules and journal
+   start in step 0 of `process/task-command.md`, and the hook.
+2. **Product repositories:** add `.task/` to `.gitignore`, copy the hook to
+   `scripts/task-journal-context.sh`, register it in the shared `.claude/settings.json`
+   (`bootstrap-guide.md` has the entry), and merge the task command changes into
+   `.claude/commands/task.md` by hand.
+3. **Check:** `bash scripts/task-journal-context.sh --self-test` passes, and
+   `git check-ignore -v .task/journal.md` names the `.gitignore` line. Then start a session inside a
+   task worktree that has a journal: its first context carries the journal's last lines. No role
+   definition changed, so no calibration is needed.
+
 ---
 
 ## v0.5.0 → v0.6.0
