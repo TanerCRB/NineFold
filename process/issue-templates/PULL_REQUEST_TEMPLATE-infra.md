@@ -91,6 +91,18 @@ Rejected: the decision says what the behavior must be instead. "None" if the led
 Scope lock: holds / re-locked at gate 2 (fingerprint) — see the task command, "Scope lock".
 -->
 
+## Recorded exceptions
+
+<!--
+Every finding the human let through without a fix (a STOP finding, a reservation, a weakening
+finding), one line each, in the team contract's format (§3a) — nothing else on the line:
+
+Exception <task>/<finding> — owner: @<handle> — reason: <one sentence> — blocks again: <YYYY-MM-DD>
+
+Write the lines outside this comment. scripts/exception-check.sh reads them back before gate 2;
+at gate 3 they move to the exception register. "None" if nothing was let through.
+-->
+
 ## What this deployment does not prove
 
 <!--

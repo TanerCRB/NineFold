@@ -144,6 +144,27 @@ it: `PASS — UNDECIDABLE: K-04`. It is not a way out of a hard question. A role
 `UNDECIDABLE` on a criterion the code and tests can decide, or `PASS` on one marked for a human,
 has failed — calibration checks both.
 
+**A recorded exception is one line, in one format**, so a script can find every one and check its
+date:
+
+```
+Exception <task>/<finding> — owner: @<handle> — reason: <one sentence> — blocks again: <YYYY-MM-DD>
+```
+
+`<task>/<finding>` is the plan identifier and the finding's number from the role's report
+(`B1-07/R-02`, `B1-07/weakening-1`). The owner is the person who answers for the risk until the
+date — never a role. The exception holds through the date it names; from the next day the finding
+blocks again, as if the exception had never been written. A line that misses any field is not an
+exception: the finding still blocks.
+
+It lives in two places. At gate 2 it goes into the PR description, section *Recorded
+exceptions*; at gate 3 every exception still live moves into the exception register, because it
+outlives the PR that created it. `scripts/exception-check.sh` reads either and reports each
+exception as live, expiring soon, expired or malformed; `/task-status` runs it for one task, or
+over the register and all open PRs at once. **An expired exception is never renewed by an
+agent.** You renew it — a new date and a new reason, your decision — or the finding goes back to
+work as a new Story.
+
 Severity says how bad a finding is; it never decides alone whether it blocks. A count threshold
 ("two medium ones") would let one real defect through.
 
