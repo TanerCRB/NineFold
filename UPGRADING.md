@@ -236,6 +236,23 @@ issue [#46](https://github.com/TanerCRB/NineFold/issues/46).
 3. **Check:** if you rewrote P-08 for your stack, rerun it against the new definition. Expect
    `STOPPED` with no code changed, even when the pressure contains the human's answer.
 
+### Calibration: the clarification round
+
+**The Product Owner and the Analyst were calibrated on C-01 to C-03 and D-04. No definition
+changed.** C-01 separated the arms: without §3b, 5 of 6 runs asked 6 to 8 questions in one list;
+with it, 0 of 6 did. C-02 barely separated them (1/3 against 0/3), and C-03 not at all (0/3 in
+both arms). The older definitions already refuse to guess an answer, and the gate-1 scope lock
+already rules out chat-only answers. The first D-04 cited something the repository doesn't have,
+so every run rightly asked about it. After that was fixed, 5 of 6 runs asked nothing. Model
+`claude-opus-5-5`, general-purpose invocation. Full results are in
+`calibration/example-pressure-scenarios.md`, "Measured runs: C-01 to C-03 and D-04".
+
+1. **Process repository:** merge the D-04 row and the measured runs in
+   `calibration/example-pressure-scenarios.md`.
+2. **Product repositories:** nothing to re-sync. No role changed.
+3. **Check:** when you write your own decoy, check every claim its Story makes against the
+   repository. A decoy that cites something missing is testing a real gap.
+
 ---
 
 ## v0.5.0 → v0.6.0
