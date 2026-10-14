@@ -241,6 +241,12 @@ lines removed. The task command reads exceptions back at gate 2 and moves them t
 gate 3; `/task-status exceptions` sweeps the register and the open PRs. A scheduled run is in
 `ci-and-branch-protection.md`, §5.
 
+**Scope check.** Copy `process/scripts/scope-check.sh` to `scripts/scope-check.sh`. It is the
+scope lock's one extraction: the task command posts and compares the gate-1 fingerprint with it,
+`/task-status` recomputes it, and the `label-guard` workflow (section 6) runs it on every edit of
+an Issue past gate 1. If your Story form names *Definition of done* or *Out of scope*
+differently, change the two headings in the script and its self-test together.
+
 **Task journal hook.** The task command keeps a journal and the roles' reports in `.task/` inside
 the task's worktree (`task-command.md`, "Task journal and hand-offs"). Add `.task/` to the product
 repository's `.gitignore` — the journal is a memory aid, never a versioned artifact. Copy
@@ -266,6 +272,7 @@ last lines and the next step back; anywhere else the hook prints nothing.
 bash scripts/boundary-check.sh --self-test     # every case passes on this machine
 bash scripts/weakening-check.sh --self-test    # every case passes on this machine
 bash scripts/exception-check.sh --self-test    # every case passes on this machine
+bash scripts/scope-check.sh --self-test        # every case passes on this machine
 bash scripts/task-journal-context.sh --self-test   # every case passes on this machine
 git check-ignore -v .task/journal.md           # -> matched by .gitignore
 git check-ignore -v .claude/agents/qa.md       # -> matched by .gitignore
@@ -309,7 +316,10 @@ The one part of the state machine that *is* configuration: copy
 [`workflows/label-guard.yml`](workflows/label-guard.yml) into the product repository's
 `.github/workflows/` by hand (the sync script deliberately doesn't touch workflows). **Check:** give
 a test Issue two `state:*` labels — within a minute it gets a comment and a red run; remove one,
-and the next run is green.
+and the next run is green. The workflow needs `scripts/scope-check.sh` on the default branch. Then
+give a test Issue in `state:implementation` a "Scope for gate 1 — fingerprint: <hash>" comment,
+with the hash from `scope-check.sh hash`, and edit one word of its *Out of scope*: within a minute
+it gets a scope comment and a red run.
 
 Three gates: **1** before code exists (scope and architecture), **2** before entering `main`
 (diff, invariant-checking role's report, mutation result), **3** before raising the status in

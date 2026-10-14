@@ -377,23 +377,23 @@ verbatim, between two marker lines, so the criteria live in the Issue and not on
 <!-- criteria:end -->
 ```
 
-**The fingerprint** is a hash of exactly those three parts, read back from the Issue:
+**The fingerprint** is a hash of exactly those three parts, read back from the Issue.
+`scripts/scope-check.sh` does the extraction — the same script the task-status command and the
+`label-guard` workflow call, so all three agree on what the scope is:
 
 ```bash
-scope_text() {
-  gh issue view "$1" --repo <organization>/<product-repo> --json body --jq .body | tr -d '\r' |
-    awk '/<!-- criteria:start -->/ { c = 1 }
-         c { print; if (/<!-- criteria:end -->/) c = 0; next }
-         /^### / { s = ($0 ~ /^### (Definition of done|Out of scope)/) }
-         s'
-}
-SCOPE=$(scope_text <N> | git hash-object --stdin)
+SCOPE=$(gh issue view <N> --repo <organization>/<product-repo> --json body --jq .body \
+  | scripts/scope-check.sh hash -)
 gh issue comment <N> --repo <organization>/<product-repo> --body \
   "Scope for gate 1 — fingerprint: $SCOPE"
 ```
 
-The lock is the fingerprint in the **latest** comment that carries one; the human's move past gate
-1 is what makes it binding. You post a fingerprint comment in two places only — at gate 1, and when
+Exit 1 means a locked part or a marker is missing, and the message names it: the Issue can't be
+locked as it stands, so fix the body before gate 1, not the check.
+
+The lock is the fingerprint in the **latest** "Scope for gate 1" or "Scope amended at gate 2"
+comment (`gh issue view <N> --json comments --jq '.comments[].body' | scripts/scope-check.sh
+locked -`); the human's move past gate 1 is what makes it binding. You post a fingerprint comment in two places only — at gate 1, and when
 gate 2 amends the criteria (step 19). Posting one anywhere else is re-locking the scope on your own,
 which is passing a gate.
 
@@ -404,6 +404,11 @@ Issue back to `state:decision` with `waiting-on-human`, post the new fingerprint
 human which part changed — the Issue's edit history shows the difference. Work goes on only after
 they approve the changed scope at gate 1 again. You never "repair" the Issue back to the locked
 text yourself: which version is right is the human's decision.
+
+**Between those checks, the `label-guard` workflow watches.** On every edit of an Issue past gate
+1 it recomputes the fingerprint with the same script and, on a mismatch, comments and goes red —
+also on a task nobody is driving. Its comment is a finding, not a lock: it never carries the
+"Scope for …" wording, so it can't re-lock anything. You handle it like a mismatch you found.
 
 A gap the criteria don't settle is not a reason to edit them either. The Developer records it as
 an assumption (role definition, "Assumptions"), and the human decides it at gate 2.

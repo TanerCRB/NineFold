@@ -32,6 +32,37 @@ v0.7.0 had left the infra template without a place for them.
 3. **Check:** `grep -c "## Undecidable" .github/PULL_REQUEST_TEMPLATE.md` returns 1 in an
    infrastructure repository.
 
+### The scope check script and the scope guard
+
+**A scope edit after gate 1 is caught when it happens, not at the next phase.** The extraction
+that was inline in the task command (`scope_text`) is now `process/scripts/scope-check.sh`
+(22 self-test cases, run in kit-ci): `hash` gives the fingerprint, `locked` reads the binding one
+from the comments, and a missing locked part or marker is reported instead of hashed. Its hash is
+the one `scope_text` gave, so fingerprints already posted still compare equal. The task command,
+`/task-status` and `label-guard` all call it. `label-guard` now also runs on `edited`, and on an
+Issue past gate 1 it comments and goes red when the fingerprint no longer matches. It came from
+issue [#50](https://github.com/TanerCRB/NineFold/issues/50).
+
+1. **Process repository:** merge the script, "Scope lock" in `process/task-command.md`, the
+   scope-lock item in `process/task-status-command.md`, the workflow, and the notes in
+   `process/bootstrap-guide.md` and `process/sdlc-flow.md`. If you changed the two headings in
+   `scope_text`, change them in the script and its self-test.
+2. **Product repositories:**
+   - copy the script and make it executable, and merge it **before** the workflow — the
+     workflow fails without it:
+     ```bash
+     cp <process-repo>/process/scripts/scope-check.sh scripts/
+     git add scripts/scope-check.sh && git update-index --chmod=+x scripts/scope-check.sh
+     ```
+   - copy `process/workflows/label-guard.yml` over `.github/workflows/label-guard.yml`;
+   - merge "Scope lock" into `.claude/commands/task.md` and the scope-lock item into
+     `.claude/commands/task-status.md` by hand.
+3. **Check:** `bash scripts/scope-check.sh --self-test` passes. For every open Issue past gate 1,
+   compare `scope-check.sh hash` with `scope-check.sh locked`, as `/task-status` does, before the
+   workflow's first run: an Issue locked before v0.7.0 has no lock comment, and the guard reports
+   it on the next label change. Post its fingerprint only after the human confirms the current
+   scope is the approved one. Then run the test in `bootstrap-guide.md`, section 6.
+
 ---
 
 ## v0.6.0 → v0.7.0

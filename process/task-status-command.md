@@ -40,9 +40,17 @@ From the repository (read-only):
 - `git log --oneline -15 main -- <task paths>` and `git branch -a --list '*<identifier>*'`;
 - whether anyone has an open working directory (worktree) on this task;
 - the scope lock, once the task is past gate 1: recompute the scope fingerprint from the Issue
-  body exactly as `task-command.md` does ("Scope lock") and compare it with the fingerprint in the
-  latest "Scope for gate 1" or "Scope amended at gate 2" comment. Reading the Issue and hashing
-  locally is still read-only;
+  body with the same script `task-command.md` uses ("Scope lock") and compare it with the
+  fingerprint in the latest "Scope for gate 1" or "Scope amended at gate 2" comment. Reading the
+  Issue and hashing locally is still read-only:
+  ```bash
+  gh issue view <N> --repo <organization>/<product-repo> --json body --jq .body \
+    | scripts/scope-check.sh hash -
+  gh issue view <N> --repo <organization>/<product-repo> --json comments --jq '.comments[].body' \
+    | scripts/scope-check.sh locked -
+  ```
+  Exit 1 from the first is a finding of its own (a locked part or marker is gone), from the
+  second "scope never locked";
 - the recorded exceptions — the PR description, and the task's lines in the exception register —
   read through the exception check, which only reads:
   ```bash

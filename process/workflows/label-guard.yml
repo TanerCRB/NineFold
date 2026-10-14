@@ -8,12 +8,17 @@
 # What it can't check: WHO removed `waiting-on-human`. Agents act on the human's own account, so
 # the event actor is the human either way. That rule stays a rule until agents get their own
 # technical account (see process/ci-and-branch-protection.md, §2).
+#
+# It also guards the scope lock (process/task-command.md, "Scope lock"): on an Issue past gate 1,
+# an edit to the Definition of done, the Out of scope or the criteria — between the task's own
+# checks, or on a task nobody is driving — gets a comment and a red run. It needs
+# scripts/scope-check.sh on the default branch, the same script the task command uses.
 
 name: label-guard
 
 on:
   issues:
-    types: [opened, reopened, closed, labeled, unlabeled]
+    types: [opened, reopened, closed, edited, labeled, unlabeled]
 
 # Labels change in bursts (remove the old state, add the new one). Only the last event in a burst
 # is checked, after a pause, so intermediate states don't produce false alarms.
@@ -30,6 +35,14 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      # Only the scope script is needed. Pinned to a full commit SHA, not a tag: a tag can be
+      # moved to different code after it was reviewed.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+          sparse-checkout: scripts/scope-check.sh
+          sparse-checkout-cone-mode: false
+
       - name: Check state-machine label invariants
         env:
           GH_TOKEN: ${{ github.token }}
@@ -78,4 +91,46 @@ jobs:
           body="**label-guard:** the labels break the state machine (process/sdlc-flow.md):"
           for v in "${violations[@]}"; do body+=$'\n'"- $v"; echo "VIOLATION: $v"; done
           gh issue comment "$NUMBER" --repo "$REPO" --body "$body"
+          exit 1
+
+      # Runs even when the label check went red: the two are independent findings.
+      - name: Check the scope lock after gate 1
+        if: ${{ !cancelled() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          NUMBER: ${{ github.event.issue.number }}
+        run: |
+          set -euo pipefail
+          labels=$(gh issue view "$NUMBER" --repo "$REPO" --json labels --jq '.labels[].name')
+          if ! grep -qxE 'state:(implementation|qa|merge|evidence)' <<<"$labels"; then
+            echo "Not past gate 1 — no scope lock to guard."; exit 0
+          fi
+
+          comments=$(gh issue view "$NUMBER" --repo "$REPO" --json comments --jq '.comments[].body')
+          gh issue view "$NUMBER" --repo "$REPO" --json body --jq .body > "$RUNNER_TEMP/body.md"
+          # Exit 1 from the script is a finding (its message says which); 2 is the check failing.
+          err="$RUNNER_TEMP/err"; code=0
+          locked=$(bash scripts/scope-check.sh locked - 2>"$err" <<<"$comments") || code=$?
+          [ "$code" -le 1 ] || { cat "$err"; exit 2; }
+          if [ "$code" -eq 0 ]; then
+            current=$(bash scripts/scope-check.sh hash "$RUNNER_TEMP/body.md" 2>"$err") || code=$?
+            [ "$code" -le 1 ] || { cat "$err"; exit 2; }
+          fi
+          if [ "$code" -eq 0 ] && [ "$current" = "$locked" ]; then
+            echo "Scope lock holds: $locked"; exit 0
+          fi
+
+          if [ "$code" -eq 0 ]; then
+            finding="the scope changed after gate 1 — it now hashes to $current, the lock is $locked."
+          else
+            finding="the scope can't be compared after gate 1 — $(sed 's/^scope-check: //' "$err" | paste -sd ';' -)."
+          fi
+          echo "VIOLATION: $finding"
+          # One comment per distinct finding, so later label events on the same Issue stay red
+          # without repeating it. The text never starts with "Scope for" or "Scope amended", so
+          # this comment can't count as a lock.
+          if ! grep -qF -- "$finding" <<<"$comments"; then
+            gh issue comment "$NUMBER" --repo "$REPO" --body "**label-guard:** $finding The Issue's edit history shows what changed. The task goes back to gate 1 (process/task-command.md, \"Scope lock\"); which version is right is the human's decision."
+          fi
           exit 1
