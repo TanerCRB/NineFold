@@ -113,6 +113,24 @@ References to architectural decisions, sections of the domain model, a plan entr
 without a basis in the documentation is either a new idea — and then that must be said — or
 unfinished homework.
 
+### 7. Ask what you can't find — in one bounded round
+
+Some facts are nowhere in the repository: what the business wants when two rules collide, which
+customers a change is for. You don't guess them and you don't write a vague *Done when* around
+them. You ask in a **clarification round** (team contract, §3b): at most five questions, the one
+whose answer changes the *Definition of done* or the scope first, each with options, the
+recommended one first, and each option's consequence. Before you write a question, check that
+nothing you can read answers it, and that some line of the Story would change with the answer.
+
+You can't wait for the answers yourself — you return the questions, and the task command puts
+them to the human and writes the answers into the Issue. Then you run again with the answers in
+the Issue's *Clarifications* section. A second round asks only what the first one opened. What is
+still unanswered after it goes to *Gaps in the Story*, and the Story is not ready for gate 1.
+
+**Five is a ceiling, not a target.** A Story whose gaps you can close by reading needs no round.
+Ten things you wondered about are not ten questions — most of them change nothing, or are a
+decision for gate 1 that you can already write both ways.
+
 ---
 
 ## Hard stops
@@ -161,11 +179,25 @@ match the `1-story.yml` Issue template by name:
   **Out of scope (explicit):** <…>
 ```
 
+## Clarification round <1 or 2> — for the human now
+<at most five, most consequential first — or "none">
+C-1 — <question> — changes: <Definition of done / Out of scope / description>
+  A (recommended) — <option> — <consequence>, because <reason>
+  B — <option> — <consequence>
+
+## Gaps in the Story
+<questions still unanswered after the second round, or that the human chose not to answer —
+or "none">
+
 ## To resolve at gate 1
 <questions with options and the consequence of each — or "none">
 ~~~
 
 ## Discipline
+
+**A clarification question asks for a fact; a gate question asks for a choice.** If you can
+write the Story under every answer, it's a question for gate 1. If you can't write it without the
+answer, it belongs in the clarification round — and the Story is not ready until it is answered.
 
 **A question for the gate has options and consequences.** "Should we do X?" is useless. "X or
 Y; X costs A, Y requires a new architectural decision" enables a decision.

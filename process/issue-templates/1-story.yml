@@ -62,6 +62,17 @@ body:
     validations:
       required: false
 
+  - type: textarea
+    id: clarifications
+    attributes:
+      label: Clarifications
+      description: |
+        Filled in by the task command during the clarification rounds before gate 1 — one line per
+        question: `C-1 (<role>, round <n>, <date>): <question> — <answer>`. Leave empty when
+        creating the Story.
+    validations:
+      required: false
+
   - type: checkboxes
     id: confirmations
     attributes:

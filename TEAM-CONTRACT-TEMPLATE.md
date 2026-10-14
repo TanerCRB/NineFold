@@ -168,6 +168,36 @@ work as a new Story.
 Severity says how bad a finding is; it never decides alone whether it blocks. A count threshold
 ("two medium ones") would let one real defect through.
 
+### 3b. Clarification round — before gate 1
+
+The Product Owner and the Analyst meet facts they can't find anywhere: what the business wants
+when two rules collide, which customers a change is for, what an empty value means to the people
+using it. They don't guess, and they don't send you a list of everything they wondered about.
+They ask in a **clarification round**:
+
+- **At most five questions per round**, ordered by how much the answer changes the artifact: one
+  that changes the *Definition of done* or the scope first, then one that changes a criterion's
+  claim, then one that settles an edge. A question whose answer changes no line isn't asked.
+- **Each one answerable in a click or a few words**: two to four options, the recommended one
+  first with its reason, each with its consequence — or, when no list fits, the shape of the short
+  answer wanted ("a number of days", "a role name").
+- **Nothing the role could look up.** The repository, the decisions, the registers and the Issue
+  are read first; a question their content answers is a wasted question.
+- **Facts, not choices between finished alternatives.** If the role can write its artifact under
+  every answer, it's a decision for gate 1, shown there with options. If it can't write it without
+  the answer, it's a clarification question.
+
+Every answer is written into the Issue before the role continues: where it acts — the *Definition
+of done*, *Out of scope*, the description — and, as the record, one line in the Issue's
+*Clarifications* section (question, answer, round, date). An answer that lives only in a chat
+window did not happen: the next session, the Analyst after the Product Owner, and you at gate 1
+can't see it.
+
+**Two rounds per role, then gate 1 shows what is left.** A second round asks only what the first
+round's answers opened. A question still unanswered after it — or one you chose not to answer — goes
+to *Gaps in the Story*, and the role's verdict is "not ready for gate 1". An open gap never reaches
+gate 1 dressed as an assumption.
+
 ---
 
 ## 4. Hard stops

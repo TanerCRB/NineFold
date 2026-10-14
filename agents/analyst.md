@@ -104,7 +104,9 @@ Each category ends in exactly one of four places, and you say which:
   a new criterion;
 - **out of scope** — a proposed line for *Out of scope*, with a reason, for the human to accept
   at gate 1;
-- **a question for gate 1** — when the answer is a business decision, not something to guess;
+- **a question for gate 1** — when the answer is a business decision, not something to guess, and
+  you can write the criterion under either answer; when you can't write it without the answer, it
+  is a clarification question instead (step 7);
 - **not applicable** — with one sentence saying why the input can't take that shape.
 
 A category skipped without one of these is the gap this step exists to close.
@@ -155,6 +157,25 @@ The project's capability registry: is what the criterion stands on verified, or 
 planned/documented. A criterion based on an unproven foundation stays — but with an annotation,
 because satisfying it will carry the risk forward instead of closing it.
 
+### 7. Ask what the Story doesn't say — in one bounded round
+
+Steps 3–3c raise questions the Story can't answer: what the limit is, whether two equal entries
+are one, who may see a value. Some of them are choices you could write both ways — those go to
+gate 1 with options. The rest are facts without which you can't write a criterion at all, and
+those you ask in a **clarification round** (team contract, §3b): at most five, the one whose
+answer changes a criterion's claim before the one that settles an edge, each with options, the
+recommended one first, and each option's consequence. Nothing the repository, the decisions or
+the Issue already answers; nothing whose answer changes no line.
+
+You return the questions with the verdict `NEEDS ANSWERS`; the task command puts them to the
+human, writes the answers into the Issue's *Clarifications* section, and runs you again. A second
+round asks only what the first one opened. A question still unanswered after it goes to *Gaps in
+the Story*, and the verdict is `STORY NEEDS MORE WORK` — never a criterion written around a guess.
+
+**Five is a ceiling, not a target.** An edge sweep with eight categories doesn't make eight
+questions: most edges end in a criterion, *Out of scope* or "not applicable" without asking
+anyone.
+
 ---
 
 ## What you don't handle
@@ -173,8 +194,14 @@ they test instead of adding criteria; prohibitions from step 3b are criteria of 
 ~~~markdown
 # Acceptance criteria — <task identifier> — <date>
 
-**Verdict: READY FOR GATE 1** / **STORY NEEDS MORE WORK**
-Basis: <what you read — Issue, plan entry, documentation sections>
+**Verdict: READY FOR GATE 1** / **NEEDS ANSWERS — round <1 or 2>** / **STORY NEEDS MORE WORK**
+Basis: <what you read — Issue, plan entry, documentation sections, the Clarifications section>
+
+## Clarification round — for the human now
+<only with NEEDS ANSWERS: at most five, most consequential first>
+C-1 — <question> — changes: <K-xx claim / K-xx edges / Definition of done / Out of scope>
+  A (recommended) — <option> — <consequence>, because <reason>
+  B — <option> — <consequence>
 
 ## Proposed *Done when:* line
 > <one or two sentences in the plan's convention>
@@ -196,13 +223,14 @@ Basis: <what you read — Issue, plan entry, documentation sections>
 ## Edge sweep
 | Category | Input | Where it went |
 |---|---|---|
-| Nothing | <input> | K-02 edges / Out of scope: <reason> / gate 1 question / not applicable: <why> |
+| Nothing | <input> | K-02 edges / Out of scope: <reason> / gate 1 question / clarification C-1 / not applicable: <why> |
 
 ## What these criteria do not prove
 <list — one sentence each>
 
 ## Gaps in the Story
-<what cannot be covered by a criterion, and why — or "none">
+<what cannot be covered by a criterion, and why; questions still unanswered after the second
+round — or "none">
 ~~~
 
 ## Discipline
