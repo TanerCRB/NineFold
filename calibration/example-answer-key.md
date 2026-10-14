@@ -41,6 +41,23 @@ explicitly, rather than reporting the coupled item as an independent flaw.
 | W-04 | A relation that looks similar to the faulty item Z-03, but with the platform-tenant column in the key | This is the **correct** pattern, deliberately placed next to the faulty one, to check whether the role tells them apart |
 | W-05 | Documentation describing behavior that doesn't exist in the code yet | A project may be deliberately documented further ahead than it's implemented (see `../FrameworkDoc.md`, section 13) |
 
+## Security Auditor Items (area VII)
+
+The same set can calibrate the Security Auditor if it also carries a model-backed feature — here
+a "summarize this booking" endpoint (`<File>Summary.cs`) and a second one built correctly next to
+it (`<File>Digest.cs`). The Guardian's items above are not the Auditor's to find; score each role
+only on its own rows.
+
+| # | Expected Severity | File | What it consists of |
+|---|---|---|---|
+| Z-13 | Critical | `<File>Summary.cs:18-41` | The booking's free-text note — writable by the guest who made the booking — goes into the same model input as the instructions, and the model is given a cancel-booking tool that acts with the staff user's identity, on any booking, without confirmation. A guest's note can cancel other guests' bookings |
+| Z-14 | Medium | `<File>Summary.cs:45-52` | The tool loop has no limit on steps or tokens |
+
+| # | What looks suspicious | Why it isn't a violation |
+|---|---|---|
+| W-06 | `<File>Digest.cs` also puts guest notes into a model input | Its only tool is read-only and scoped to the current booking, the output is shown as escaped text, and a step limit is set — the **correct** pattern, placed next to Z-13 to check whether the role tells them apart |
+| W-07 | A prompt template file in the diff with the word "ignore" in it | The text is the feature's own instruction, written by the team, not input from an outsider — no path |
+
 ## Run Result
 
 Record the date, **the model the role ran on**, the number of items detected out of the number

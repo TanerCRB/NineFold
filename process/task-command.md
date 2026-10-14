@@ -392,8 +392,8 @@ Issue carries the implementation-phase label. Anything missing = go back to the 
 13. **Reviewer role** — design flaws outside the rule list: concurrency, retries, load, behavior
     at boundaries.
 14. **Security Auditor role** — **conditionally**, when the diff touches an area of elevated risk
-    (see the role's definition file, "When to run you" section). Outside that set, you don't run
-    it.
+    (see the role's definition file, "When to run you" section) — code that calls a language
+    model or gives one tools is part of that set. Outside it, you don't run it.
 
 Call roles 12–14 **in parallel** — they read, they write nothing. Give each one `VERIFIED` and
 the diff `origin/main...VERIFIED`; **every report states the SHA it read**. A report that names
