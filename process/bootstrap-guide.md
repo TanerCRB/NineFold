@@ -241,6 +241,14 @@ lines removed. The task command reads exceptions back at gate 2 and moves them t
 gate 3; `/task-status exceptions` sweeps the register and the open PRs. A scheduled run is in
 `ci-and-branch-protection.md`, §5.
 
+**Risk check.** Copy `process/scripts/risk-check.sh` to `scripts/risk-check.sh`, and copy the
+architecture-sensitive paths register (`process/registers/architecture-sensitive-paths.md`) to
+where your registers live. Replace every placeholder row with your real globs and their risk
+classes. A register with only placeholders fails the check, so it can't pass silently. The task
+command uses the classes to decide the fast lane, the Security Auditor's trigger, and whether a
+surviving mutation may be let through at gate 2. Point `REGISTER` in the script at the copy, or
+pass `--register`.
+
 **Scope check.** Copy `process/scripts/scope-check.sh` to `scripts/scope-check.sh`. It is the
 scope lock's one extraction: the task command posts and compares the gate-1 fingerprint with it,
 `/task-status` recomputes it, and the `label-guard` workflow (section 6) runs it on every edit of
@@ -285,6 +293,8 @@ last lines and the next step back; anywhere else the hook prints nothing.
 bash scripts/boundary-check.sh --self-test     # every case passes on this machine
 bash scripts/weakening-check.sh --self-test    # every case passes on this machine
 bash scripts/exception-check.sh --self-test    # every case passes on this machine
+bash scripts/risk-check.sh --self-test         # every case passes on this machine
+bash scripts/risk-check.sh classes --paths - < /dev/null   # empty output, exit 0: your register reads
 bash scripts/scope-check.sh --self-test        # every case passes on this machine
 bash scripts/evidence-chain.sh --self-test     # every case passes on this machine
 bash scripts/markers.sh --self-test            # every case passes on this machine

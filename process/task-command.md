@@ -478,12 +478,16 @@ Security Auditor conditional. The Architect is skipped only when **every** trigg
 checked mechanically against the files the task will touch (from the Analyst's criteria and the
 Issue), not judged:
 
-- no file under the schema/migrations directory;
+- **no risk class** on the files the task will touch. The **architecture-sensitive paths**
+  register (`<path-to-architecture-sensitive-paths-list>`) maps each sensitive glob to the
+  decisions that govern it and to its risk classes: schema, dependencies, auth, money and the
+  rest. `scripts/risk-check.sh` reads it, so this trigger is a script's answer, not a judgement:
+  ```bash
+  printf '%s\n' <each file the task will touch> | scripts/risk-check.sh classes --paths -
+  ```
+  Any line of output is a class, and the Architect runs. Exit 2 means the register couldn't be
+  read, and the Architect runs too;
 - no new or changed public API surface (endpoint, contract type, event);
-- no new or upgraded dependency (package manifest, lock file, container image);
-- no path listed in the **architecture-sensitive paths** list — a file in the repository you keep
-  up to date, mapping directories to the decisions that govern them
-  (`<path-to-architecture-sensitive-paths-list>`);
 - the Product Owner raised no deviation label and the Analyst named no "unproven foundation".
 
 If any trigger fires, or you can't tell which files the task will touch, the Architect runs.
@@ -493,10 +497,10 @@ that record together with the criteria — **an approved record takes the place 
 for the Developer's entry condition. The human can require the Architect anyway; that's a gate-1
 decision, not a failure of the fast lane.
 
-**The record is checked again against the real diff** at step 10a: if the implementation touched
-any trigger (a migration, an API contract, a dependency, a sensitive path) the record no longer
-holds — the task goes back to the Architect before verification, and then through gate 1 again for
-what changed.
+**The record is checked again against the real diff** at step 10a. If the implementation touched
+any trigger, the record no longer holds: `scripts/risk-check.sh classes "$BASE" "$CHECKPOINT"`
+prints a class, or an API contract changed. The task then goes back to the Architect before
+verification, and through gate 1 again for what changed.
 
 **Turn the fast lane on only with data.** Before enabling it, count in the cost register how often
 the Architect returned "fits, nothing to add" on tasks that would have passed all the triggers.
@@ -599,7 +603,11 @@ missing = go back to the `analysis` phase; a broken lock = back to gate 1.
     at boundaries.
 14. **Security Auditor role** — **conditionally**, when the diff touches an area of elevated risk
     (see the role's definition file, "When to run you" section) — code that calls a language
-    model or gives one tools is part of that set. Outside it, you don't run it.
+    model or gives one tools is part of that set. Outside it, you don't run it. The register makes
+    the floor mechanical: `scripts/risk-check.sh classes "$BASE" "$VERIFIED"` printing any class
+    except `money` means the Auditor runs. Exit 2 means it runs too. A change the register doesn't
+    map can still meet a trigger in the role's list. That list is the ceiling: when it applies,
+    you run the role, and you propose the missing row to the human.
 
 Call roles 12–14 **in parallel** — they read, they write nothing. Give each one `VERIFIED` and
 the diff `origin/main...VERIFIED`; **every report states the SHA it read**. A report that names
@@ -832,8 +840,11 @@ converged.
     Exit 1 means the gate is not ready. A missing link goes back to the role that owes it — a
     test to the Developer, a mutation to QA. A `SURVIVED` mutation is a question for the human:
     it stays a finding of the check even after they let it through, so only a recorded exception
-    line for it makes that red result acceptable. You never write a link the reports don't
-    support.
+    line for it makes that red result acceptable. One exception to that: when
+    `scripts/risk-check.sh classes "$BASE" "$VERIFIED"` prints `schema` or `money`, a `SURVIVED`
+    mutation can't be let through. It goes back to the Developer and QA until a test kills it,
+    because a wrong migration or a wrong amount is the defect nobody notices until it has spread.
+    You never write a link the reports don't support.
     Exit 2 is a STOP. The check sees that a test exists and that a mutation was reported, not that
     the test proves the criterion — that is still QA's and the Reviewer's work.
 

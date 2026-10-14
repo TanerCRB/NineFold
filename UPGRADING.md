@@ -73,6 +73,46 @@ with the tool's name instead of `ERROR:`. It came from issue
 3. **Check:** every copied script's `--self-test` passes, including its "the last line states the
    result" cases, and the grep above finds nothing.
 
+### Risk classes from paths
+
+**The decisions that scale the process with risk are now a script's answer, not a judgement.** The
+architecture-sensitive paths register gains a *Risk classes* column. The classes are a closed list:
+`schema`, `auth`, `money`, `personal-data`, `pipeline`, `dependencies`, `secrets`, `external` and
+`model`. A new script, `process/scripts/risk-check.sh` (20 self-test cases, run in kit-ci),
+prints the classes a diff or a list of planned files touches. The task command uses them in
+three places:
+- **Fast lane:** any class means the Architect runs. This replaces the separate triggers for
+  migrations, dependencies and sensitive paths. The check is repeated against the real diff at
+  step 10a.
+- **Step 14:** any class except `money` runs the Security Auditor. The role's own trigger list
+  still applies on top.
+- **Gate 2:** with `schema` or `money`, a `SURVIVED` mutation can't be let through by an
+  exception. The team contract (§3a) says so too.
+
+A register with only placeholder rows, or a row naming an unknown class, fails the check instead
+of passing as risk-free. It came from issue [#64](https://github.com/TanerCRB/NineFold/issues/64).
+
+1. **Process repository:** merge the script, the register template with its class table, the
+   fast lane, step 10a, step 14 and the gate-2 paragraph in `process/task-command.md`, the
+   sentence in §3a of your team contract, the registers README row, and the notes in
+   `process/bootstrap-guide.md` and `process/ci-and-branch-protection.md`, §8. If your project
+   needs another class, add it to `CLASSES` in the script and its self-test.
+2. **Product repositories:**
+   - copy the script and make it executable:
+     ```bash
+     cp <process-repo>/process/scripts/risk-check.sh scripts/
+     git add scripts/risk-check.sh && git update-index --chmod=+x scripts/risk-check.sh
+     ```
+   - add the *Risk classes* column to your copy of the register, with a class for every row.
+     Add rows for migrations, dependencies, the pipeline and secrets if your old fast-lane
+     triggers named them separately;
+   - merge the task command changes into `.claude/commands/task.md` by hand.
+3. **Check:** `bash scripts/risk-check.sh --self-test` passes, and
+   `bash scripts/risk-check.sh classes --paths - < /dev/null` prints nothing and exits 0. Exit 2
+   means the register still has only placeholders or names an unknown class. Then run
+   `bash scripts/risk-check.sh classes <last-release-tag> HEAD` and check that the classes match
+   what you know the recent changes touched.
+
 ---
 
 ## v0.7.0 → v0.8.0
