@@ -5,6 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
+- [Unreleased (after v0.6.0)](#unreleased-after-v060)
 - [v0.5.0 → v0.6.0](#v050--v060)
 - [v0.4.0 → v0.5.0](#v040--v050)
 - [v0.3.0 → v0.4.0](#v030--v040)
@@ -13,6 +14,44 @@ changes fail silently when half-done. Upgrade one version at a time.
 
 If you are installing from scratch, follow [`process/bootstrap-guide.md`](process/bootstrap-guide.md)
 instead.
+
+---
+
+## Unreleased (after v0.6.0)
+
+### The test-weakening check
+
+**The Developer's "never weaken a test" rule is now checked, not only stated.** A new script,
+`process/scripts/weakening-check.sh`, reads what a task changed against its base and stops the
+task when the change deletes a test file or moves it out of the test paths, removes more
+assertions from a test file than it adds, adds a skip/only/ignore marker, adds a lint, type,
+coverage or mutation-tool suppression, or lowers or removes a coverage or mutation threshold. The
+task command runs it on the developer checkpoint (new step 10b, before QA) and again on `VERIFIED`
+(step 11a). A finding goes to the human, who sends it back or records an exception. It came from
+issue [#28](https://github.com/TanerCRB/NineFold/issues/28).
+
+1. **Process repository:** merge the new script, the "Test-weakening check" section and steps
+   10b/11a in `process/task-command.md`, the line added to hard stop 6 in `agents/developer.md`,
+   and §4 in `process/ci-and-branch-protection.md`.
+2. **Product repositories:**
+   - copy the script next to the boundary check and make it executable:
+     ```bash
+     cp <process-repo>/process/scripts/weakening-check.sh scripts/
+     git add scripts/weakening-check.sh && git update-index --chmod=+x scripts/weakening-check.sh
+     ```
+   - adapt its patterns to your stack (test paths, assertion style, skip markers, suppression
+     comments, threshold config files), with a self-test case for every pattern you add;
+   - merge steps 10b and 11a and the "Test-weakening check" section into `.claude/commands/task.md`
+     by hand, as with every task-command change;
+   - re-sync the roles (`developer.md` changed).
+3. **Check:**
+   ```bash
+   bash scripts/weakening-check.sh --self-test                # every case passes
+   bash scripts/weakening-check.sh origin/main HEAD           # on a clean branch: "weakening check: clean"
+   grep -c "weakening-check.sh" .claude/commands/task.md      # 3 or more
+   ```
+   Then, on a throwaway branch, add `.skip` to one test and commit: the second command must exit
+   1 and name the file and line.
 
 ---
 

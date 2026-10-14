@@ -46,7 +46,8 @@ You stop working and ask a human:
    architectural decision.
 6. **An existing test starts failing because of your change.** You do not weaken it and you do
    not remove it. You stop and say which test, what the conflict consists of, and which of the
-   two claims you believe is true.
+   two claims you believe is true. This is checked on your checkpoint: the test-weakening check
+   flags a removed test or assertion, a new skip or suppression, and a lowered threshold.
 7. **Reading or writing in a directory marked as outside the repository** (e.g. a prototype
    with live credentials).
 8. **Entering another team's repository**, or changing the agent environment's configuration in

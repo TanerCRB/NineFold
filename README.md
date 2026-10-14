@@ -34,7 +34,7 @@ Pick the row that matches what you came to do:
 | **Upgrade an existing installation** | [`UPGRADING.md`](UPGRADING.md) | the release notes of the version you move to |
 | **Drive a task** (after installing) | `/task-status #N` first — read-only — then `/task #N`: [`process/task-status-command.md`](process/task-status-command.md), [`process/task-command.md`](process/task-command.md) | [`process/sdlc-flow.md`](process/sdlc-flow.md) |
 | **Decide whether to trust a role's report** | [`calibration/README.md`](calibration/README.md) | [`process/invariant-assertions.md`](process/invariant-assertions.md) — what to move from a role into CI |
-| **Change this kit** | the tool self-tests (`node tools/<tool>.mjs --self-test`, `bash process/scripts/boundary-check.sh --self-test`) | [`.github/workflows/kit-ci.yml`](.github/workflows/kit-ci.yml) — the same checks on every pull request |
+| **Change this kit** | the tool self-tests (`node tools/<tool>.mjs --self-test`, `bash process/scripts/<script>.sh --self-test`) | [`.github/workflows/kit-ci.yml`](.github/workflows/kit-ci.yml) — the same checks on every pull request |
 
 **Short on time:** `FrameworkDoc.md` §1–5, `process/sdlc-flow.md`, and `process/bootstrap-guide.md`
 steps 0–6 (a working installation); steps 9–10 (calibration, one pilot task) before the first real

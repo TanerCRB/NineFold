@@ -361,6 +361,11 @@ Issue carries the implementation-phase label. Anything missing = go back to the 
     (`git diff --name-only origin/main...HEAD`). Any trigger fires → back to the Architect before
     verification (see "Fast lane").
 
+10b. **Test-weakening check — before QA.** `scripts/weakening-check.sh origin/main "$CHECKPOINT"`
+    (see "Test-weakening check" below). Exit 1 = **automatic STOP**: QA does not start on a
+    checkpoint whose diff removes a test or an assertion, adds a skip or a suppression, or lowers
+    a threshold, until the human has decided on every finding.
+
 ---
 
 ## Phase `verification` — before gate 2
@@ -377,7 +382,9 @@ Issue carries the implementation-phase label. Anything missing = go back to the 
 
 11a. **QA checkpoint.** Commit QA's test changes — the paths its report lists, all inside the
     test directory — as `checkpoint: <identifier> qa`. **`VERIFIED` = `git rev-parse HEAD`**: the
-    one version the reading roles audit and the PR must carry.
+    one version the reading roles audit and the PR must carry. Run the test-weakening check again
+    on `VERIFIED` — QA only adds tests, so any finding not already decided at step 10b is QA's,
+    and it is a `STOP` like any other.
 
 12. **Invariant Guardian role** — audits `VERIFIED` against the hard rules. Verdict `PASS` /
     `STOP`. On `STOP` you go back to the `code` phase; the verdict goes into the PR description
@@ -414,6 +421,36 @@ revert the paths yourself — a human decides whether it was a mutation left beh
 deliberate edit out of role. "boundary check: clean" goes into the role's cost-register notes, so
 the check leaves a trace that it ran. It sees what git sees — ignored files and anything outside
 the repository are out of its reach.
+
+### Test-weakening check
+
+The Developer never weakens or removes a test (hard stop 6 in the role's definition file), and a
+weakened suite empties the mutation evidence without anyone noticing: a mutation "killed" by a
+test that no longer runs, or skipped by a suppression comment, proves nothing. So this is checked
+mechanically too, with `scripts/weakening-check.sh` (copied from the process repository's
+`process/scripts/weakening-check.sh`, see `bootstrap-guide.md`, step 4):
+
+```bash
+scripts/weakening-check.sh origin/main "$CHECKPOINT"   # step 10b
+scripts/weakening-check.sh origin/main "$VERIFIED"     # step 11a
+```
+
+It reads only what the task changed (`origin/main...<SHA>`) and reports, with file and line: a
+test file deleted or moved out of the test paths, a test file losing more assertions than it
+gains, a new skip/only/ignore marker, a new lint/type/coverage/mutation-tool suppression in any
+file, a threshold in a coverage or mutation-tool config lowered or removed. Its `--self-test`
+shows each of those failing next to ordinary changes that must pass.
+
+Exit 1 = **automatic STOP**: put the findings in front of the human verbatim. A finding is a
+question, not a verdict — deleting the tests of a feature the Story removes is legitimate. The
+human either sends it back to the Developer or accepts it as a **recorded exception** (team
+contract, §3a), which goes into the PR description; the run that follows still shows the same
+finding, and the exception is what lets the task go on. Exit 2 = the check couldn't run — also a
+STOP, never "clean". "weakening check: clean" goes into the Developer's cost-register notes.
+
+It sees patterns, not intent: a looser expected value or a broader matcher passes it. Those stay
+with QA and the Reviewer. The patterns are an example for common stacks — adapt them when you
+copy the script, together with its self-test cases.
 
 ### Re-verification after a `STOP`
 

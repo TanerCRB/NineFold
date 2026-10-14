@@ -238,7 +238,38 @@ commit, worked out in practice.
 
 ---
 
-## 4. Definition of Done (example)
+## 4. The test-weakening check on pull requests
+
+The task command runs `scripts/weakening-check.sh` on the checkpoints (`task-command.md`, "Test-
+weakening check"). Running it in CI too makes the findings visible on every pull request,
+including the ones nobody drove through `/task`. A pattern — adapt the runner and the trigger to
+your workflow file:
+
+```yaml
+  weakening-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@<full commit SHA> # pin, as in the kit's own kit-ci.yml
+        with:
+          fetch-depth: 0              # the check needs the merge base, not one commit
+          persist-credentials: false
+      - name: Test-weakening check
+        env:
+          BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          bash scripts/weakening-check.sh --self-test
+          bash scripts/weakening-check.sh "$BASE_SHA" HEAD
+```
+
+**Do not make it a required check.** A finding the human accepted as a recorded exception (team
+contract, §3a) — the tests of a removed feature, say — keeps the run red, and this kit has no
+override for a required check; making it required would block exactly the merges a human already
+decided on. Keep it visible instead: a red run on a PR whose description has no matching exception
+is a finding for gate 2.
+
+---
+
+## 5. Definition of Done (example)
 
 | Criterion | Condition | How to check |
 |---|---|---|
