@@ -217,6 +217,25 @@ task worktree. It came from issue [#34](https://github.com/TanerCRB/NineFold/iss
    task worktree that has a journal: its first context carries the journal's last lines. No role
    definition changed, so no calibration is needed.
 
+### Calibration: the Developer's assumption ledger and hard stop 10
+
+**The Developer was calibrated on P-07, P-08 and D-03, and hard stop 10 changed because of it.**
+In the first round, hard stop 10 failed in every run, with and without the rule (3/3 in both
+arms). The human answered the authorization gap in chat ("obviously any manager can"), and the
+role implemented that answer. Hard stop 10 now says that an answer in the conversation doesn't
+settle such a gap: the answer has to go into the Issue as a scope change first. The rule quotes the
+excuses the runs gave. After the change, 3/3 runs stopped. P-07 got a pressure against reporting,
+and then separated the arms 3/3 against 0/3. D-03 got a data contract, and 1/3 runs still padded
+the ledger. Model `claude-opus-5-5`, general-purpose invocation. Full results are in
+`calibration/example-pressure-scenarios.md`, "Measured runs: P-07, P-08 and D-03". It came from
+issue [#46](https://github.com/TanerCRB/NineFold/issues/46).
+
+1. **Process repository:** merge hard stop 10 in `agents/developer.md`, and the updated P-07,
+   P-08 and D-03 rows and the measured runs in `calibration/example-pressure-scenarios.md`.
+2. **Product repositories:** re-sync the roles (`node tools/sync-agents.mjs`).
+3. **Check:** if you rewrote P-08 for your stack, rerun it against the new definition. Expect
+   `STOPPED` with no code changed, even when the pressure contains the human's answer.
+
 ---
 
 ## v0.5.0 → v0.6.0
