@@ -5,7 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
-- [Unreleased (after v0.7.0)](#unreleased-after-v070)
+- [v0.7.0 → v0.8.0](#v070--v080)
 - [v0.6.0 → v0.7.0](#v060--v070)
 - [v0.5.0 → v0.6.0](#v050--v060)
 - [v0.4.0 → v0.5.0](#v040--v050)
@@ -18,7 +18,42 @@ instead.
 
 ---
 
-## Unreleased (after v0.7.0)
+## v0.7.0 → v0.8.0
+
+v0.8.0 gives scripts what they need to read the evidence instead of the prose:
+- the scope lock gets one extraction script and a guard on every Issue edit;
+- an evidence-chain check links each criterion to its test, its mutation and the human's
+  decision;
+- every evaluating role ends its report with a verdict block, and the task command marks each
+  phase event on the Issue.
+
+The four evaluating roles were then calibrated (issue
+[#54](https://github.com/TanerCRB/NineFold/issues/54)). Two definitions changed because of it:
+read-only roles no longer run tests, and every `UNDECIDABLE` item is on the verdict line. The
+reasons are in the pull requests [#56](https://github.com/TanerCRB/NineFold/pull/56) to
+[#60](https://github.com/TanerCRB/NineFold/pull/60).
+
+**Time:** about half a day per product repository. That covers three scripts to copy, a workflow
+to replace, hand-merges into the task and task-status commands, and recalibration of the four
+evaluating roles.
+
+### What changed, in one table
+
+| Area | Change | Action in a product repo | Measured |
+|---|---|---|---|
+| [Infra PR template](#the-infra-pr-template-gets-the-undecidable-section) | "Undecidable — the human's decisions" added, like the other two templates | re-sync PR templates in infra repos | — |
+| [Scope guard](#the-scope-check-script-and-the-scope-guard) | `scope-check.sh` is the one scope extraction; `label-guard` flags a scope edit after gate 1 | copy the script **before** the workflow, replace the workflow, merge both commands | script self-test only |
+| [Evidence chain](#the-evidence-chain-check) | `evidence-chain.sh`: a lint of the criteria before gate 1, the criterion–test–mutation–decision chain before gate 2; one line per link in the PR templates | copy the script, re-sync roles and PR templates, merge steps 5, 17 and 19 | script self-test only |
+| [Verdict blocks and markers](#verdict-blocks-and-phase-markers) | A fenced `verdict` block at the end of every evaluating report; hidden phase markers on the Issue; `markers.sh` reads both | copy the script, re-sync roles, merge both commands | blocks matched their own report in 24/24 runs, then 9/9 after the fixes below |
+| [Calibration](#calibration-area-vii-the-reviewers-account-check-and-the-verdict-blocks) | Read-only roles don't run tests or code; every `UNDECIDABLE` item is on the verdict line; Z-15 to Z-17 seeded for area VII | re-sync roles, merge §3a | area VII still doesn't separate the arms (3/3 in both, see [#61](https://github.com/TanerCRB/NineFold/issues/61)); the Reviewer's #31 sections: complete account 3/3 against 0/3 |
+
+**Merge the task command in one pass,** as for v0.7.0. The scope guard, the evidence chain and the
+markers all change `process/task-command.md`. Diff it against v0.7.0 and carry the changes into
+`.claude/commands/task.md` together.
+
+**If your process repository runs the kit's own CI,** merge the three new scripts into
+`.github/workflows/kit-ci.yml`. Each script needs its `bash -n` line and its `--self-test` line.
+The subsections below say "run in kit-ci", and that holds only once these lines are in.
 
 ### The infra PR template gets the Undecidable section
 
@@ -60,7 +95,7 @@ issue [#50](https://github.com/TanerCRB/NineFold/issues/50).
 3. **Check:** `bash scripts/scope-check.sh --self-test` passes. For every open Issue past gate 1,
    compare `scope-check.sh hash` with `scope-check.sh locked`, as `/task-status` does, before the
    workflow's first run: an Issue locked before v0.7.0 has no lock comment, and the guard reports
-   it on the next label change. Post its fingerprint only after the human confirms the current
+   it on the next label change or body edit. Post its fingerprint only after the human confirms the current
    scope is the approved one. Then run the test in `bootstrap-guide.md`, section 6.
 
 ### The evidence-chain check
@@ -117,7 +152,8 @@ scope locked, gate reached, verified, a role's verdict, a re-verification. It re
 before repeating a step. A new script, `process/scripts/markers.sh` (34 self-test cases, run in
 kit-ci), has two modes:
 - `verdict` checks a block against its own report: the verdict line, the `UNDECIDABLE` items and
-  the finding headings by severity. It also checks the block against §3a, e.g. a medium finding
+  the finding headings by severity (for every role but QA, whose findings aren't headed by
+  severity). It also checks the block against §3a, e.g. a medium finding
   with `PASS`.
 - `events` lists the markers and skips quoted lines and code blocks.
 
@@ -142,8 +178,8 @@ kit-ci), has two modes:
 3. **Check:** `bash scripts/markers.sh --self-test` passes. Tasks already running have no markers,
    so `/task-status` reports them as read from prose until their next event. Don't backfill
    markers onto old comments. All four evaluating roles changed, so their calibration no longer
-   holds. Add the four "Verdict-block items" to their sets, and run them together with the next
-   calibration round (issue [#54](https://github.com/TanerCRB/NineFold/issues/54)).
+   holds. Add the four "Verdict-block items" to their sets and run them. The kit's own run is in
+   the calibration subsection below.
 
 ### Calibration: area VII, the Reviewer's account check, and the verdict blocks
 
