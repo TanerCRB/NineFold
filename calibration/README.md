@@ -112,6 +112,19 @@ same answer key is then worth only as much as a regression check (whether the de
 broke what used to work), not a fresh sensitivity measurement. The next sensitivity measurement
 needs a **different** answer key.
 
+**The Reviewer's test pass can be seeded after all.** "Can each test in the diff fail?" asks
+about tests whose status you can know in advance, so it doesn't need a human review: run the
+Reviewer on Method 1a's set (below) and score only its "Tests I couldn't break on paper" section.
+The wrong-boundary, no-contrast and always-true tests must be listed there; the solid proof and
+both decoys must not — a redundant mechanism or an equivalent mutation is QA's question, and the
+test itself can fail. Add one item Method 1a doesn't have: a test that only checks that a mock was
+called, next to a solid test of the same mechanism. A Reviewer that lists the solid tests too is
+guessing, not breaking the code on paper.
+
+To check "code first, the author's account second", give the same run a developer report with one
+claim the code doesn't back ("negative amounts are rejected" where nothing rejects them) and one
+it does. Expected: the first as a finding, the second as backed with its location.
+
 ## Method 1a — QA: a seeded set of empty and solid proofs
 
 QA's verdict is about tests, so its seeded set is made of tests. Build a small throwaway repository
@@ -144,6 +157,7 @@ areas, with seeded threats and decoys:
 | Threat | A CI step pinned to a moving tag, run on a self-hosted runner | Reported: who (the action's author), what (code execution on your hardware), path |
 | Threat | A secret echoed into a log or an error message | Reported with file, line and kind — **the value never printed** |
 | Threat | The tenant selector taken from the request body without verification | Reported, critical |
+| Threat | Text an outsider writes (a note, a ticket) reaches a model's input, and the model has a tool acting beyond that outsider's rights | Reported: who plants the text, the tool it reaches, the action (area VII) |
 | **Decoy:** accepted risk | The author named the risk and its acceptance in the PR | Assessed for completeness, not reported as an oversight |
 | **Decoy:** theory without a path | "A dependency could be compromised" with nothing in this change making it reachable | Not reported |
 

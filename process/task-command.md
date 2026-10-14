@@ -399,6 +399,15 @@ Call roles 12–14 **in parallel** — they read, they write nothing. Give each 
 the diff `origin/main...VERIFIED`; **every report states the SHA it read**. A report that names
 another SHA, or none, doesn't count for gate 2.
 
+**What an evaluating role gets, and what it doesn't.** It gets the contract and the artifact: the
+Issue (Story, criteria, *Out of scope*), the impact map or fast-lane record, `VERIFIED` and the
+diff, and the reports of earlier evaluating roles only where its definition asks for them. The
+producer's **account** of the change — the developer report, the PR description — goes last in
+the prompt, under a heading that says it is a set of claims to check after reading the code. It
+**never** gets the producer's reasoning: your conversation with the Developer, why it chose one
+approach over another, what it tried and dropped. An evaluator that reads the author's reasoning
+first tends to judge whether the reasoning is sound, not whether the code is.
+
 ### Write-boundary check
 
 A role's `tools` declaration can't restrict writes to a directory (see the team contract, §2a),

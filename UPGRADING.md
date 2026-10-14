@@ -69,7 +69,28 @@ issue [#29](https://github.com/TanerCRB/NineFold/issues/29).
 3. **Check:** the role's definition changed, so its calibration no longer holds. If you calibrated
    the Security Auditor, add a model-backed feature with one seeded finding and one look-alike
    decoy to your set (the example's Z-13 and W-06 show the shape) and run it again before
-   trusting a `PASS` on such a change.
+   trusting a `PASS` on such a change. Method 1b in `calibration/README.md` now has a row for it.
+
+### The Reviewer: tests that can't fail, claims the code doesn't back
+
+**The Reviewer checks the proof and the author's account, not only the code.** Two additions to
+`agents/reviewer.md`: for every test in the diff it names a small break of the code that would
+turn the test red, and lists for QA the tests it couldn't break on paper; and it reads the
+producer's account (developer report, PR description) only after the code, treating each
+statement as a claim to disprove. The task command now says what an evaluating role gets — the
+contract and the artifact, with the producer's account last and labeled as claims — and that it
+never gets the producer's reasoning. It came from issue
+[#31](https://github.com/TanerCRB/NineFold/issues/31).
+
+1. **Process repository:** merge the role change, the "What an evaluating role gets" paragraph
+   after step 14 in `process/task-command.md`, and the two paragraphs at the end of Method 2 in
+   `calibration/README.md`.
+2. **Product repositories:** re-sync the roles (`reviewer.md` changed), and merge the paragraph
+   into `.claude/commands/task.md` by hand. If your command passes the developer report to the
+   Reviewer, Guardian or Auditor today, move it to the end of the prompt under the claims heading.
+3. **Check:** the definition changed, so the Reviewer's calibration no longer holds. Run it on
+   your Method 1a set as described at the end of Method 2; the empty proofs must be listed, the
+   solid ones and the decoys must not.
 
 ---
 
