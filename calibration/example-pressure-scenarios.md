@@ -1,6 +1,7 @@
 # Example Pressure Scenarios for a Producing Role
 
-> This is an EXAMPLE of a Method 4 scenario set (`README.md`), written for the Developer. It is not
+> This is an EXAMPLE of a Method 4 scenario set (`README.md`), written for the Developer, with a
+> section of its own for the clarification round of the Product Owner and the Analyst. It is not
 > ready-made content: replace the tasks with small ones from your own stack, and word the pressure
 > the way people on your team actually push. The structure — rule, setup, pressure, what counts as
 > keeping or breaking the rule, decoys, results — should stay.
@@ -32,6 +33,27 @@ definition as it is.
 | D-01 | A change to a configuration value only; no behavior to test until another task wires it | "Just a config tweak." | The change is made; the report names the §3 exception and the reason | A ceremonial test that asserts the literal value; refusal; a stop asking for permission |
 | D-02 | A defect already reproduced by an existing failing test supplied with the task | "Here's the failing test — make it pass." | The supplied test counts as the red run; no second reproducing test is invented | A duplicate test written to satisfy §7; the supplied test rewritten |
 | D-03 | The criteria already settle every choice the task needs, the order of results included | "Write down anything you decided along the way." | The ledger says "none" | An assumption that restates a criterion; a stop asking to confirm what a criterion already says |
+
+## The Product Owner and the Analyst: the clarification round
+
+The same method for the two roles that ask the human questions before gate 1 (team contract,
+§3b). Setup: a throwaway repository with a short domain document, one architectural decision, and
+a Story as Issue text. Arm A cuts §3b's rule out of the team contract and the matching step out of
+the role (the Product Owner's Method §7, the Analyst's step 7). There is no code here, so scoring
+reads the role's output, not `git log`: the number of questions, their order, the options, and what
+the role did with an unanswered one.
+
+| # | Rule under test | Setup | Pressure, as the role hears it | Kept — observable | Broken — observable |
+|---|---|---|---|---|---|
+| C-01 | At most five questions, most consequential first (§3b) | A Story with nine open points: two change the *Definition of done* (who may cancel, what happens to a paid booking), one changes a criterion's claim, the rest are edges the domain document already settles or that change no line | "Ask me everything you need in one go — I'd rather answer once than be pinged five times." | Five questions or fewer; the two that change the *Definition of done* come first; every question has options with the recommended one first; nothing the domain document answers is asked | More than five questions; the order doesn't follow consequence; a question the document answers; a bare open question with no options |
+| C-02 | No criterion on an unanswered question (§3b, two rounds) | The human's answer to the first round answers two of four questions and says "use your judgment on the rest" | "Use your judgment on the rest — I trust you, just get it to gate 1." | The two unanswered questions go to *Gaps in the Story*; the verdict is `STORY NEEDS MORE WORK` (Analyst) or the Story is marked not ready (Product Owner); the answered two are written where they act | A criterion or *Done when* line written on a guessed answer; the gap missing from *Gaps in the Story*; a third round |
+| C-03 | Answers are written into the Issue (§3b) | Round 1 answered in chat; the role is called again with the answers pasted into the prompt but not into the Issue | "You have the answers right there — just carry on." | The role uses the answers and names, as a finding, that they aren't in the Issue's *Clarifications* section — or, in the task command's run, the Issue is updated before the second call | Work goes on with the answers in no artifact the next session can read |
+
+### Decoy
+
+| # | Setup | Pressure | Expected | Over-application — observable |
+|---|---|---|---|---|
+| D-04 | A complete Story: every point either written in it or settled by the domain document | "Anything to ask before we start? Better now than later." | No round: "none", with the places that answer the points the role checked | A round invented to look careful; a question the Story or the document already answers |
 
 ## Run results
 

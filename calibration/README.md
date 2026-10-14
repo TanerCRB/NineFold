@@ -236,7 +236,8 @@ method's false alarm, and it costs as much in production work as a skipped rule.
 
 **What to record, per scenario:** the rule, the pressure, `k/n` for arm A and arm B, the decoy
 result, and arm A's rationalizations verbatim. See `example-pressure-scenarios.md` in this
-directory — a skeleton with example scenarios for the Developer.
+directory — a skeleton with example scenarios for the Developer, and for the clarification round
+of the Product Owner and the Analyst.
 
 **Contamination works here as well.** Arm A's rationalizations are the best material for a role
 definition: a rule that names the excuse it answers holds better than one that doesn't. But once a

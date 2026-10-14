@@ -247,13 +247,15 @@ treats the task as taken (step 0, "work already in progress elsewhere = stop").
 1. **Is the Story complete?** The Issue should have: a task identifier, *What and why*,
    *Definition of done* (an observable condition), *Out of scope (explicit)*, a basis in the
    documentation. The Product Owner role fills gaps — it creates/fixes the Issue with the initial
-   state label and **doesn't** move on.
+   state label and **doesn't** move on. If it returns a clarification round, run the round (see
+   "Clarification round" below) before anything else.
 2. **Plan task number** — if the task isn't in the plan yet, reserve a number through the dedicated
    mechanism (see `../FrameworkDoc.md`, section 9, on identifiers as a shared resource), as a
    separate bookkeeping commit on the task branch, before the actual work.
 3. **Analyst role** — acceptance criteria and the *Definition of done* row. Every criterion has an
    observable carrier, a contrast, and a named mutation meant to kill it. Verdict: `READY FOR GATE
-   1` or `STORY NEEDS MORE WORK`.
+   1`, `NEEDS ANSWERS` (run the clarification round, then call the Analyst again) or `STORY NEEDS
+   MORE WORK`.
 4. **Architect role** — **unless the fast lane applies** (see "Fast lane: when the Architect is
    skipped" below). Impact map onto architectural decisions. Three outcomes: fits / needs a
    deviation / needs a new decision. A deviation is an Issue with the corresponding label and a
@@ -264,12 +266,44 @@ treats the task as taken (step 0, "work already in progress elsewhere = stop").
    (each with options and consequences, not "should we do X?"), the Analyst's edge sweep — the
    lines it proposes for *Out of scope* and the edges it turned into questions — and every
    criterion marked **Judged by: human**, so the human knows at gate 1 which answers will come
-   back to them at gate 2. Before you stop, write the criteria into the Issue and post the scope
+   back to them at gate 2, and the *Clarifications* record — what was asked before this gate and
+   what the human answered. A *Gaps in the Story* that isn't empty means the task isn't at gate 1
+   yet. Before you stop, write the criteria into the Issue and post the scope
    fingerprint (see "Scope lock" below) — what the human approves is what gets locked. You wait
    for the human's decision
    and for the move to the implementation phase. Without this, you don't enter the `code` phase.
    **You don't remove the waiting-on-human label yourself** — removing it is equivalent to making
    the decision. Unassign yourself — you're waiting on the human, not working.
+
+### Clarification round
+
+The Product Owner and the Analyst can't talk to the human — they return questions, and you run the
+round (team contract, §3b). One message per round:
+
+- the questions exactly as the role returned them, at most five, in its order, each with its
+  options and the recommended one first — you don't add your own, merge two roles' rounds into one
+  list, or drop the recommendation;
+- the round's number for that role, and that a third round doesn't exist: what stays unanswered
+  goes to *Gaps in the Story*.
+
+Ask in the form your environment offers for a quick answer (a choice list, if it has one).
+Unassign yourself and apply `waiting-on-human` while you wait — it is a question only the human
+can answer, the same as at a gate.
+
+**Write every answer into the Issue before calling the role again.** First where it acts — the
+*Definition of done*, *Out of scope* or the description, when the answer changes them — then one
+line in the Issue's *Clarifications* section as the record:
+
+```
+C-2 (Analyst, round 1, <date>): <question> — <answer, in the human's words or the option chosen>
+```
+
+Then call the role again with the updated Issue. A question the human chose not to answer is
+recorded the same way, with "not answered". A round whose answers you only passed to the next
+role call, without the Issue, didn't happen: the next session can't see it, and neither can the
+human at gate 1. The *Clarifications* record goes into the gate-1 message, so the approval covers
+the answers too; anything the answers changed in the *Definition of done* or *Out of scope* is
+locked with them.
 
 ### Scope lock
 

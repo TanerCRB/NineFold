@@ -172,6 +172,28 @@ register and every open PR; a scheduled workflow pattern does the same weekly. I
    rewrite each still-live one into the register in the new format, with the date the human
    originally gave. An exception that never had a date gets one only from its owner.
 
+### The clarification round before gate 1
+
+**The Product Owner and the Analyst ask the human in a bounded round, and every answer lands in
+the Issue.** A new §3b in the team contract fixes the rule once: at most five questions per round,
+ordered by how much the answer changes the artifact, each answerable in a click or a few words
+with the recommended option first, nothing the role could look up, and facts only — a choice the
+role could write both ways stays a gate-1 question. Every answer is written into the Issue where it
+acts and as a line in a new *Clarifications* section; two rounds per role, then what is still open
+goes to *Gaps in the Story* and the task isn't ready for gate 1. The Analyst has a new verdict,
+`NEEDS ANSWERS`. It came from issue [#33](https://github.com/TanerCRB/NineFold/issues/33).
+
+1. **Process repository:** merge §3b of your team contract, the Product Owner's Method §7 and
+   output sections, the Analyst's step 7, verdict and output section, "Clarification round" and
+   steps 1, 3 and 5 in `process/task-command.md`, the *Clarifications* field in `1-story.yml`,
+   and the C-01–C-03 and D-04 scenarios in `calibration/example-pressure-scenarios.md`.
+2. **Product repositories:** re-sync the roles and the Issue templates
+   (`node tools/sync-github.mjs`), and merge the task command changes into
+   `.claude/commands/task.md` by hand.
+3. **Check:** both roles changed, so run C-01–C-03 and the decoy D-04, rewritten for your domain.
+   The decoy matters: a role that invents a round on a complete Story costs the human the same
+   time the rule was meant to save.
+
 ---
 
 ## v0.5.0 → v0.6.0
