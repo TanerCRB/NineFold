@@ -63,6 +63,7 @@ itself:
 | Product Owner | `Bash` gives access to `gh`, but it also gives `git commit` | Every trace of this role is public (Issue, comment). A commit made within its session is a violation visible at gate 2. |
 | Architect | writes restricted to the architecture decisions directory | **Mechanically, around the call:** `boundary-check.sh` compares HEAD, the index and the working tree; any change outside that directory is an automatic `STOP`. Gate 1 is the backstop, not the check. |
 | Any role called through a general-purpose mechanism | the `tools` field isn't applied at all — the pasted definition only asks | **Mechanically, around every call:** `boundary-check.sh` with the role's allowed paths, `--none` for a read-only role. The invocation mode is recorded with the cost row; calibration holds per mode. |
+| Developer | never weakens or removes a test — no tool declaration can express "don't delete this assertion" | **Mechanically, on the checkpoint:** `weakening-check.sh` reads the task's diff; a removed test or assertion, a new skip or suppression, or a lowered threshold is an automatic `STOP` until the human sends it back or records an exception. |
 | QA | writes restricted to the test directory | **Mechanically, right after the call:** the same check with the test directory; any change outside it — including an un-reverted mutation — is an automatic `STOP`. Gate 2 is the backstop. |
 
 What the agent environment *can* enforce, enforce there instead of by rule. In Claude Code, the
