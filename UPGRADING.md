@@ -5,6 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
+- [Unreleased (after v0.8.0)](#unreleased-after-v080)
 - [v0.7.0 → v0.8.0](#v070--v080)
 - [v0.6.0 → v0.7.0](#v060--v070)
 - [v0.5.0 → v0.6.0](#v050--v060)
@@ -15,6 +16,31 @@ changes fail silently when half-done. Upgrade one version at a time.
 
 If you are installing from scratch, follow [`process/bootstrap-guide.md`](process/bootstrap-guide.md)
 instead.
+
+---
+
+## Unreleased (after v0.8.0)
+
+### Calibration: area VII on threats only a model surface has
+
+**Area VII was measured a third time, and it still separates nothing. No definition changed.**
+Three threats exist only because a model is in the loop. Z-18 compiles model output as code. Z-19 is
+a system prompt that a lower-privileged role can write. Z-20 places a provider key in the model's input.
+The Auditor found all three in 3/3 runs, with and without area VII, at the same severities, and
+reported no decoy in 0/9 runs per arm. The older areas reached them: injection (VI), authorization
+(IV) and secrets (III). Area VII changed how the clean list is laid out, not what was found. The
+runs never tested its trigger, which decides whether the Auditor runs at all on a change that only
+touches a model surface. The recommendation is to keep area VII as a checklist and a trigger, not as
+a detection rule. Model `claude-opus-5-5`, general-purpose invocation. Full results are in
+`calibration/example-answer-key.md`, "Area VII on threats only a model surface has". It came from
+issue [#61](https://github.com/TanerCRB/NineFold/issues/61).
+
+1. **Process repository:** merge the Z-18 to Z-20 and W-08 to W-10 rows, and the measured run,
+   into `calibration/example-answer-key.md`.
+2. **Product repositories:** nothing to re-sync. No role changed.
+3. **Check:** if you rely on area VII to find model threats, measure it on your own model, with
+   its trigger in play. Run it on a change that touches no other trigger area. On
+   `claude-opus-5-5` the older areas already find these threats.
 
 ---
 
