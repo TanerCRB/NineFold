@@ -73,6 +73,14 @@ a 403 gives a screen with no buttons.
 
 <!-- Verdict PASS / STOP. On STOP — what was done with the findings. -->
 
+## Undecidable — the human's decisions
+
+<!--
+Every criterion a role returned as UNDECIDABLE (marked Judged by: human, or depending on a fact
+outside the change): the criterion, what was missing, what the tests show, and the human's
+decision at gate 2. "None" if no role returned one.
+-->
+
 ## Dependency on the backend
 
 <!--

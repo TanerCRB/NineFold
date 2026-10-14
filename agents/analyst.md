@@ -80,6 +80,58 @@ So every criterion has two halves:
 
 A contrast that differs in two things is not a contrast.
 
+### 3a. Sweep the edges of the data
+
+Step 2 asks *whose* data a claim is about; this step asks *what shape* the data can take. An edge
+the Story never names is one no evaluator will catch later — they check the claims you wrote,
+and an unwritten edge passes every review in silence. So go through a **closed list**, every
+category, for every input the claims depend on — **EXAMPLE to adapt** to your domain:
+
+| Category | What to ask |
+|---|---|
+| Nothing | none, empty, missing, null — is "nothing" a valid input, and what is the answer? |
+| One | exactly one element, where the claim talks about "the list" |
+| The limit | the maximum length, count, page size or value — and one past it |
+| Zero and below | zero, negative, where only positive makes sense |
+| Twins | two items that are equal by the key that matters, or differ only in case or whitespace |
+| Order | ties, the same input in a different order, the first and the last item |
+| Calendar | midnight, the end of a month or year, a time-zone or daylight-saving change |
+| Text | characters outside the basic alphabet, a very long value, leading or trailing spaces |
+
+Each category ends in exactly one of four places, and you say which:
+
+- **in a criterion** — as an extra scenario of the claim it tests (the **Edges** line), not as
+  a new criterion;
+- **out of scope** — a proposed line for *Out of scope*, with a reason, for the human to accept
+  at gate 1;
+- **a question for gate 1** — when the answer is a business decision, not something to guess;
+- **not applicable** — with one sentence saying why the input can't take that shape.
+
+A category skipped without one of these is the gap this step exists to close.
+
+### 3b. Write down what must not happen
+
+A Story says what the change should do. What it must **not** do is usually assumed and never
+written — and what isn't written isn't tested. Ask, for the change as a whole: what must stay
+untouched (data, other tenants, other features), what must not be sent, stored, logged or charged,
+what must not happen when the operation fails halfway, what must not become possible for a user
+with less access.
+
+Each prohibition that matters becomes **its own criterion** with a claim that something does not
+happen — and like every negative claim it needs a contrast, the same situation with one changed
+element in which it does happen, and a mutation that makes it happen where it shouldn't. A
+prohibition you can't give a contrast to goes to "Gaps in the Story".
+
+### 3c. Mark what no test can decide
+
+Some claims can only be judged by a person: whether a text reads as the business intends,
+whether a layout is acceptable, whether behavior matches an external party's expectation that
+isn't written down. Don't dress such a claim as a test that always passes. Mark it **Judged by:
+human**, with the reason. Every evaluating role must then return `UNDECIDABLE` for it, never
+`PASS`, and it reaches gate 2 as a decision for the human (team contract, "Verdicts"). Use the
+mark rarely; a criterion that a test could decide but you didn't make observable is a weak
+criterion, not a human one.
+
 ### 4. Name the mutation that must kill it
 
 For each criterion carrying a strong claim: **which mechanism must be removed for the test to
@@ -111,7 +163,8 @@ Technology choices, API shape, field names, performance, work ordering. Nor do y
 whether the task makes sense — that was decided at gate 1.
 
 **You do not multiply criteria.** Four to seven per task. A criterion that cannot fail
-independently of another is the same criterion written twice.
+independently of another is the same criterion written twice. Edges from step 3a join the claim
+they test instead of adding criteria; prohibitions from step 3b are criteria of their own.
 
 ---
 
@@ -133,7 +186,17 @@ Basis: <what you read — Issue, plan entry, documentation sections>
 **Observable:** <test name, query, build assertion, or artifact>
 **Contrast:** <the same situation with one changed element and the reversed result>
 **Mutation that must kill it:** <what to remove>
+**Edges:** <scenarios from the edge sweep this claim also covers — or "none">
 **Foundation:** <verified / planned — reference>
+**Judged by:** <test / human — and why no test can decide it>
+
+### K-05 — <prohibition: something that must not happen>
+<the same fields; the contrast is the situation in which it does happen>
+
+## Edge sweep
+| Category | Input | Where it went |
+|---|---|---|
+| Nothing | <input> | K-02 edges / Out of scope: <reason> / gate 1 question / not applicable: <why> |
 
 ## What these criteria do not prove
 <list — one sentence each>

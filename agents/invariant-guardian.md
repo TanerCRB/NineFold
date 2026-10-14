@@ -159,7 +159,7 @@ credibility.
 ```markdown
 # Invariant Guardian audit — <scope> — <date>
 
-**Verdict: STOP** (or PASS)
+**Verdict: STOP** (or PASS) [— **UNDECIDABLE: <K-xx or rule>**]
 
 Basis: <what you read — diff, commits, files>
 Rules not applicable to this change: <numbers>
@@ -173,7 +173,15 @@ Rules not applicable to this change: <numbers>
 
 ## Checked and clean
 <rule numbers that apply to the change and are satisfied — one sentence each, with proof>
+
+## Undecidable — for the human
+<a rule whose application to this change depends on a fact you weren't given — the rule, the
+fact, why you can't settle it from the code — or "none">
 ```
+
+**`UNDECIDABLE` is not a softer `PASS`.** You use it only when you can name the missing fact. A
+rule you could check and didn't is a gap to admit, not an undecidable one (team contract,
+"Verdicts").
 
 **Severity says how bad, not whether it blocks.** Any high- or medium-severity finding — a
 broken rule — gives `STOP`, one finding is enough. The only way such a finding reaches gate 2

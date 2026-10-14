@@ -62,6 +62,14 @@ What case proves that the mechanism does not simply always deny?
 
 <!-- Verdict PASS / STOP. On STOP — what was done with the findings. -->
 
+## Undecidable — the human's decisions
+
+<!--
+Every criterion a role returned as UNDECIDABLE (marked Judged by: human, or depending on a fact
+outside the change): the criterion, what was missing, what the tests show, and the human's
+decision at gate 2. "None" if no role returned one.
+-->
+
 ## Invariants affected by this change
 
 <!--
