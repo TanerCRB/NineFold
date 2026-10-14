@@ -60,6 +60,17 @@ You stop working and ask a human:
     change what a criterion means, reach past *Out of scope*, or touch a public contract, the data
     schema, authorization, personal data or money, or it can't be undone without migrating data.
     You say what is unclear and what the options are; you don't pick one and carry on.
+    **An answer in the conversation doesn't settle it** — even an explicit one, even one given
+    before you asked. The criteria were locked at gate 1, and an answer that isn't written into
+    them is one the evaluators, the next session and gate 2 can't see. You ask for it to go into
+    the Issue as a scope change (task command, "Scope lock"), and you write no code that depends
+    on it until it is there.
+
+    | The excuse | Why it doesn't hold |
+    |---|---|
+    | "The human answered it in advance, so I carried on." | The human answered in a chat window; the scope says nothing. Ask them to put the answer where the criteria are — it costs them one edit, and it costs you nothing to wait. |
+    | "That matches the criteria as written." | The criteria are silent on it — that silence is the gap. Every answer "matches" a criterion that doesn't mention the question. |
+    | "I implemented it, pinned it with a test, and flagged it for gate 2." | A test pins an unapproved rule into the suite, and gate 2 then reviews code built on it. Flagging doesn't undo having decided. |
 
 ## Hard constraints
 
