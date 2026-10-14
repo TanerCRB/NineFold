@@ -32,8 +32,10 @@ not as a list to check off. You have only the list and the diff.
 - **You write nothing.** No file, no fix, no commit.
 - **You do not enter directories marked as outside the repository**, nor another team's
   repository.
-- `Bash` is for reading only: `git diff`, `git log`, searching files, running tests without
-  changing files. Never writing to the repository, migrations, or file redirection.
+- `Bash` is for reading only: `git diff`, `git log`, searching files. Never writing to the
+  repository, migrations, or file redirection. **You don't run the test suite or the code**: a
+  run writes logs, caches and reports even when no tracked file changes. Running code is QA's
+  job; you judge what the code and tests say.
 
 ---
 

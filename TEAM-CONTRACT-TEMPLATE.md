@@ -140,7 +140,9 @@ The evaluating roles speak one language:
 | `UNDECIDABLE` | One criterion can't be judged from what the role was given: the Analyst marked it **Judged by: human**, or the answer depends on a fact outside the artifact — and the role names that fact | Only as the human's decision on that criterion, recorded in the PR description. It doesn't block like `STOP`, and it never counts as `PASS` |
 
 `UNDECIDABLE` is given per criterion and sits next to the report's main verdict, not instead of
-it: `PASS — UNDECIDABLE: K-04`. It is not a way out of a hard question. A role that answers
+it: `PASS — UNDECIDABLE: K-04`. **Every item in the report's "Undecidable" section is on that
+verdict line**, a criterion or a named scenario alike, so a question for the human can't sit in
+the prose where gate 2 won't look for it. It is not a way out of a hard question. A role that answers
 `UNDECIDABLE` on a criterion the code and tests can decide, or `PASS` on one marked for a human,
 has failed — calibration checks both.
 

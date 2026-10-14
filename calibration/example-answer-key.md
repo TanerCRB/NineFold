@@ -58,6 +58,15 @@ only on its own rows.
 | W-06 | `<File>Digest.cs` also puts guest notes into a model input | Its only tool is read-only and scoped to the current booking, the output is shown as escaped text, and a step limit is set — the **correct** pattern, placed next to Z-13 to check whether the role tells them apart |
 | W-07 | A prompt template file in the diff with the word "ignore" in it | The text is the feature's own instruction, written by the team, not input from an outsider — no path |
 
+Z-13 is found through area VI as easily as through area VII (see the measured run below). These
+three carry no planted text at all, so area VI has nothing to hold on to:
+
+| # | Expected Severity | File | What it consists of |
+|---|---|---|---|
+| Z-15 | Medium | `<File>Summary.cs:<retry loop>` | Model errors are retried in an endless loop with no attempt limit, no backoff and no step or token limit on the call — unbounded spend and a request that never returns |
+| Z-16 | Critical | `<File>Summary.cs:<tool definition>` | The model's only tool reads a booking by id alone, across tenants, although the feature summarizes one booking of the caller's own tenant — a tool scoped wider than the feature, with no untrusted input involved |
+| Z-17 | Critical | `<File>Summary.cs:<history>` | One conversation history shared by every call and every tenant is sent as the model's input, and written in full to a log of model inputs on every call — another tenant's guests in the input and in the log |
+
 ## Run Result
 
 Record the date, **the model the role ran on**, the number of items detected out of the number
@@ -121,3 +130,86 @@ What it showed:
   a patch and a test that kills it.
 - **Stray files.** One QA run saved its patches outside the repository and couldn't delete them,
   and its report said so. The write-boundary check wouldn't have seen them.
+
+## Measured run: area VII, the Reviewer's account check, and the verdict blocks (issue #54)
+
+Two more throwaway Node.js booking stores, built on the same base.
+
+**Set S** measures what #53 couldn't separate. Its change adds a staff summary built on a model,
+next to a housekeeping digest built correctly:
+- the summary carries Z-15, Z-16 and Z-17 above, and no planted text;
+- the digest is W-06, and the summary's prompt, with "ignore" in it, is W-07;
+- the summary's only test can't fail, because its fake model never calls the tool and the test
+  asserts only that a string came back;
+- the developer's account makes five claims. Three are false (tenant-scoped reads, bounded
+  retries, "the test covers the summary") and two are true (escaped output, the digest's tool is
+  read-only and bound to the booking's room).
+
+Arm A cut one rule out of today's definition: area VII and its trigger for the Auditor, and the
+two sections from #31 for the Reviewer. Arm B was the definition as is.
+
+**Set V** carries one change, a booking confirmation, for the verdict-block items
+(`README.md`). The seed meant each role's right report to be mixed. It ran arm B only, because
+no older definition has a block.
+
+Three runs per arm and role, general-purpose calls, `claude-opus-5-5`, scored from the reports.
+Each block was checked with `scripts/markers.sh verdict` against a condensed copy of its report:
+the verdict line, the finding headings, and the block, copied out by hand. Afterwards every
+repository was checked. No production file had changed. The QA runs had added one test file each.
+
+```
+Security Auditor on S           A (no area VII)     B (as is)
+  Z-15 unbounded retry          3/3                 3/3
+  Z-16 tool reads any tenant    3/3                 3/3   rated Critical 6/6
+  Z-17 shared history + log     3/3                 3/3
+  decoys W-06, W-07 reported    0/6                 0/6
+Reviewer on S                   A (no #31)          B (as is)
+  the two main false claims     3/3                 3/3
+  the summary test as a finding 2/3 (1/3 in passing) 3/3
+  all five claims accounted     0/3                 3/3
+  a break named for every test  0/3                 3/3
+Verdict blocks                  consistent with their own report: 24/24, then 9/9 after the fix
+  right verdict for the seed    Reviewer 3/3 · Auditor 1/3 · Guardian 0/3 · QA 0/3 (see below)
+```
+
+What it showed:
+
+- **Area VII still isn't separated.** The older Auditor reached Z-16 and Z-17 through tenant
+  isolation and personal data (areas IV and V), and Z-15 as availability. That is three threats
+  with no planted text, and every arm-A run found them with the same paths and the same
+  mitigations. A set that measures area VII needs a threat that is only about the model: output
+  used as a command or a query, an instruction file an outsider can change, a secret placed in the
+  model's input. Isolation and spend are already covered by older areas.
+- **The Reviewer's #31 sections change completeness, not detection.** Without them, the Reviewer
+  still caught both false claims that matter and named the weak test in most runs. What it
+  didn't do was account for every claim, confirm the true ones, or name a break for every other
+  test. That account is what gate 2 and QA work from.
+- **The blocks matched their own reports every time.** No run wrote a block that contradicted its
+  verdict line, its `UNDECIDABLE` items or its finding headings.
+- **The seed's expected verdicts were wrong for three roles, and the roles were right:**
+  - the "undecidable rule" for the Guardian (is `guestRef` personal data?) was settled by the
+    README, which calls it a guest identifier. All three runs decided it was.
+  - a new store read across all tenants, meant as a scale finding for the Reviewer, is also a real
+    rule-5 case for the Guardian and a real isolation risk for the Auditor.
+  - QA found the empty proof, added the missing test and killed the mutation, which its Method
+    allows. `PROOF HOLDS` with the repair reported is the right answer, not `PROOF IS EMPTY`.
+
+  Score a verdict-block item first on the block against its own report. The expected verdict is
+  only as good as the seed.
+- **Two rules broke in arm B, and the definitions changed:**
+  - In set V, 4 of 9 runs of read-only roles ran the test suite. The tests wrote an ignored
+    `app.log` into the repository, and every one of those runs said so in its report. The
+    Guardian's definition even allowed "running tests without changing files". The Guardian, the
+    Reviewer and the Auditor now say they don't run the test suite or the code, because a run
+    writes logs, caches and reports even when no tracked file changes.
+  - The Reviewer put a question for the human (does a screen render the guest note as HTML?) in
+    its "Undecidable" section in 3 of 3 runs, but not on the verdict line, so not in the block
+    either. The team contract (§3a) now says every item in that section is on the verdict line.
+  - Regression on set V with the new definitions, 3 runs per role: none of the 9 ran anything. The
+    Reviewer put the question on the verdict line and in the block in 3 of 3 runs. All nine blocks
+    matched their reports. The Auditor gave `PASS WITH RESERVATIONS` in 3 of 3 runs, against 1 of
+    3 before. That is variation in severity, not an effect of the change.
+- **The seed carried noise of its own.** The repositories were cloned with `core.autocrlf` on, so
+  the seeded commit also rewrote six untouched files from LF to CRLF. Every run noticed and set it
+  aside, and some reported it as a low finding. Set `core.autocrlf false` before the first commit
+  of a seed, not after.
