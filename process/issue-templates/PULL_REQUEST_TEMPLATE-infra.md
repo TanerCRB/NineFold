@@ -80,6 +80,14 @@ responds, and the leak or irreproducibility surfaces weeks later.
 - [ ] Change touching the pipeline runner — no credentials within reach of the run
 - [ ] New document describing the environment — also states **what it does not prove**
 
+## Undecidable — the human's decisions
+
+<!--
+Every criterion a role returned as UNDECIDABLE (marked Judged by: human, or depending on a fact
+outside the change): the criterion, what was missing, what the run shows, and the human's
+decision at gate 2. "None" if no role returned one.
+-->
+
 ## Assumptions — the human's decisions
 
 <!--

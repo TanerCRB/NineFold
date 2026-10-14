@@ -5,6 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
+- [Unreleased (after v0.7.0)](#unreleased-after-v070)
 - [v0.6.0 → v0.7.0](#v060--v070)
 - [v0.5.0 → v0.6.0](#v050--v060)
 - [v0.4.0 → v0.5.0](#v040--v050)
@@ -14,6 +15,22 @@ changes fail silently when half-done. Upgrade one version at a time.
 
 If you are installing from scratch, follow [`process/bootstrap-guide.md`](process/bootstrap-guide.md)
 instead.
+
+---
+
+## Unreleased (after v0.7.0)
+
+### The infra PR template gets the Undecidable section
+
+**`PULL_REQUEST_TEMPLATE-infra.md` now has "Undecidable — the human's decisions", like the other
+two templates.** Step 17 of the task command asks every PR for its `UNDECIDABLE` criteria, and
+v0.7.0 had left the infra template without a place for them.
+
+1. **Process repository:** merge the section in `process/issue-templates/PULL_REQUEST_TEMPLATE-infra.md`.
+2. **Product repositories:** re-sync the PR templates in infrastructure repositories
+   (`node tools/sync-github.mjs`).
+3. **Check:** `grep -c "## Undecidable" .github/PULL_REQUEST_TEMPLATE.md` returns 1 in an
+   infrastructure repository.
 
 ---
 
