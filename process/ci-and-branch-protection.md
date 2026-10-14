@@ -269,7 +269,52 @@ is a finding for gate 2.
 
 ---
 
-## 5. Definition of Done (example)
+## 5. The exception sweep on a schedule
+
+A recorded exception (team contract, §3a) blocks again on a date — and nothing happens on that
+date unless something looks. `/task-status exceptions` looks when someone asks; a scheduled run
+looks every week whether anyone asks or not. A pattern, as its own workflow file:
+
+```yaml
+name: exception-sweep
+on:
+  schedule:
+    - cron: "0 6 * * 1"            # Mondays, 06:00 UTC
+  workflow_dispatch:
+permissions:
+  contents: read
+  pull-requests: read
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@<full commit SHA> # pin, as in the kit's own kit-ci.yml
+        with:
+          persist-credentials: false
+      - name: Expired exceptions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          bash scripts/exception-check.sh --self-test
+          status=0
+          bash scripts/exception-check.sh docs/exception-register.md || status=$?
+          for pr in $(gh pr list --repo "$GITHUB_REPOSITORY" --state open --json number --jq '.[].number'); do
+            echo "--- PR #$pr"
+            gh pr view "$pr" --repo "$GITHUB_REPOSITORY" --json body --jq .body \
+              | bash scripts/exception-check.sh - || { s=$?; [ "$s" -gt "$status" ] && status=$s; }
+          done
+          exit "$status"
+```
+
+A red run is the signal: it names each expired exception, its owner and its line. The workflow
+writes nothing — no Issue, no comment, no edited date — because what happens to an expired
+exception is the owner's decision. GitHub sends a failed scheduled run's notice to whoever last
+changed the cron line, so let that be someone who reads it. It is not a check on pull requests
+and can't be made a required one; it reports on the repository as it is, not on a change.
+
+---
+
+## 6. Definition of Done (example)
 
 | Criterion | Condition | How to check |
 |---|---|---|

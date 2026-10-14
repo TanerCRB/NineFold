@@ -235,11 +235,18 @@ checkpoints. Its patterns (test paths, assertions, skip markers, suppressions, t
 are an example for common stacks — adapt them to yours, add a self-test case for every pattern you
 add, and see `ci-and-branch-protection.md`, §4, before you put it in CI.
 
+**Exception check.** Copy `process/scripts/exception-check.sh` to `scripts/exception-check.sh`,
+and `process/registers/exception-register.md` next to your other registers, with the two example
+lines removed. The task command reads exceptions back at gate 2 and moves them to the register at
+gate 3; `/task-status exceptions` sweeps the register and the open PRs. A scheduled run is in
+`ci-and-branch-protection.md`, §5.
+
 **Check:**
 
 ```bash
 bash scripts/boundary-check.sh --self-test     # every case passes on this machine
 bash scripts/weakening-check.sh --self-test    # every case passes on this machine
+bash scripts/exception-check.sh --self-test    # every case passes on this machine
 git check-ignore -v .claude/agents/qa.md       # -> matched by .gitignore
 git status --short --untracked-files=all .claude/   # commands and settings.json show up, agents don't
 node <process-repo>/tools/sync-agents.mjs --check   # run from the process repo: "No drift."

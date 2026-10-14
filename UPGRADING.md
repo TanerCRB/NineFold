@@ -145,6 +145,33 @@ written into the criteria as an amendment and locked again. It came from issue
    hold: run P-07, P-08 and the decoy D-03 from `calibration/example-pressure-scenarios.md`,
    rewritten for your stack — the decoy is what catches a ledger padded to look diligent.
 
+### Recorded exceptions that expire
+
+**A recorded exception now has one machine-readable format, and its date is checked.** The team
+contract, §3a, fixes the line —
+`Exception <task>/<finding> — owner: @<handle> — reason: <…> — blocks again: <YYYY-MM-DD>` —
+and a new script, `process/scripts/exception-check.sh`, reads it from any text and reports each
+exception as live, expiring soon, expired or malformed (exit 1 on the last two; 27 self-test
+cases). The task command reads the PR's exceptions back before gate 2, where an expired or
+malformed line means the gate is not ready, and moves live ones into a new exception register at
+gate 3. `/task-status` shows a task's exceptions, and `/task-status exceptions` sweeps the
+register and every open PR; a scheduled workflow pattern does the same weekly. It came from issue
+[#35](https://github.com/TanerCRB/NineFold/issues/35).
+
+1. **Process repository:** merge §3a of your team contract, gates 2 and 3, step 17 and the
+   weakening-check paragraph in `process/task-command.md`, the exception rows and "The exception
+   sweep" in `process/task-status-command.md`, the new PR-template section, the register template
+   and its row in `process/registers/README.md`, and `ci-and-branch-protection.md`, §5 (the old §5
+   is now §6).
+2. **Product repositories:** copy `scripts/exception-check.sh` and the register (without the two
+   example lines), replace `<exception-register>` in both commands, re-sync the PR templates
+   (`node tools/sync-github.mjs`), and merge the command changes into `.claude/commands/` by hand.
+   Add the scheduled workflow if you want the sweep to run without anyone asking.
+3. **Check:** `bash scripts/exception-check.sh --self-test` passes. Then search your merged PRs for
+   exceptions written before this change — they are prose, so the check can't see them — and
+   rewrite each still-live one into the register in the new format, with the date the human
+   originally gave. An exception that never had a date gets one only from its owner.
+
 ---
 
 ## v0.5.0 → v0.6.0

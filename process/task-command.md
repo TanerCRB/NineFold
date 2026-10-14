@@ -507,7 +507,7 @@ shows each of those failing next to ordinary changes that must pass.
 Exit 1 = **automatic STOP**: put the findings in front of the human verbatim. A finding is a
 question, not a verdict — deleting the tests of a feature the Story removes is legitimate. The
 human either sends it back to the Developer or accepts it as a **recorded exception** (team
-contract, §3a), which goes into the PR description; the run that follows still shows the same
+contract, §3a), written in the PR description as `Exception <identifier>/weakening-<n> — …`; the run that follows still shows the same
 finding, and the exception is what lets the task go on. Exit 2 = the check couldn't run — also a
 STOP, never "clean". "weakening check: clean" goes into the Developer's cost-register notes.
 
@@ -616,6 +616,7 @@ converged.
     mutation result, its patch and base; the contrast test; the Guardian's verdict, unsmoothed;
     the invariants touched by this change; the scope left out of this PR; the `UNDECIDABLE`
     criteria and the Developer's assumptions, each waiting for the human's decision at gate 2;
+    the recorded exceptions, one line each in the format of the team contract, §3a;
     **`Verified at:
     <VERIFIED SHA>`**. The PR refers to the Issue with **`Refs #<N>`, never a closing keyword** —
     merging this PR must leave the Issue open for gate 3 (see step 21). A field you can't fill
@@ -648,6 +649,20 @@ converged.
     the next check compares against. An accepted assumption with no test behind it gets one before
     merge, like any criterion.
 
+    **Recorded exceptions are checked, not trusted.** Every finding the human lets through
+    without a fix — a `STOP` finding, a reservation, a weakening finding — is one line in the
+    PR's *Recorded exceptions* section, in the team contract's format (§3a), with the owner and
+    the date the human gave. Before the gate-2 message, read them back:
+    ```bash
+    gh pr view <M> --repo <organization>/<product-repo> --json body --jq .body \
+      | scripts/exception-check.sh -
+    ```
+    Exit 1 — an exception already expired, or a line that isn't in the format — means the gate is
+    not ready: put the lines in front of the human, never fix a date or an owner yourself. An
+    exception the check reports as expiring soon goes into the message as a question: the merge may
+    land after the date it names. Exit 2 is a STOP, never "no exceptions". A finding with no line
+    at all is not an exception; it is a finding, and it blocks.
+
 ---
 
 ## Phase `closure` — after merge
@@ -660,9 +675,12 @@ converged.
     `sdlc-flow.md`) — that is what keeps it in the one filter the human watches. On a separate
     branch from the updated `main`, commit the entries the roles proposed — checking off the task
     in the plan with a "Done <date>" row, the row in the activity/capability register, mutation
-    rows linking the patches in the merged PR — as one documentation commit (the last
-    pre-authorized commit, see "Overriding rules"). Every entry links the specific test or
-    artifact it rests on; an entry without one isn't written. On the human's request, push it and
+    rows linking the patches in the merged PR, every recorded exception from the PR copied
+    verbatim into the exception register (`<exception-register>`) — as one
+    documentation commit (the last pre-authorized commit, see "Overriding rules"). Every entry
+    links the specific test or artifact it rests on; an entry without one isn't written. An
+    exception's evidence is the PR it was accepted in. If the code PR fixed a finding that already
+    had an entry in the exception register, that entry is removed in the same commit. On the human's request, push it and
     open the PR with **`Closes #<N>`**. **The human's review and merge of that PR is gate 3** —
     reading each entry against its evidence is the decision; you never merge it, and it is the
     merge that closes the Issue.

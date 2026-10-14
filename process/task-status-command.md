@@ -1,6 +1,6 @@
 ---
 description: <product-repo> — reports where a task stands: gate, evidence, CI, blockers. Read-only, touches nothing
-argument-hint: <Issue link or #N or a plan task identifier>
+argument-hint: <Issue link or #N or a plan task identifier> | exceptions
 allowed-tools: Read, Grep, Glob, Bash
 ---
 
@@ -15,7 +15,8 @@ worktree, no calling roles, no writes through the issue-tracker tool. You work i
 on the main branch — it's a reference point, not a place to work.
 
 Argument `$1` accepts an Issue URL, `#N`, or a plan task identifier. With a plan identifier, start
-from the plan register and derive the Issue number from it.
+from the plan register and derive the Issue number from it. With `exceptions` there is no task:
+run the exception sweep instead (see "The exception sweep" below).
 
 ## What to gather
 
@@ -41,7 +42,14 @@ From the repository (read-only):
 - the scope lock, once the task is past gate 1: recompute the scope fingerprint from the Issue
   body exactly as `task-command.md` does ("Scope lock") and compare it with the fingerprint in the
   latest "Scope for gate 1" or "Scope amended at gate 2" comment. Reading the Issue and hashing
-  locally is still read-only.
+  locally is still read-only;
+- the recorded exceptions — the PR description, and the task's lines in the exception register —
+  read through the exception check, which only reads:
+  ```bash
+  gh pr view <M> --repo <organization>/<product-repo> --json body --jq .body \
+    | scripts/exception-check.sh -
+  grep -E '^[-*+ ]*Exception <identifier>/' <exception-register> | scripts/exception-check.sh -
+  ```
 
 ## How to read the state
 
@@ -63,6 +71,9 @@ Determine **one** position in the process, from these signals:
 | plan checked off with no link to a test/artifact | status raised without evidence — a finding |
 | past gate 1, the scope fingerprint differs from the latest recorded one | **scope changed after approval** — a finding; the task goes back to gate 1, whatever phase it is in |
 | past gate 1, no fingerprint comment at all | scope never locked — a finding; gate 1 approved something nobody can compare against |
+| an exception the check reports `EXPIRED` | **the finding blocks again** — whatever phase the task is in, merged or not; the owner renews it or it becomes a Story |
+| an exception the check reports `MALFORMED` | not an exception — the finding it meant to cover was never let through |
+| an exception in the merged PR, but not in the exception register after gate 3 | an exception nobody will check again — a finding |
 
 Before calling red CI a defect, rule out environmental causes: missing checks from a merge
 conflict, a container image pull failure, a timeout on the hosting platform's endpoints, a failure
@@ -81,6 +92,7 @@ Position: <phase / gate>          Waiting on: <human / CI / author / nobody>
 Evidence
 - Definition of done: <condition> — <satisfied by what / missing>
 - Scope lock: <holds / broken — the Issue's edit history shows what changed / not locked yet — before gate 1>
+- Exceptions: <each one: id, owner, live until / expiring <date> / EXPIRED since <date> — blocks again / malformed — or "none">
 - Mutations: <list, result> — <none, if there aren't any>
 - CI: <list of red checks or "green">
 
@@ -93,3 +105,41 @@ Next action: <one sentence, who and what>
 Always give a recommendation — one action with a reason, not a list of options. If the task is
 sitting at a human gate, say explicitly **whose decision** it needs and what question has to be
 resolved. The full process is run by `task-command.md`.
+
+## The exception sweep
+
+`/task-status exceptions` answers a question no single task asks: **which findings that a human
+let through are blocking again today?** An exception outlives its PR — the task can be merged and
+closed for months when its date passes — so the sweep reads every place an exception can live:
+
+```bash
+scripts/exception-check.sh <exception-register>
+for pr in $(gh pr list --repo <organization>/<product-repo> --state open --json number --jq '.[].number'); do
+  gh pr view "$pr" --repo <organization>/<product-repo> --json body --jq .body \
+    | scripts/exception-check.sh - | sed "s|^|#$pr |"
+done
+```
+
+It still only reads. Response:
+
+```
+Exceptions as of <date>             register: <n> • open PRs: <n>
+
+Blocking again
+- <id> — owner <@handle> — expired <date> (<n> days ago) — <register line / PR #M>
+
+Expiring within 14 days
+- <id> — owner <@handle> — holds through <date>
+
+Malformed
+- <file:line or PR #M> — <what is missing>
+
+Next action: <one sentence — usually: the owner of the oldest expired exception renews it or files a Story>
+```
+
+An empty sweep is reported as such, with the counts — "nothing expired" is a result only when you
+can show what was read. Exit 2 from any run is a failed sweep, not a clean one: say which source
+couldn't be read.
+
+The sweep can also run on a schedule, so nobody has to remember it — see
+`ci-and-branch-protection.md`, §5.
