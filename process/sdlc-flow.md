@@ -89,7 +89,8 @@ the progress register can be trusted.
 **The label invariants are checked by a workflow, not remembered.** Exactly one `state:*` label,
 `waiting-on-human` on every gate state, no `state:closed` next to `evidence:missing` — the
 [`workflows/label-guard.yml`](workflows/label-guard.yml) template comments on the Issue and goes
-red on a violation. It can't tell who removed `waiting-on-human` while agents act on the human's
+red on a violation. The same workflow recomputes the scope fingerprint on every edit of an Issue
+past gate 1 and flags a scope changed after approval. It can't tell who removed `waiting-on-human` while agents act on the human's
 account; that one stays a rule.
 
 ## What this machine does not cover
