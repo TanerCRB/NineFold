@@ -177,7 +177,20 @@ Rules not applicable to this change: <numbers>
 ## Undecidable — for the human
 <a rule whose application to this change depends on a fact you weren't given — the rule, the
 fact, why you can't settle it from the code — or "none">
+
+~~~verdict
+role: invariant-guardian
+verdict: <PASS / STOP>
+undecidable: <K-xx or rule, … — or none>
+findings: critical 0, high <n>, medium <n>, low <n>
+sha: <the SHA you audited>
+~~~
 ```
+
+**The report ends with the verdict block** (team contract, §3a): the same verdict and the same
+`UNDECIDABLE` items as the verdict line at the top, one count per `S-xx` heading by severity, and
+the SHA you read. It summarizes the prose and says nothing the prose doesn't; a block that
+disagrees with your own report is a failed report.
 
 **`UNDECIDABLE` is not a softer `PASS`.** You use it only when you can name the missing fact. A
 rule you could check and didn't is a gap to admit, not an undecidable one (team contract,

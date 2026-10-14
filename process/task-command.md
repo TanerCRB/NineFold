@@ -227,6 +227,55 @@ worktree in step 25: whatever must outlive the task goes into the Issue, the PR 
 lines and the next step it names, in a task worktree only. Without the hook, read the journal
 yourself first — step 0 says how.
 
+## Phase markers and verdict blocks
+
+The journal is your memory; the Issue is everyone's. **Every phase event you record on the Issue
+carries one hidden marker**, as the comment's last line, so "has this already happened?" is
+answered by a script, not by reading prose:
+
+```
+<!-- ninefold:event=<name> sha=<HEAD or the SHA the event is about> [<key>=<value> …] -->
+```
+
+| Event | Posted with | Keys |
+|---|---|---|
+| `task-started` | the pin comment, step 0 | — |
+| `task-stopped` | the "Task stopped — <reason>" comment | — |
+| `scope-locked` | the fingerprint comment at gate 1, and the amendment at gate 2 | `gate=1` or `gate=2`, `hash=<fingerprint>` |
+| `gate-reached` | a short "Gate <n> reached — waiting on the human" comment when you stop at a gate | `gate=1`, `2` or `3` |
+| `verified` | a "Verified at <SHA>" comment after the QA checkpoint, step 11a | — |
+| `verdict` | a one-line "<role>: <verdict> at <SHA>" comment after each evaluating role | `role`, `verdict`, `undecidable`, `findings` |
+| `reverify` | a "Re-verification, round <n>" comment when a fix round starts | `round=<n>` |
+
+Values carry no spaces: `verdict=pass-with-reservations`, `undecidable=K-02,K-04` or `none`,
+`findings=<critical>,<high>,<medium>,<low>`.
+
+**Read the events before you repeat a step.** On a resumed task, and before posting any event:
+
+```bash
+gh issue view <N> --repo <organization>/<product-repo> --json comments --jq '.comments[].body' \
+  | scripts/markers.sh events -
+```
+
+An event already listed for the same SHA and keys means the step happened: continue after it,
+don't post it again, and don't rerun a role whose `verdict` for that SHA is already there. Exit 1
+— a malformed marker, an unknown event — goes to the human; you never edit or delete a comment to
+fix it. Markers inside quoted lines and code blocks don't count, so quoting a comment is safe.
+
+**Every evaluating role's report ends with a verdict block** (team contract, §3a). When the role
+returns, check the saved report before anything uses it:
+
+```bash
+scripts/markers.sh verdict .task/handoff/<step>-<role>-<n>.md
+```
+
+It prints the role, verdict, `UNDECIDABLE` items, finding counts and SHA, and those are what the
+`verdict` event carries. Exit 1 — no block, a missing field, a block that contradicts the report's
+own prose, a verdict the contract doesn't allow for those findings — means the report is not
+usable: send it back to the role once with the script's message, and if the second report fails
+too, stop and tell the human. A role whose block names a SHA other than the one it was given read
+the wrong code. You never fix the block or the prose yourself.
+
 ---
 
 ## Step 0 — Recon
@@ -284,7 +333,8 @@ task journal in the new worktree now (see "Task journal and hand-offs").
 ```bash
 ROLES=$(cat .claude/agents/*.md .claude/commands/task.md | git hash-object --stdin)
 gh issue comment <N> --repo <organization>/<product-repo> --body \
-  "Task started — session: <session id>, worktree: <path>, branch: <branch>, roles: $ROLES"
+  "Task started — session: <session id>, worktree: <path>, branch: <branch>, roles: $ROLES
+<!-- ninefold:event=task-started sha=$(git rev-parse HEAD) -->"
 ```
 
 The fingerprint covers the synchronized roles and this command; every cost-register row carries
@@ -392,7 +442,8 @@ verbatim, between two marker lines, so the criteria live in the Issue and not on
 SCOPE=$(gh issue view <N> --repo <organization>/<product-repo> --json body --jq .body \
   | scripts/scope-check.sh hash -)
 gh issue comment <N> --repo <organization>/<product-repo> --body \
-  "Scope for gate 1 — fingerprint: $SCOPE"
+  "Scope for gate 1 — fingerprint: $SCOPE
+<!-- ninefold:event=scope-locked sha=$(git rev-parse HEAD) gate=1 hash=$SCOPE -->"
 ```
 
 Exit 1 means a locked part or a marker is missing, and the message names it: the Issue can't be
@@ -749,7 +800,8 @@ converged.
     the task goes back to `code` (a return on PR feedback, not a fix round). Either way you
     append an amendment line under the criterion it concerns, inside the criteria markers —
     `Amended at gate 2, <date>, A-02: <the behavior now required>` — and post a new fingerprint as
-    "Scope amended at gate 2 — A-02 — fingerprint: <hash>". The human's answer is the approval;
+    "Scope amended at gate 2 — A-02 — fingerprint: <hash>", with the `scope-locked` marker
+    (`gate=2`) as its last line. The human's answer is the approval;
     writing it down is the only edit you make to the criteria, and the new fingerprint is what
     the next check compares against. An accepted assumption with no test behind it gets one before
     merge, like any criterion.

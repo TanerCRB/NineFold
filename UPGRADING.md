@@ -106,6 +106,45 @@ The PR templates now give those links one line each (`K-01 — test: …`,
    Developer's and QA's reports. QA's definition changed only in its report format, not in its
    method, so its calibration still holds.
 
+### Verdict blocks and phase markers
+
+**A script reads the verdicts and the task's progress; the prose stays the report.** Every
+evaluating role now ends its report with a fenced `verdict` block, defined once in §3a of the team
+contract. It carries the role, the verdict, the `UNDECIDABLE` items, the finding counts by
+severity and the SHA the role read. The task command puts a hidden
+`<!-- ninefold:event=… -->` marker on the Issue for every phase event: task started or stopped,
+scope locked, gate reached, verified, a role's verdict, a re-verification. It reads them back
+before repeating a step. A new script, `process/scripts/markers.sh` (34 self-test cases, run in
+kit-ci), has two modes:
+- `verdict` checks a block against its own report: the verdict line, the `UNDECIDABLE` items and
+  the finding headings by severity. It also checks the block against §3a, e.g. a medium finding
+  with `PASS`.
+- `events` lists the markers and skips quoted lines and code blocks.
+
+`/task-status` reads the markers first and says when it falls back to prose. It came from issue
+[#48](https://github.com/TanerCRB/NineFold/issues/48).
+
+1. **Process repository:** merge the script, §3a of your team contract, the report formats of
+   `qa.md`, `invariant-guardian.md`, `reviewer.md` and `security-auditor.md`, "Phase markers and
+   verdict blocks" and the marked comments in step 0, "Scope lock" and step 19 of
+   `process/task-command.md`, "How to read the state" and the response format in
+   `process/task-status-command.md`, "Verdict-block items" in `calibration/README.md`, and the
+   note in `process/bootstrap-guide.md`. If your roles' verdicts or names differ, change the lists
+   in the script and its self-test.
+2. **Product repositories:**
+   - copy the script and make it executable:
+     ```bash
+     cp <process-repo>/process/scripts/markers.sh scripts/
+     git add scripts/markers.sh && git update-index --chmod=+x scripts/markers.sh
+     ```
+   - re-sync the roles (`node tools/sync-agents.mjs`), and merge the command changes into
+     `.claude/commands/task.md` and `.claude/commands/task-status.md` by hand.
+3. **Check:** `bash scripts/markers.sh --self-test` passes. Tasks already running have no markers,
+   so `/task-status` reports them as read from prose until their next event. Don't backfill
+   markers onto old comments. All four evaluating roles changed, so their calibration no longer
+   holds. Add the four "Verdict-block items" to their sets, and run them together with the next
+   calibration round (issue [#54](https://github.com/TanerCRB/NineFold/issues/54)).
+
 ---
 
 ## v0.6.0 → v0.7.0
