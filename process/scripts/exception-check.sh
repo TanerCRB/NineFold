@@ -87,8 +87,9 @@ FNR == 1 { incomment = 0 }
   else                   { print "LIVE       " id "  " where "  holds through " date ", owner " owner; live++ }
 }
 END {
-  printf "Exceptions as of %s: %d live, %d expiring within %d days, %d expired, %d malformed.\n", \
-         today, live, soon, warn, expired, bad
+  n = expired + bad
+  printf "exception-check: %s — as of %s: %d live, %d expiring within %d days, %d expired, %d malformed\n", \
+         (n ? n " finding(s)" : "clean"), today, live, soon, warn, expired, bad
   exit (expired + bad > 0) ? 1 : 0
 }
 AWK
@@ -202,6 +203,18 @@ self_test() {
   else
     echo "FAIL a file and standard input are read together"; failures=$((failures + 1))
   fi
+
+  # The exit contract (process/ci-and-branch-protection.md, "Exit contract"): a check's last line
+  # on stdout is its result.
+  local last
+  last="$(bash "$self" --today 2026-10-14 "$root/a.md" 2>/dev/null | tail -n 1)"
+  total=$((total + 1))
+  [[ "$last" == "exception-check: clean — as of 2026-10-14: 1 live,"* ]] && echo "ok   the last line states the result (clean)" \
+    || { echo "FAIL the last line states the result (clean): '$last'"; failures=$((failures + 1)); }
+  last="$(printf "${E}2026-01-01\n" | bash "$self" --today 2026-10-14 - 2>/dev/null | tail -n 1)"
+  total=$((total + 1))
+  [[ "$last" == "exception-check: 1 finding(s) — as of 2026-10-14:"* ]] && echo "ok   the last line states the result (finding)" \
+    || { echo "FAIL the last line states the result (finding): '$last'"; failures=$((failures + 1)); }
 
   rm -rf "$root"
   echo "Self-test: $total cases ran, $((total - failures)) passed, $failures failed."

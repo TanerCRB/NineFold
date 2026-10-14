@@ -101,10 +101,10 @@ verify() {
   rm -f "$changed"
 
   if [ "$violations" -gt 0 ]; then
-    echo "boundary-check: $violations violation(s) — automatic STOP" >&2
+    echo "boundary-check: $violations finding(s) — automatic STOP"
     exit 1
   fi
-  echo "boundary check: clean"
+  echo "boundary-check: clean"
 }
 
 # ---------------------------------------------------------------------------------- self-test
@@ -202,6 +202,22 @@ self_test() {
     echo "FAIL mutation against a checkpoint restores the developer's code exactly (F01)"
     failures=$((failures + 1))
   fi
+
+  # The exit contract (process/ci-and-branch-protection.md, "Exit contract"): a check's last line
+  # on stdout is its result.
+  local last
+  for name in clean finding; do
+    total=$((total + 1))
+    fresh
+    bash "$self" snapshot "$root/state" 2>/dev/null
+    [ "$name" = finding ] && printf 'x
+' >> src/guard.txt
+    last="$(bash "$self" verify "$root/state" tests/ 2>/dev/null | tail -n 1)"
+    case "$name:$last" in
+      "clean:boundary-check: clean"|"finding:boundary-check: 1 finding(s) — automatic STOP") echo "ok   the last line states the result ($name)" ;;
+      *) echo "FAIL the last line states the result ($name): '$last'"; failures=$((failures + 1)) ;;
+    esac
+  done
 
   cd / && rm -rf "$root"
   echo "Self-test: $total cases ran, $((total - failures)) passed, $failures failed."

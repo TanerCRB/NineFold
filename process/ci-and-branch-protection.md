@@ -372,6 +372,41 @@ a PR whose description has no matching exception is a finding for gate 2.
 
 ---
 
+## 8. Exit contract
+
+Every check the kit ships means the same thing by its exit code and its last line. A caller,
+whether the task command, a CI step or a human, can then read any of them without knowing that
+tool. This covers `boundary-check.sh`, `weakening-check.sh`, `exception-check.sh`,
+`scope-check.sh`, `evidence-chain.sh` and `markers.sh` in `process/scripts/`, the
+`task-journal-context.sh` hook, and `sync-agents.mjs`, `sync-github.mjs` and `check-links.mjs` in
+`tools/`.
+
+| Exit | Meaning | Last line on stdout |
+|---|---|---|
+| `0` | clean: the check holds, or the run did what it was asked | `<tool>: clean — <what was checked>` |
+| `1` | a finding: something the check exists to catch, or a failed `--self-test` | `<tool>: <n> finding(s) — <what>` |
+| `2` | the check itself failed: a bad argument, an input it can't read, a broken environment | none; stderr says `<tool>: …` and why |
+
+Three more rules:
+- **Exit 2 is never read as clean.** A check that couldn't run has proven nothing, and the caller
+  stops as it would on a finding.
+- **A self-test ends with `Self-test: <n> cases ran, <p> passed, <f> failed.`**, and each
+  self-test has a case that checks its own last line.
+- **Query modes print only data.** These modes print data for another command: `scope-check.sh`
+  `text`, `hash` and `locked`, `markers.sh` `verdict` and `events`, `sync-github.mjs --labels`, and
+  the SessionStart hook. Their stdout carries the data and nothing else, so `$(…)` captures it
+  clean. A finding goes to stderr as `<tool>: …`, with exit 1.
+
+A detail line may come before the result line: `BROKEN …`, `WEAKENING: …`, `EXPIRED …`. Read
+the result from the exit code and the last line, not from the details. Git hooks such as
+`pre-push` follow git's convention instead: non-zero refuses the push, with a message for the
+person pushing.
+
+When you add a check of your own to a product repository, give it the same contract and a
+self-test case for its last line.
+
+---
+
 ## Sources
 
 - [Troubleshooting required status checks — GitHub Docs](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks)

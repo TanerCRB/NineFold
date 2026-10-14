@@ -68,7 +68,7 @@ const TARGET_SUBDIR = [".claude", "agents"];
 
 // A validation failure is THROWN, not turned into process.exit on the spot, so that the
 // self-test can run the very same code path against a bad fixture and observe the refusal. The
-// CLI entry point at the bottom turns it back into the old "ERROR: ..." line and exit 2.
+// CLI entry point at the bottom turns it into a "sync-agents: failed — ..." line and exit 2.
 class ToolError extends Error {}
 
 function fail(message) {
@@ -247,8 +247,12 @@ function runSync({ targets, root, targetSubdir, checkOnly, out, revision, isIgno
     out.error(`Skipped ${skipped} of ${targets.length} targets — not checked. Fix the TARGETS paths or remove the entries.`);
   }
 
+  // The exit contract (process/ci-and-branch-protection.md, "Exit contract"): the last line is the result.
   if (checkOnly) {
     out.log(drift === 0 ? (skipped === 0 ? "No drift." : "No drift in the targets that were checked.") : `Drifted: ${drift}.`);
+    out.log(drift + skipped === 0
+      ? `sync-agents: clean — no drift in ${targets.length} target(s)`
+      : `sync-agents: ${drift + skipped} finding(s) — ${drift} drifted, ${skipped} target(s) not checked`);
     return drift === 0 && skipped === 0 ? 0 : 1;
   }
 
@@ -257,6 +261,9 @@ function runSync({ targets, root, targetSubdir, checkOnly, out, revision, isIgno
       ? `No changes. Definitions: ${total}.`
       : `Wrote ${copied} of ${total} definitions.`,
   );
+  out.log(skipped === 0
+    ? `sync-agents: clean — ${copied} of ${total} definitions written`
+    : `sync-agents: ${skipped} finding(s) — target(s) not reached`);
   return skipped === 0 ? 0 : 1;
 }
 
@@ -373,6 +380,19 @@ const SELF_TEST_CASES = [
       }),
   },
   {
+    name: "the last line states the result (exit contract)",
+    run: () =>
+      withFixture(
+        { sources: { "role-a.md": definition("role-a") }, target: { "role-a.md": definition("role-a") } },
+        (f) => {
+          const r = invoke({ ...f, checkOnly: true });
+          return r.lines.at(-1) === "sync-agents: clean — no drift in 1 target(s)"
+            ? null
+            : `expected the result as the last line, got '${r.lines.at(-1)}'`;
+        },
+      ),
+  },
+  {
     name: "identical target content is not drift",
     run: () =>
       withFixture(
@@ -482,7 +502,7 @@ if (SELF_TEST) {
   const failures = selfTest();
   if (failures.length > 0) {
     reportSelfTest(failures, console.error);
-    console.error("ERROR: the tool failed its own self-test — refusing to touch the targets.");
+    console.error("sync-agents: failed — the tool failed its own self-test; refusing to touch the targets.");
     process.exit(2);
   }
 }
@@ -501,6 +521,6 @@ try {
   );
 } catch (error) {
   if (!(error instanceof ToolError)) throw error;
-  console.error(`ERROR: ${error.message}`);
+  console.error(`sync-agents: failed — ${error.message}`);
   process.exit(2);
 }

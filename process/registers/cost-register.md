@@ -20,7 +20,7 @@
   "seconds": 512,
   "fixRound": 0,
   "reworkCause": null,
-  "notes": "boundary check: clean"
+  "notes": "boundary-check: clean"
 }
 ```
 

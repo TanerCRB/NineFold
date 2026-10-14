@@ -592,8 +592,8 @@ command can read the Issue, the PR, CI and the registers. Then drive **one** sma
 
 Watch, and note in the run log, what the kit can't check for you:
 
-- the write-boundary check around the Architect and QA (and around every role, if roles are called through a general-purpose mechanism) leaves a "boundary check: clean" note;
-- the test-weakening check on the developer and QA checkpoints leaves a "weakening check: clean" note, or its findings went to you before QA started;
+- the write-boundary check around the Architect and QA (and around every role, if roles are called through a general-purpose mechanism) leaves a "boundary-check: clean" note;
+- the test-weakening check on the developer and QA checkpoints leaves a "weakening-check: clean" note, or its findings went to you before QA started;
 - a cost-register row lands as its own commit on the task branch after every role call;
 - the PR description carries the mutation patch and the Guardian's verdict unsmoothed;
 - at gate 3 the agent opens a documentation PR with the register entries (`Closes #<N>`) — you review them against their evidence and merge; the Issue stays open until then.

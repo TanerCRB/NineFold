@@ -186,11 +186,11 @@ check() {
       printf 'WEAKENING: %-18s %s  %s\n' "$cat" "$where" "$text" >&2
     done < "$findings"
     rm -f "$findings"
-    echo "weakening-check: $count finding(s) in $base...$head — automatic STOP until the human decides" >&2
+    echo "weakening-check: $count finding(s) — $base...$head, automatic STOP until the human decides"
     exit 1
   fi
   rm -f "$findings"
-  echo "weakening check: clean ($base...$head)"
+  echo "weakening-check: clean — $base...$head"
 }
 
 # ---------------------------------------------------------------------------------- self-test
@@ -274,6 +274,21 @@ self_test() {
   else
     echo "FAIL no arguments fails the check"; failures=$((failures + 1))
   fi
+
+  # The exit contract (process/ci-and-branch-protection.md, "Exit contract"): a check's last line
+  # on stdout is its result.
+  local name last
+  for name in clean finding; do
+    total=$((total + 1))
+    fresh
+    [ "$name" = finding ] && git rm -q tests/price.test.js
+    git commit -qm change --allow-empty
+    last="$(bash "$self" "$BASE" HEAD 2>/dev/null | tail -n 1)"
+    case "$name:$last" in
+      "clean:weakening-check: clean — "*|"finding:weakening-check: 1 finding(s) — "*) echo "ok   the last line states the result ($name)" ;;
+      *) echo "FAIL the last line states the result ($name): '$last'"; failures=$((failures + 1)) ;;
+    esac
+  done
 
   cd / && rm -rf "$root"
   echo "Self-test: $total cases ran, $((total - failures)) passed, $failures failed."
