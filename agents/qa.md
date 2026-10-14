@@ -172,9 +172,9 @@ Tests: `<before> → <after>` • tree state after mutations: <description>
 | <name> | K-02 | contrast |
 
 ## Mutations
-| Removed mechanism | Result |
-|---|---|
-| <what was removed — specifically> | <how many tests failed and what it means; or: SURVIVED — why, and how the test was fixed> |
+| Criterion | Removed mechanism | Result |
+|---|---|---|
+| K-02 | <what was removed — specifically> | <killed — how many tests failed and what it means; or: SURVIVED — why, and how the test was fixed> |
 
 ### Mutation patches
 One fenced `diff` block per mutation — `git diff HEAD` against the checkpoint, headed `Base: <SHA>`.

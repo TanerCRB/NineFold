@@ -63,6 +63,49 @@ issue [#50](https://github.com/TanerCRB/NineFold/issues/50).
    it on the next label change. Post its fingerprint only after the human confirms the current
    scope is the approved one. Then run the test in `bootstrap-guide.md`, section 6.
 
+### The evidence-chain check
+
+**Gate 2 no longer trusts that every criterion has its proof.** A new script,
+`process/scripts/evidence-chain.sh` (34 self-test cases, run in kit-ci), has two modes:
+- `lint` reads the criteria in the Issue before gate 1. Every criterion needs an ID, a claim, a
+  contrast, a mutation and *Judged by*; IDs must be unique, and more than seven criteria means
+  split the Story.
+- `chain` reads the Issue, the PR description and the test files before gate 2. Every criterion
+  judged by a test must name a test that exists, with a mutation that killed it. Every criterion
+  judged by a human must have a decision. Every link must name a criterion the Issue has.
+
+The PR templates now give those links one line each (`K-01 — test: …`,
+`K-01 — removed: … — result: …`, `K-02 — decision: …`), and QA's Mutations table gains a
+*Criterion* column so the task command can write them. It came from issue
+[#49](https://github.com/TanerCRB/NineFold/issues/49).
+
+1. **Process repository:** merge the script, steps 5, 17 and 19 in `process/task-command.md`, the
+   line formats in the application and frontend PR templates, the *Criterion* column in
+   `agents/qa.md`, the notes in `process/bootstrap-guide.md`, and §7 in
+   `process/ci-and-branch-protection.md`. Set `TEST_PATH_RE` to your test paths, and change the
+   three section headings in the script if your PR templates name them differently.
+2. **Product repositories:**
+   - copy the script and make it executable:
+     ```bash
+     cp <process-repo>/process/scripts/evidence-chain.sh scripts/
+     git add scripts/evidence-chain.sh && git update-index --chmod=+x scripts/evidence-chain.sh
+     ```
+   - re-sync the roles and the PR templates (`node tools/sync-agents.mjs`,
+     `node tools/sync-github.mjs`), and merge the three steps into `.claude/commands/task.md` by
+     hand;
+   - add the §7 workflow if you want the chain checked on every PR edit. Don't make it a required
+     check.
+3. **Check:** `bash scripts/evidence-chain.sh --self-test` passes. Lint one Issue that is already
+   past gate 1:
+   ```bash
+   gh issue view <N> --json body --jq .body | bash scripts/evidence-chain.sh lint -
+   ```
+   A finding there is about criteria written before this change: fix it with the human at the
+   next gate, not by editing the locked criteria yourself. Open PRs written before this change
+   have no link lines, so `chain` reports every criterion until the lines are added from the
+   Developer's and QA's reports. QA's definition changed only in its report format, not in its
+   method, so its calibration still holds.
+
 ---
 
 ## v0.6.0 → v0.7.0
