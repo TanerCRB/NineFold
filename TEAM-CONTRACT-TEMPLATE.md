@@ -176,7 +176,9 @@ Exception <task>/<finding> — owner: @<handle> — reason: <one sentence> — b
 (`B1-07/R-02`, `B1-07/weakening-1`). The owner is the person who answers for the risk until the
 date — never a role. The exception holds through the date it names; from the next day the finding
 blocks again, as if the exception had never been written. A line that misses any field is not an
-exception: the finding still blocks.
+exception: the finding still blocks. **One finding takes no exception:** a `SURVIVED` mutation on a
+change in the `schema` or `money` risk class (the architecture-sensitive paths register). It is
+fixed before the merge.
 
 It lives in two places. At gate 2 it goes into the PR description, section *Recorded
 exceptions*; at gate 3 every exception still live moves into the exception register, because it

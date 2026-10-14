@@ -377,7 +377,7 @@ a PR whose description has no matching exception is a finding for gate 2.
 Every check the kit ships means the same thing by its exit code and its last line. A caller,
 whether the task command, a CI step or a human, can then read any of them without knowing that
 tool. This covers `boundary-check.sh`, `weakening-check.sh`, `exception-check.sh`,
-`scope-check.sh`, `evidence-chain.sh` and `markers.sh` in `process/scripts/`, the
+`scope-check.sh`, `evidence-chain.sh`, `markers.sh` and `risk-check.sh` in `process/scripts/`, the
 `task-journal-context.sh` hook, and `sync-agents.mjs`, `sync-github.mjs` and `check-links.mjs` in
 `tools/`.
 
@@ -393,7 +393,8 @@ Three more rules:
 - **A self-test ends with `Self-test: <n> cases ran, <p> passed, <f> failed.`**, and each
   self-test has a case that checks its own last line.
 - **Query modes print only data.** These modes print data for another command: `scope-check.sh`
-  `text`, `hash` and `locked`, `markers.sh` `verdict` and `events`, `sync-github.mjs --labels`, and
+  `text`, `hash` and `locked`, `markers.sh` `verdict` and `events`, `risk-check.sh` `classes` and
+  `explain`, `sync-github.mjs --labels`, and
   the SessionStart hook. Their stdout carries the data and nothing else, so `$(…)` captures it
   clean. A finding goes to stderr as `<tool>: …`, with exit 1.
 

@@ -14,7 +14,7 @@ direction, not a capability, and a status is raised by evidence, not by convicti
 | [`plan.md`](plan.md) | Tasks with a *Done when* condition and an explicit *Out of scope* | Human, at gate 3 (roles only propose entries) | Product Owner, Analyst, task command |
 | [`capability-register.md`](capability-register.md) | What the system can do and what proves it, plus the mutation table | Human, at gate 3 | Analyst, Architect, Developer, QA, Guardian |
 | [`decision-template.md`](decision-template.md) | One architectural decision; copy per decision into your decision directory | Architect drafts, human accepts | Architect, Product Owner, Reviewer |
-| [`architecture-sensitive-paths.md`](architecture-sensitive-paths.md) | Which directories are governed by which decisions | Architect proposes, human merges | Task command (fast lane), Architect |
+| [`architecture-sensitive-paths.md`](architecture-sensitive-paths.md) | Which directories are governed by which decisions, and which risk classes they carry | Architect proposes, human merges | Task command (fast lane, Auditor trigger, gate 2) through `scripts/risk-check.sh`, Architect |
 | [`cost-register.md`](cost-register.md) | Format of the per-call cost rows (one file per row) | Task command, as a bookkeeping commit | Whoever tunes the process |
 | [`exception-register.md`](exception-register.md) | Findings let through gate 2 on purpose, each with an owner and a date after which it blocks again | Human, at gate 3 (the task command moves live exceptions from the PR) | `/task-status`, `scripts/exception-check.sh` |
 | [`gap-register.md`](gap-register.md) | Why this repository looks the way it does because the other side hasn't delivered yet | Developer proposes, human merges | Everyone reading the code |
