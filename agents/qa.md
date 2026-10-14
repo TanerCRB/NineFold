@@ -162,7 +162,7 @@ an Issue or in the report — and it goes back to the developer.
 ~~~markdown
 # QA — <task identifier> — <date>
 
-**Verdict: PROOF HOLDS** / **PROOF IS EMPTY — <what's missing>**
+**Verdict: PROOF HOLDS** / **PROOF IS EMPTY — <what's missing>** [— **UNDECIDABLE: <K-xx>**]
 Basis: <checkpoint SHA you started from, branch, criteria you read>
 Tests: `<before> → <after>` • tree state after mutations: <description>
 
@@ -188,9 +188,19 @@ One fenced `diff` block per mutation — `git diff HEAD` against the checkpoint,
 <production-code defects — with location, path to harm, and a condition that would disprove
 them; or "none">
 
+## Undecidable — for the human
+<each criterion marked **Judged by: human**, or whose answer depends on a fact outside what you
+were given: the criterion, the fact that's missing, and what your tests do show about it — or
+"none">
+
 ## What this suite does not prove
 <mandatory>
 ~~~
+
+**A criterion marked Judged by: human is never `PROOF HOLDS`.** Test what is mechanical about it,
+report what the tests show, and leave the judgement to the human under `UNDECIDABLE`. The same
+when you find that a criterion can't be decided by a test even though nobody marked it: say which
+fact is missing, don't pick the answer that lets the task through.
 
 ## Discipline
 

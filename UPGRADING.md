@@ -92,6 +92,30 @@ never gets the producer's reasoning. It came from issue
    your Method 1a set as described at the end of Method 2; the empty proofs must be listed, the
    solid ones and the decoys must not.
 
+### Edges, prohibitions and the `UNDECIDABLE` verdict
+
+**The Analyst sweeps the data's edges and writes down what must not happen; the evaluating roles
+can say "I can't decide this" without guessing.** Three steps join the Analyst's method: 3a goes
+through a closed list of edge categories (nothing, one, the limit, zero, twins, order, calendar,
+text), each ending in a criterion, an *Out of scope* line, a gate-1 question or "not applicable";
+3b turns unstated prohibitions into criteria of their own, each with a contrast; 3c marks a
+criterion **Judged by: human** when no test can decide it. A new verdict, `UNDECIDABLE`, is given
+per criterion next to a report's main verdict, reaches gate 2 only as the human's decision, and
+never counts as `PASS`. It came from issue [#30](https://github.com/TanerCRB/NineFold/issues/30).
+
+1. **Process repository:** merge the role changes (`analyst.md`, `product-owner.md`, `qa.md`,
+   `invariant-guardian.md`, `reviewer.md`, `security-auditor.md`), the verdict row in §3a of your
+   team contract, gates 1 and 2 and step 17 in `process/task-command.md`, the new PR-template
+   section, and "Undecidable items" in `calibration/README.md`. Replace the edge categories in
+   step 3a with the ones your domain actually has.
+2. **Product repositories:** re-sync the roles and the PR templates
+   (`node tools/sync-github.mjs`), and merge the gate changes into `.claude/commands/task.md` by
+   hand.
+3. **Check:** all four evaluating roles changed, so their calibration no longer holds. Add the
+   three "Undecidable items" to each role's set and run them; the decoy matters as much as the
+   other two. On the next real task, the Analyst's output must carry an "Edge sweep" table with
+   every category accounted for.
+
 ---
 
 ## v0.5.0 → v0.6.0

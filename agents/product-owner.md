@@ -85,6 +85,11 @@ criterion — an endpoint returning **everything** is also "accessible". The sec
 the one that fails when the boundary doesn't work: *"…and a resource outside the caller's scope
 is indistinguishable from one that does not exist"*.
 
+**Say what must stay as it is**, when you know. A change that must not touch other tenants,
+must not send anything during a migration, or must leave existing records untouched carries
+that in *Done when* — a prohibition you know of and don't write down is one the Analyst has to
+guess.
+
 The test name is in the language established for the technical surface (see the team contract,
 "How to write" section). If you cannot supply it, describe the behavior precisely enough that
 the Analyst can derive it from it — and say explicitly that you are leaving it to them.

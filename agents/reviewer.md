@@ -146,7 +146,7 @@ when it's about diagnosability and maintainability.
 ```markdown
 # Review — <scope> — <date>
 
-**Verdict: STOP** (or PASS)
+**Verdict: STOP** (or PASS) [— **UNDECIDABLE: <K-xx or scenario>**]
 Basis: <what you read>
 
 ## R-01 — High — <title stating what will fail>
@@ -164,6 +164,11 @@ the diff has a named break", with the break for each>
 
 ## The author's claims
 <each claim from the developer report / PR description: backed (where) or not backed (→ R-xx)>
+
+## Undecidable — for the human
+<a criterion marked **Judged by: human**, or a failure scenario whose reality depends on a fact
+you weren't given (the real traffic, an external system's behavior): what's missing, and what the
+code shows — or "none">
 
 ## Read and no concerns
 <areas you checked and found good — one sentence each with a reason>

@@ -261,7 +261,10 @@ treats the task as taken (step 0, "work already in progress elsewhere = stop").
    check** (see "Write-boundary check" below) with the architecture decisions directory as the
    only allowed path.
 5. **GATE 1 — STOP.** Gather in one message: the criteria, the impact map, the open questions
-   (each with options and consequences, not "should we do X?"). You wait for the human's decision
+   (each with options and consequences, not "should we do X?"), the Analyst's edge sweep — the
+   lines it proposes for *Out of scope* and the edges it turned into questions — and every
+   criterion marked **Judged by: human**, so the human knows at gate 1 which answers will come
+   back to them at gate 2. You wait for the human's decision
    and for the move to the implementation phase. Without this, you don't enter the `code` phase.
    **You don't remove the waiting-on-human label yourself** — removing it is equivalent to making
    the decision. Unassign yourself — you're waiting on the human, not working.
@@ -559,7 +562,8 @@ converged.
     the pre-push hook validates the whole tree, someone else's unmerged work blocks the push.
 17. **PR with the full template.** Sections: the quoted completion condition and its evidence; the
     mutation result, its patch and base; the contrast test; the Guardian's verdict, unsmoothed;
-    the invariants touched by this change; the scope left out of this PR; **`Verified at:
+    the invariants touched by this change; the scope left out of this PR; the `UNDECIDABLE`
+    criteria, each waiting for the human's decision at gate 2; **`Verified at:
     <VERIFIED SHA>`**. The PR refers to the Issue with **`Refs #<N>`, never a closing keyword** —
     merging this PR must leave the Issue open for gate 3 (see step 21). A field you can't fill
     stays empty with a reason. "N/A" with no justification is worse than empty.
@@ -573,7 +577,10 @@ converged.
     green.
 19. **GATE 2 — STOP.** The human approves the merge. You don't merge yourself. The message names
     `VERIFIED`, the PR head SHA, and every commit between them (expected: bookkeeping only) — if
-    anything else is there, the gate is not ready. Unassign yourself.
+    anything else is there, the gate is not ready. **Every `UNDECIDABLE` from any role is listed
+    in that message as its own question** — the criterion, the fact the role said was missing,
+    what the tests show, and your recommendation. The human's answer on each goes into the PR
+    description; one left unanswered means the gate is not ready. Unassign yourself.
 
 ---
 

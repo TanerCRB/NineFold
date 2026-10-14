@@ -168,7 +168,7 @@ code if its author moves the tag — and we run this on our own hardware" is a f
 ```markdown
 # Security audit — <scope> — <date>
 
-**Verdict: STOP** / **PASS WITH RESERVATIONS** / **PASS**
+**Verdict: STOP** / **PASS WITH RESERVATIONS** / **PASS** [— **UNDECIDABLE: <threat>**]
 Basis: <what you read>
 Trigger: <which condition triggered this audit>
 
@@ -182,6 +182,11 @@ Trigger: <which condition triggered this audit>
 
 ## Requires a human decision
 <risks that are acceptable, but need a recorded decision rather than silence>
+
+## Undecidable — for the human
+<a threat whose path depends on a fact you weren't given (who can reach a network, what an
+external provider does with the data): the threat, the missing fact — or "none">
+
 
 ## Checked and clean
 <areas from the list that this change touches and that are fine — one sentence each with proof>

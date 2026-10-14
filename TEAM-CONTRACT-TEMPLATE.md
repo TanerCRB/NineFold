@@ -131,6 +131,12 @@ The evaluating roles speak one language:
 | `PASS WITH RESERVATIONS` | Findings that need a human decision but don't break a rule (e.g. a medium security risk) | Each one as a recorded exception or a fix — never in silence |
 | `PASS` | Nothing that blocks; low findings as notes | Yes |
 | QA `PROOF IS EMPTY` | The tests don't guard the claim | No — it blocks like `STOP` |
+| `UNDECIDABLE` | One criterion can't be judged from what the role was given: the Analyst marked it **Judged by: human**, or the answer depends on a fact outside the artifact — and the role names that fact | Only as the human's decision on that criterion, recorded in the PR description. It doesn't block like `STOP`, and it never counts as `PASS` |
+
+`UNDECIDABLE` is given per criterion and sits next to the report's main verdict, not instead of
+it: `PASS — UNDECIDABLE: K-04`. It is not a way out of a hard question. A role that answers
+`UNDECIDABLE` on a criterion the code and tests can decide, or `PASS` on one marked for a human,
+has failed — calibration checks both.
 
 Severity says how bad a finding is; it never decides alone whether it blocks. A count threshold
 ("two medium ones") would let one real defect through.
