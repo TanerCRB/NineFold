@@ -213,3 +213,63 @@ What it showed:
   the seeded commit also rewrote six untouched files from LF to CRLF. Every run noticed and set it
   aside, and some reported it as a low finding. Set `core.autocrlf false` before the first commit
   of a seed, not after.
+
+## Area VII on threats only a model surface has (issue #61)
+
+Z-15 to Z-17 still had an isolation, personal-data or availability side, so the older areas
+reached them. These three come from the model being in the loop. The set has a manager booking
+assistant built on a model (`<File>Ask.cs`) and, next to it, a guest rate explanation built
+correctly (`<File>Explain.cs`):
+
+| # | Expected Severity | File | What it consists of |
+|---|---|---|---|
+| Z-18 | Critical | `<File>Ask.cs:<filter>` | The model returns a filter as a code expression, which the server compiles and runs over the hotel's bookings. Model output becomes code with the process's privileges |
+| Z-19 | High | `<File>Settings.cs`, `<File>Ask.cs:<system prompt>` | A per-hotel "tone preamble" that any staff role can write is placed in the system prompt of the manager-only assistant, which has a refund tool that runs without confirmation. A lower-privileged user writes the instructions a higher-privileged one runs |
+| Z-20 | Critical | `<File>Ask.cs:<system prompt>` | The payment provider's key is written into the system prompt, although the refund tool already holds it in its closure. The key goes to the model provider on every call and can come back in any answer |
+
+| # | What looks suspicious | Why it isn't a violation |
+|---|---|---|
+| W-08 | The explanation's model output is shown to a guest | It goes through HTML escaping, and no query, path, command or decision uses it |
+| W-09 | A prompt file in the diff tells the model to ignore instructions in the guest's question | Team-written text, versioned with the code, with no outsider path into it |
+| W-10 | The explanation's tool calls a provider that needs an API key | The key stays inside the tool's closure, and neither the system prompt nor the messages carry it. This is the correct pattern, placed next to Z-20 |
+
+### Measured run
+
+The seed is one throwaway Node.js store, cloned with `core.autocrlf false`. The diff has 10 new
+files and no line-ending noise. Arm A was today's `security-auditor.md` with area VII and its
+trigger cut. Arm B was the definition as is. The runs were three per arm, general-purpose calls,
+`claude-opus-5-5`, scored from the reports. Afterwards every repository was checked, and none had
+changed.
+
+```
+                                A (no area VII)     B (as is)
+  Z-18 model output run as code 3/3 Critical        3/3 Critical
+  Z-19 staff-written preamble   3/3 High            3/3 High
+  Z-20 key in the model input   3/3 Critical        3/3 Critical
+  decoys W-08, W-09, W-10       0/9                 0/9
+```
+
+What it showed:
+
+- **No separation, a third time.** Across #53, #54 and this set, area VII has been measured on
+  seven seeded threats. It changed no detection, no severity and no decoy result. Arm A reached Z-18
+  through injection (VI), Z-19 through authorization (IV) and Z-20 through secrets (III), with the
+  same paths and mitigations as arm B.
+- **What area VII did change is how the report is laid out.** Arm B's "Checked and clean" lists
+  were organized under area VII's five questions: what reaches the input, what happens to the
+  output, what the model can do, what it carries, what it costs. Arm A covered the same points under
+  the older areas. That is coverage you can audit, not a finding the older definition missed.
+- **Every arm-A run told the Auditor that the task command had called it.** So these runs say
+  nothing about area VII's trigger, which decides whether the Auditor runs at all on a change that
+  only touches a model surface. Without the trigger, the change reaches no other area's trigger
+  except through its secrets and settings.
+- **Unseeded `UNDECIDABLE` items** came up in two arm-A runs and one arm-B run: how a guest is bound
+  to a booking, how the payment provider keys a refund, whether a refund approval exists. Each named
+  a missing fact correctly, and none hid a seeded threat.
+
+**Recommendation: keep area VII, as a checklist and a trigger, and stop treating it as a
+detection rule.** On `claude-opus-5-5`, its questions are already asked by areas III, IV and VI.
+It earns its place in two ways. It is the trigger that puts the Auditor on a model-only change.
+It also gives that change one place where every surface is listed as checked. A weaker model, or
+a team whose Auditor runs only on triggers, may show a detection difference that these runs
+can't. Recalibrate it on the model you use before relying on the result either way.
