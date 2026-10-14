@@ -247,6 +247,14 @@ scope lock's one extraction: the task command posts and compares the gate-1 fing
 an Issue past gate 1. If your Story form names *Definition of done* or *Out of scope*
 differently, change the two headings in the script and its self-test together.
 
+**Evidence-chain check.** Copy `process/scripts/evidence-chain.sh` to
+`scripts/evidence-chain.sh`. The task command lints the criteria with it before gate 1 and checks
+the chain — criterion, test, mutation, human decision — before gate 2. Set its `TEST_PATH_RE` to
+the same test paths as the weakening check, and if your PR templates name the proof, mutation or
+undecidable sections differently, change the three headings in the script. In an infrastructure
+repository, whose proof is a run and not a test in the tree, only the lint applies. A CI pattern is
+in `ci-and-branch-protection.md`, §7.
+
 **Task journal hook.** The task command keeps a journal and the roles' reports in `.task/` inside
 the task's worktree (`task-command.md`, "Task journal and hand-offs"). Add `.task/` to the product
 repository's `.gitignore` — the journal is a memory aid, never a versioned artifact. Copy
@@ -273,6 +281,7 @@ bash scripts/boundary-check.sh --self-test     # every case passes on this machi
 bash scripts/weakening-check.sh --self-test    # every case passes on this machine
 bash scripts/exception-check.sh --self-test    # every case passes on this machine
 bash scripts/scope-check.sh --self-test        # every case passes on this machine
+bash scripts/evidence-chain.sh --self-test     # every case passes on this machine
 bash scripts/task-journal-context.sh --self-test   # every case passes on this machine
 git check-ignore -v .task/journal.md           # -> matched by .gitignore
 git check-ignore -v .claude/agents/qa.md       # -> matched by .gitignore

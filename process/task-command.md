@@ -323,8 +323,15 @@ treats the task as taken (step 0, "work already in progress elsewhere = stop").
    criterion marked **Judged by: human**, so the human knows at gate 1 which answers will come
    back to them at gate 2, and the *Clarifications* record — what was asked before this gate and
    what the human answered. A *Gaps in the Story* that isn't empty means the task isn't at gate 1
-   yet. Before you stop, write the criteria into the Issue and post the scope
-   fingerprint (see "Scope lock" below) — what the human approves is what gets locked. You wait
+   yet. Before you stop, write the criteria into the Issue, lint them, and post the scope
+   fingerprint (see "Scope lock" below) — what the human approves is what gets locked:
+   ```bash
+   gh issue view <N> --repo <organization>/<product-repo> --json body --jq .body \
+     | scripts/evidence-chain.sh lint -
+   ```
+   Exit 1 — a criterion without a contrast, a mutation or a *Judged by*, an ID used twice, more
+   than seven criteria — means the task isn't at gate 1 yet: the Analyst fixes the criteria, you
+   don't. A warning (fewer than four) goes into the gate-1 message. Exit 2 is a STOP. You wait
    for the human's decision
    and for the move to the implementation phase. Without this, you don't enter the `code` phase.
    **You don't remove the waiting-on-human label yourself** — removing it is equivalent to making
@@ -709,7 +716,11 @@ converged.
 17. **PR with the full template.** Sections: the quoted completion condition and its evidence; the
     mutation result, its patch and base; the contrast test; the Guardian's verdict, unsmoothed;
     the invariants touched by this change; the scope left out of this PR; the `UNDECIDABLE`
-    criteria and the Developer's assumptions, each waiting for the human's decision at gate 2;
+    criteria and the Developer's assumptions, each waiting for the human's decision at gate 2 —
+    with one `K-<n> — test:` line per test, one `K-<n> — removed: … — result: …` line per
+    mutation and one `K-<n> — decision:` line per human-judged criterion, in the template's format
+    (taken from the Developer's Criteria table and QA's Mutations table), so the evidence chain can
+    be checked;
     the recorded exceptions, one line each in the format of the team contract, §3a;
     **`Verified at:
     <VERIFIED SHA>`**. The PR refers to the Issue with **`Refs #<N>`, never a closing keyword** —
@@ -756,6 +767,23 @@ converged.
     exception the check reports as expiring soon goes into the message as a question: the merge may
     land after the date it names. Exit 2 is a STOP, never "no exceptions". A finding with no line
     at all is not an exception; it is a finding, and it blocks.
+
+    **The evidence chain is checked, not trusted.** Every criterion judged by a test names a test
+    that exists in the tree and has a mutation that killed it; every criterion judged by a human
+    has the human's decision; every test, mutation and decision line names a criterion the Issue
+    has. From the worktree, on `VERIFIED`:
+    ```bash
+    gh issue view <N> --repo <organization>/<product-repo> --json body --jq .body > .task/issue.md
+    gh pr view <M> --repo <organization>/<product-repo> --json body --jq .body > .task/pr.md
+    scripts/evidence-chain.sh chain .task/issue.md .task/pr.md
+    ```
+    Exit 1 means the gate is not ready. A missing link goes back to the role that owes it — a
+    test to the Developer, a mutation to QA. A `SURVIVED` mutation is a question for the human:
+    it stays a finding of the check even after they let it through, so only a recorded exception
+    line for it makes that red result acceptable. You never write a link the reports don't
+    support.
+    Exit 2 is a STOP. The check sees that a test exists and that a mutation was reported, not that
+    the test proves the criterion — that is still QA's and the Reviewer's work.
 
 ---
 

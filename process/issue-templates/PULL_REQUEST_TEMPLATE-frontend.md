@@ -31,6 +31,10 @@ test does not check off the task.
 
 A screenshot is not proof. It shows one theme, one locale, one data state, and one
 window width — and it is usually the other half of each pair that breaks.
+
+Then one line per test, for every criterion judged by a test, with the name as it appears in the
+test file — scripts/evidence-chain.sh finds it there before gate 2:
+- K-01 — test: <test name>
 -->
 
 - Condition:
@@ -45,10 +49,11 @@ the test actually fails, and propose a line for the frontend state register (ent
 
 The mutation should target the layer the criterion is about. Removing a key from the translation
 catalog is not a mutation for a claim computed by the date library.
--->
 
-- Removed mechanism:
-- Result:
+One line per mutation, for every criterion judged by a test — scripts/evidence-chain.sh reads them:
+- K-01 — removed: <mechanism> — result: killed, <n> tests failed
+- K-03 — removed: <mechanism> — result: SURVIVED — <why>
+-->
 - Proposed row for the frontend state register (entered at gate 3, not before):
 - Mutation patch — the exact change QA made, against the checkpoint (`Base: <SHA>` on its first line), so anyone can rerun it with `git apply` on that SHA:
 
@@ -79,6 +84,10 @@ a 403 gives a screen with no buttons.
 Every criterion a role returned as UNDECIDABLE (marked Judged by: human, or depending on a fact
 outside the change): the criterion, what was missing, what the tests show, and the human's
 decision at gate 2. "None" if no role returned one.
+
+For a criterion marked Judged by: human, the decision is one line — scripts/evidence-chain.sh
+reads it:
+- K-02 — decision: <the human's decision>
 -->
 
 ## Assumptions — the human's decisions

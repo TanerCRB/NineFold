@@ -327,6 +327,51 @@ The last condition is worth carrying out literally, as a mutation: it's the only
 
 ---
 
+## 7. The evidence-chain check on pull requests
+
+The task command runs `scripts/evidence-chain.sh chain` before gate 2 (`task-command.md`, step
+19). In CI it runs on every edit of the PR description and every push, so a link that goes missing
+after the check — a renamed test, a mutation line deleted — shows up on the PR. It reads the Issue
+the PR refers to with `Refs #<N>`. A pattern — adapt the runner and the trigger to your workflow
+file:
+
+```yaml
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+
+jobs:
+  evidence-chain:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@<full commit SHA> # pin, as in the kit's own kit-ci.yml
+        with:
+          persist-credentials: false
+      - name: Evidence-chain check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          bash scripts/evidence-chain.sh --self-test
+          gh pr view "$PR" --repo "$REPO" --json body --jq .body > "$RUNNER_TEMP/pr.md"
+          issue=$(grep -oE 'Refs #[0-9]+' "$RUNNER_TEMP/pr.md" | head -n 1 | tr -dc '0-9')
+          if [ -z "$issue" ]; then echo "No 'Refs #<N>' — not a task PR, nothing to check."; exit 0; fi
+          gh issue view "$issue" --repo "$REPO" --json body --jq .body > "$RUNNER_TEMP/issue.md"
+          bash scripts/evidence-chain.sh chain "$RUNNER_TEMP/issue.md" "$RUNNER_TEMP/pr.md"
+```
+
+**Do not make it a required check**, for the same reason as the weakening check (§4): a
+`SURVIVED` mutation the human let through as a recorded exception keeps the run red. A red run on
+a PR whose description has no matching exception is a finding for gate 2.
+
+---
+
 ## Sources
 
 - [Troubleshooting required status checks — GitHub Docs](https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/collaborating-on-repositories-with-code-quality-features/troubleshooting-required-status-checks)

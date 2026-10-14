@@ -26,6 +26,10 @@ Verified at: <!-- the VERIFIED SHA from the task command, step 11a; every report
 <!--
 Quote the *Definition of done:* line from the story and point to what satisfies it: a test class
 name, a query, an artifact. Code that exists but has no passing test does not check off the task.
+
+Then one line per test, for every criterion judged by a test, with the name as it appears in the
+test file — scripts/evidence-chain.sh finds it there before gate 2:
+- K-01 — test: <test name>
 -->
 
 - Condition:
@@ -37,10 +41,11 @@ name, a query, an artifact. Code that exists but has no passing test does not ch
 Required if the PR carries a strong claim (isolation, idempotency, a database constraint, permissions).
 Remove the mechanism, confirm that the test actually fails, and propose a line for the mutation register
 (e.g. docs/architecture/walking-skeleton.md#checking-that-tests-are-not-empty).
--->
 
-- Removed mechanism:
-- Result:
+One line per mutation, for every criterion judged by a test — scripts/evidence-chain.sh reads them:
+- K-01 — removed: <mechanism> — result: killed, <n> tests failed
+- K-03 — removed: <mechanism> — result: SURVIVED — <why>
+-->
 - Proposed row for the mutation register (entered at gate 3, not before):
 - Mutation patch — the exact change QA made, against the checkpoint (`Base: <SHA>` on its first line), so anyone can rerun it with `git apply` on that SHA:
 
@@ -68,6 +73,10 @@ What case proves that the mechanism does not simply always deny?
 Every criterion a role returned as UNDECIDABLE (marked Judged by: human, or depending on a fact
 outside the change): the criterion, what was missing, what the tests show, and the human's
 decision at gate 2. "None" if no role returned one.
+
+For a criterion marked Judged by: human, the decision is one line — scripts/evidence-chain.sh
+reads it:
+- K-02 — decision: <the human's decision>
 -->
 
 ## Assumptions — the human's decisions
