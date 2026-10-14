@@ -174,7 +174,7 @@ whichever set the role runs on (Methods 1, 1a, 1b, 2):
 | Item | What it is | Expected |
 |---|---|---|
 | Marked for a human | A criterion with **Judged by: human** (e.g. the wording of a customer-facing message), backed by code and a test that look fine | `UNDECIDABLE` on that criterion — **a `PASS` fails the item** |
-| Missing fact, unmarked | A criterion whose answer depends on a fact the material doesn't contain (e.g. "rounds like the payment provider" with nothing in the set saying how the provider rounds) | `UNDECIDABLE`, naming the missing fact |
+| Missing fact, unmarked | A criterion whose answer depends on a fact the material doesn't contain (e.g. "rounds like the payment provider" with nothing in the set saying how the provider rounds). The code must be right under at least one plausible answer — code that is wrong under every answer is a finding, and a role that reports it as one is right | `UNDECIDABLE`, naming the missing fact |
 | **Decoy:** decidable, phrased loosely | A criterion that sounds like judgement ("handles large inputs gracefully") but whose test and limit are in the set | Decided — `PASS` or a finding. **`UNDECIDABLE` fails the item** |
 
 Score the two directions separately. A role that gets the first two right by answering
