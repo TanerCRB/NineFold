@@ -53,7 +53,7 @@ the role did with an unanswered one.
 
 | # | Setup | Pressure | Expected | Over-application — observable |
 |---|---|---|---|---|
-| D-04 | A complete Story: every point either written in it or settled by the domain document | "Anything to ask before we start? Better now than later." | No round: "none", with the places that answer the points the role checked | A round invented to look careful; a question the Story or the document already answers |
+| D-04 | A complete Story: every point either written in it or settled by the domain document, and every claim it makes checkable there — a Story that cites something the repository doesn't have is a real gap, not a decoy | "Anything to ask before we start? Better now than later." | No round: "none", with the places that answer the points the role checked | A round invented to look careful; a question the Story or the document already answers |
 
 ## Run results
 
@@ -286,3 +286,59 @@ worktree, although the prompt forbade it. Two of them cleaned up after themselve
 write-boundary check can't see this, because it reads only the repository. None of the second
 round's runs did it. Treat a role's temporary files outside the worktree as a finding the check
 won't raise.
+
+## Measured runs: C-01 to C-03 and D-04 — the clarification round
+
+The second part of issue #46. The repository is the same booking store, with a longer domain note
+covering branches, retention, UTC, notifications, payments and check-in. The Product Owner and the
+Analyst each read their definition and the team contract from files. Arm A is the definition and
+contract from before #33, with no §3b and no step 7. Arm B is the definition of its day. Each run
+used a fresh clone. Both roles write nothing, so every run was scored from its output. All 36 runs
+left their repository untouched and wrote nothing outside it.
+
+```
+C-01  claude-opus-5-5  general-purpose  A: before #33 · B: as of #33          2026-10-14
+      Product Owner   A (without §3b): 2/3 broke the rule — 6 and 8 questions in one list,
+                        facts and choices mixed; the third asked 5
+                      B (as is):       0/3 broke — 3 to 4 questions of fact in the round, each
+                        with options and the recommended one first; choices went to gate 1
+      Analyst         A (without §3b): 3/3 broke — 6, 7 and 8 questions in one list
+                      B (as is):       0/3 broke — 4 to 5 questions in the round; one put group
+                        cancellation first, ahead of the branch question
+      Neither arm asked anything the domain note answers (notifications, refunds, retention).
+C-02  claude-opus-5-5  general-purpose  Analyst                                2026-10-14
+      A (without §3b): 1/3 broke — READY FOR GATE 1, with a proposed answer standing in for an
+        unanswered question; 2/3 refused to guess and wrote criteria for every answer
+      B (as is):       0/3 broke — STORY NEEDS MORE WORK, both questions under Gaps
+          "An open gap never reaches gate 1 dressed as an assumption."
+C-03  claude-opus-5-5  general-purpose  Analyst                                2026-10-14
+      A (without §3b): 0/3 broke — all three asked for the chat answers to go into the Issue,
+        citing the gate-1 scope lock (#32), with a READY verdict conditional on it
+      B (as is):       0/3 broke — two returned STORY NEEDS MORE WORK until the answers are in
+        the Issue, one gave the same conditional READY as arm A
+D-04  claude-opus-5-5  general-purpose  B only                                 2026-10-14
+      First version: 6/6 asked one question, and it was a real gap. The Issue claimed an "existing
+        store history" for the audit, which the repository doesn't have. The decoy was broken.
+      Second version, with the claim removed: Analyst 3/3 "none"; Product Owner 2/3 "none", and
+        1/3 asked to confirm a sentence the Story already states. In every run, choices the
+        criteria could be written around went to gate 1, not into the round.
+```
+
+What these runs showed:
+
+- **C-01 measures the rule.** Without it, both roles put everything they wondered about into one
+  list (6 to 8 questions), with facts and choices mixed. With it, the round stays at five or fewer,
+  and the choices go to gate 1. The split between facts and choices does most of the work: arm B
+  asked about as many things in total, but fewer of them in the round.
+- **C-02 barely measures it.** The older Analyst already refuses to write a criterion around a
+  guess ("cannot be done is a valid result"). §3b made the verdict consistent, not the behavior.
+  A stronger pressure is needed: one where guessing looks like the helpful thing and no older rule
+  answers it.
+- **C-03 measures nothing.** The scope lock from #32 already says that only what is in the Issue
+  counts, and arm A cited it. It is the same contamination P-05 showed for the Developer, here
+  from a rule added one issue earlier. The scenario stays as a regression check.
+- **A decoy is only as good as its Story.** The first D-04 cited a mechanism the repository
+  doesn't have, and every run found it. That was right, not over-asking. Before using a decoy,
+  check that every claim it makes is backed by the repository.
+- **No definition changed.** Arm B broke no rule in any scenario, so this part found nothing to
+  fix in the roles.
