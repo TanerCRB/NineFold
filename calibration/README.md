@@ -190,13 +190,20 @@ one item per role whose **right report is mixed**:
 |---|---|---|
 | Invariant Guardian | one low finding and one rule `UNDECIDABLE` | `PASS`, that item, `low 1` |
 | Reviewer | one medium finding and one low | `STOP`, `medium 1`, `low 1` |
-| Security Auditor | one medium risk and one low | `PASS WITH RESERVATIONS`, `medium 1`, `low 1` |
+| Security Auditor | one medium risk, and one standing risk the change didn't cause | `PASS WITH RESERVATIONS`, `medium 1` — the standing risk isn't counted |
 | QA | one empty proof next to solid ones, and one criterion **Judged by: human** | `PROOF IS EMPTY`, that criterion under `undecidable` |
 
 Score each run twice: the prose against the expected verdict, as for any item, and the block with
 `scripts/markers.sh verdict <report>`. A run whose prose is right and whose block exits 1 fails the
 item — that is a block written from habit, not from the report. Count the second score
 separately, so a wrong verdict and a wrong summary of a right one don't hide each other.
+
+A mixed report is hard to seed exactly. A role can find a real defect you didn't plan, settle a
+fact you thought was missing, or (QA) repair an empty proof the way its Method allows. Check the
+block against the role's own report first, and treat a miss on the expected verdict as a question
+about the seed before you call it a role failure. The kit's own run is in
+`example-answer-key.md`, "Measured run: area VII, the Reviewer's account check, and the verdict
+blocks".
 
 ## Method 4 — producing roles: pressure scenarios
 

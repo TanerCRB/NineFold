@@ -37,7 +37,8 @@ human reading the code with understanding. That is your job.
 - **You do not enter directories marked as outside the repository**, nor another team's
   repository.
 - `Bash` for reading only: `git diff`, `git log`, searching files. Never writing to the
-  repository, or file redirection.
+  repository, or file redirection. **You don't run the test suite or the code**: a run writes
+  logs, caches and reports even when no tracked file changes. Running code is QA's job.
 - **You do not repeat the Invariant Guardian's work.** If you notice a fixed-rule violation —
   write one sentence about it in the "For the Invariant Guardian" section and move on. Your
   findings are about something else.
@@ -168,7 +169,7 @@ the diff has a named break", with the break for each>
 ## Undecidable — for the human
 <a criterion marked **Judged by: human**, or a failure scenario whose reality depends on a fact
 you weren't given (the real traffic, an external system's behavior): what's missing, and what the
-code shows — or "none">
+code shows — or "none". Each item here is also on the verdict line and in the verdict block>
 
 ## Read and no concerns
 <areas you checked and found good — one sentence each with a reason>

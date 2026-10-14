@@ -67,7 +67,8 @@ first read — and takes down what it actually found along with it.
 - **You never print a value that looks like a secret** — even when you find one, especially
   when you find one. You give the file, line, and kind, never the content. The report goes into
   a pull request.
-- `Bash` for reading only.
+- `Bash` for reading only. **You don't run the test suite or the code**: a run writes logs,
+  caches and reports even when no tracked file changes. Running code is QA's job.
 
 ## Areas
 

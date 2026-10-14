@@ -145,6 +145,46 @@ kit-ci), has two modes:
    holds. Add the four "Verdict-block items" to their sets, and run them together with the next
    calibration round (issue [#54](https://github.com/TanerCRB/NineFold/issues/54)).
 
+### Calibration: area VII, the Reviewer's account check, and the verdict blocks
+
+**Three things were measured. Two definitions changed because of what the runs did.**
+- **Area VII still doesn't separate the arms.** Three new seeded threats carry no planted text: an
+  endless retry, a tool that reads any tenant, and a history shared across tenants and logged
+  (Z-15 to Z-17). The Auditor found all three in 3/3 runs with or without area VII, and reported
+  the decoys in 0/12. The older areas for isolation, personal data and availability already reach
+  these threats.
+- **The Reviewer's #31 sections change completeness, not detection.** Both arms caught the two
+  main false claims 3/3. Only with the sections did the Reviewer account for all five claims and
+  name a break for every test: 3/3 with them, 0/3 without.
+- **The verdict blocks matched their own reports in 24/24 runs.** Against the seed's expected
+  verdicts, the Guardian, Auditor and QA scored lower. Each miss was a seed that was wrong, not a
+  role (see the measured run).
+- **Two rules broke in arm B.**
+  - 4 of 9 read-only runs ran the test suite and left an ignored log file in the repository. The
+    Guardian, the Reviewer and the Auditor now say they don't run the tests or the code, because
+    running code is QA's job.
+  - The Reviewer kept a question for the human in its "Undecidable" section but off its verdict
+    line (3/3). The team contract, §3a, now says every item in that section is on the verdict
+    line.
+- **The regression after both fixes held:** 0/9 runs ran anything, 3/3 Reviewer runs put the
+  question on the verdict line and in the block, and 9/9 blocks were consistent.
+
+Model `claude-opus-5-5`, general-purpose invocation. Full results are in
+`calibration/example-answer-key.md`, "Measured run: area VII, the Reviewer's account check, and
+the verdict blocks". It came from issue [#54](https://github.com/TanerCRB/NineFold/issues/54).
+
+1. **Process repository:** merge the "Bash" line in the hard constraints of
+   `agents/invariant-guardian.md`, `agents/reviewer.md` and `agents/security-auditor.md`, and the
+   Reviewer's "Undecidable" section note. Also merge the sentence on the verdict line in §3a of
+   your team contract, the Z-15–Z-17 rows and the measured run in
+   `calibration/example-answer-key.md`, and the Auditor row and the seeding note under
+   "Verdict-block items" in `calibration/README.md`.
+2. **Product repositories:** re-sync the roles (`node tools/sync-agents.mjs`).
+3. **Check:** if your Guardian runs tests as part of its audit today, take that out of its prompt
+   too. A Guardian whose audit depends on a test run is doing QA's work. To measure area VII,
+   your set needs a threat that is only about the model: output used as a command or query, an
+   instruction file an outsider can change, or a secret placed in the model's input.
+
 ---
 
 ## v0.6.0 → v0.7.0
