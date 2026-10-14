@@ -74,6 +74,11 @@ decision. You remove it, by moving on to the next state.
 **An agent does not pass through a gate on its own**, even when the answer seems obvious. A gate
 through which an agent sometimes passes on its own stops being a gate.
 
+**The scope you approved at gate 1 is the scope that reaches gate 2.** It is fingerprinted when
+it goes to gate 1, and an edit to it in any later state moves the Issue back to `state:decision`
+with `waiting-on-human` — the one transition back to a gate an agent makes, because it gives you
+the decision instead of taking it (`task-command.md`, "Scope lock").
+
 **The ADR deviation label stops work regardless of state.** It is removed only by an accepted
 decision or by an explicitly recorded deviation with a date and justification.
 

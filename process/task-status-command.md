@@ -37,7 +37,11 @@ From the repository (read-only):
 - the mutation register — whether mutation rows exist for this task and whether any of them
   **survived**;
 - `git log --oneline -15 main -- <task paths>` and `git branch -a --list '*<identifier>*'`;
-- whether anyone has an open working directory (worktree) on this task.
+- whether anyone has an open working directory (worktree) on this task;
+- the scope lock, once the task is past gate 1: recompute the scope fingerprint from the Issue
+  body exactly as `task-command.md` does ("Scope lock") and compare it with the fingerprint in the
+  latest "Scope for gate 1" or "Scope amended at gate 2" comment. Reading the Issue and hashing
+  locally is still read-only.
 
 ## How to read the state
 
@@ -57,6 +61,8 @@ Determine **one** position in the process, from these signals:
 | Issue closed, but not in the closed state label | closed before gate 3 — a finding; the task has dropped out of the waiting filter |
 | a verification report names a SHA other than the PR's `Verified at:` | evidence about different code — a finding, re-verification needed |
 | plan checked off with no link to a test/artifact | status raised without evidence — a finding |
+| past gate 1, the scope fingerprint differs from the latest recorded one | **scope changed after approval** — a finding; the task goes back to gate 1, whatever phase it is in |
+| past gate 1, no fingerprint comment at all | scope never locked — a finding; gate 1 approved something nobody can compare against |
 
 Before calling red CI a defect, rule out environmental causes: missing checks from a merge
 conflict, a container image pull failure, a timeout on the hosting platform's endpoints, a failure
@@ -74,6 +80,7 @@ Position: <phase / gate>          Waiting on: <human / CI / author / nobody>
 
 Evidence
 - Definition of done: <condition> — <satisfied by what / missing>
+- Scope lock: <holds / broken — the Issue's edit history shows what changed / not locked yet — before gate 1>
 - Mutations: <list, result> — <none, if there aren't any>
 - CI: <list of red checks or "green">
 
