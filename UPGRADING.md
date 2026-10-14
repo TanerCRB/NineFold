@@ -253,6 +253,28 @@ so every run rightly asked about it. After that was fixed, 5 of 6 runs asked not
 3. **Check:** when you write your own decoy, check every claim its Story makes against the
    repository. A decoy that cites something missing is testing a real gap.
 
+### Calibration: the evaluating roles
+
+**The Security Auditor, Invariant Guardian, Reviewer and QA were run on one seeded change. No
+definition changed.**
+- The Auditor found Z-13 and Z-14 and reported no decoy in all 6 runs, with or without area VII.
+  Z-13 is too easy to measure area VII, because the older trust-boundary area finds it.
+- `UNDECIDABLE` changed the Guardian most. Without it, 0 of 3 runs put the human-judged criterion
+  to the human. With it, 3 of 3 did. The Reviewer and QA already left that call to the human in
+  prose, and the verdict now makes it explicit.
+- The missing-fact item was seeded with code that was wrong under every rounding rule. The roles
+  reported it as a finding, which is the right answer. The `calibration/README.md` row now says
+  how to seed it.
+
+Model `claude-opus-5-5`, general-purpose invocation. Full results are in
+`calibration/example-answer-key.md`, "Measured run: the evaluating roles on one seeded change".
+
+1. **Process repository:** merge the measured run in `calibration/example-answer-key.md` and the
+   "Missing fact" row in `calibration/README.md`.
+2. **Product repositories:** nothing to re-sync.
+3. **Check:** if your area VII set has only a prompt-injection threat, add one that area VI
+   doesn't name. An older Auditor finds the injection anyway.
+
 ---
 
 ## v0.5.0 → v0.6.0
