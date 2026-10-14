@@ -53,6 +53,24 @@ issue [#28](https://github.com/TanerCRB/NineFold/issues/28).
    Then, on a throwaway branch, add `.skip` to one test and commit: the second command must exit
    1 and name the file and line.
 
+### The Security Auditor: model and agent surfaces
+
+**The Security Auditor now covers features built on a language model.** A new area VII in
+`agents/security-auditor.md` asks who can plant text in a model's input, where the output goes,
+what tools the model can call and with whose identity, what secrets or personal data it carries,
+and what limits its consumption. A new trigger runs the role on any change to code that calls a
+model, defines a tool an agent can call, or builds the instructions sent to a model. It came from
+issue [#29](https://github.com/TanerCRB/NineFold/issues/29).
+
+1. **Process repository:** merge the role change and the new "Security Auditor items" section in
+   `calibration/example-answer-key.md`. If your product has no model-backed features, the trigger
+   never fires and nothing else changes.
+2. **Product repositories:** re-sync the roles (`security-auditor.md` changed).
+3. **Check:** the role's definition changed, so its calibration no longer holds. If you calibrated
+   the Security Auditor, add a model-backed feature with one seeded finding and one look-alike
+   decoy to your set (the example's Z-13 and W-06 show the shape) and run it again before
+   trusting a `PASS` on such a change.
+
 ---
 
 ## v0.5.0 → v0.6.0
