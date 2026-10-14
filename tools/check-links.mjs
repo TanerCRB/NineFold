@@ -122,9 +122,13 @@ function checkLinks(root, out) {
       (ignored.size > 0 ? ` Skipped ${ignored.size} file(s) ignored by git.` : ""),
   );
   if (files.length === 0) {
-    out.log("ERROR: no Markdown files found — nothing was checked. Run from the repository root.");
+    out.log("check-links: failed — no Markdown files found, nothing was checked. Run from the repository root.");
     return 2;
   }
+  // The exit contract (process/ci-and-branch-protection.md, "Exit contract"): the last line is the result.
+  out.log(broken.length === 0
+    ? `check-links: clean — ${checked} links in ${files.length} files`
+    : `check-links: ${broken.length} finding(s) — broken relative links`);
   return broken.length === 0 ? 0 : 1;
 }
 
@@ -195,6 +199,16 @@ const SELF_TEST_CASES = [
             : `expected exit 0, the TMP file skipped and reported, got ${code}: ${lines.join(" | ")}`,
         { git: true },
       ),
+  },
+  {
+    name: "the last line states the result (exit contract)",
+    run: () => {
+      const clean = withFixture({ "README.md": "[a](docs/a.md)\n", "docs/a.md": "ok\n" }, ({ lines }) =>
+        lines.at(-1) === "check-links: clean — 1 links in 2 files" ? null : `clean: last line '${lines.at(-1)}'`);
+      if (clean) return clean;
+      return withFixture({ "README.md": "[gone](missing.md)\n" }, ({ lines }) =>
+        lines.at(-1) === "check-links: 1 finding(s) — broken relative links" ? null : `finding: last line '${lines.at(-1)}'`);
+    },
   },
   {
     name: "zero Markdown files is an error, not a pass",

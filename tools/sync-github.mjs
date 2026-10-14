@@ -166,7 +166,7 @@ const REPO_ROOT_TEMPLATES = new Set(["PULL_REQUEST_TEMPLATE.md"]);
 
 // A validation failure is THROWN, not turned into process.exit on the spot, so that the
 // self-test can run the very same code path against a bad fixture and observe the refusal. The
-// CLI entry point at the bottom turns it back into the old "ERROR: ..." line and exit 2.
+// CLI entry point at the bottom turns it into a "sync-github: failed — ..." line and exit 2.
 class ToolError extends Error {}
 
 function fail(message) {
@@ -463,8 +463,12 @@ function runTemplates({ targets, templateDir, checkOnly, out, revision }) {
     out.error(`Skipped ${skipped} of ${targets.length} targets — not checked. Fix the TARGETS paths or remove the entries.`);
   }
 
+  // The exit contract (process/ci-and-branch-protection.md, "Exit contract"): the last line is the result.
   if (checkOnly) {
     out.log(drift === 0 ? (skipped === 0 ? "No drift." : "No drift in the targets that were checked.") : `Drifted: ${drift}.`);
+    out.log(drift + skipped === 0
+      ? `sync-github: clean — no drift in ${targets.length} target(s)`
+      : `sync-github: ${drift + skipped} finding(s) — ${drift} drifted, ${skipped} target(s) not checked`);
     return drift === 0 && skipped === 0 ? 0 : 1;
   }
 
@@ -473,6 +477,9 @@ function runTemplates({ targets, templateDir, checkOnly, out, revision }) {
       ? `No changes. Templates: ${templates.length}.`
       : `Wrote ${copied} of ${templates.length} templates. Files are tracked by git — review and commit them yourself.`,
   );
+  out.log(skipped === 0
+    ? `sync-github: clean — ${copied} of ${templates.length} templates written`
+    : `sync-github: ${skipped} finding(s) — target(s) not reached`);
   return skipped === 0 ? 0 : 1;
 }
 
@@ -608,6 +615,22 @@ const SELF_TEST_CASES = [
     run: () =>
       withFixture({ templates: { "1-story.yml": issueForm({ omit: "body" }) } }, (f) =>
         expectRefusal(/1-story\.yml: Issue form is missing field "body"/)(templatesRun(true)(f)),
+      ),
+  },
+  {
+    name: "the last line states the result (exit contract)",
+    run: () =>
+      withFixture(
+        {
+          templates: { "1-story.yml": issueForm() },
+          target: { ".github/ISSUE_TEMPLATE/1-story.yml": issueForm() },
+        },
+        (f) => {
+          const r = templatesRun(true)(f);
+          return r.lines.at(-1) === "sync-github: clean — no drift in 1 target(s)"
+            ? null
+            : `expected the result as the last line, got '${r.lines.at(-1)}'`;
+        },
       ),
   },
   {
@@ -755,7 +778,7 @@ if (SELF_TEST) {
   const failures = selfTest();
   if (failures.length > 0) {
     reportSelfTest(failures, console.error);
-    console.error("ERROR: the tool failed its own self-test — refusing to run.");
+    console.error("sync-github: failed — the tool failed its own self-test; refusing to run.");
     process.exit(2);
   }
 }
@@ -768,6 +791,7 @@ try {
     const labels = loadLabels(LABEL_MANIFEST, TARGETS);
     const templates = loadTemplates(TEMPLATE_DIR, TARGETS);
     console.log(`Valid: ${labels.length} labels in the manifest, ${templates.length} templates.`);
+    console.log(`sync-github: clean — ${labels.length} labels, ${templates.length} templates valid`);
     process.exit(0);
   }
 
@@ -790,6 +814,6 @@ try {
   );
 } catch (error) {
   if (!(error instanceof ToolError)) throw error;
-  console.error(`ERROR: ${error.message}`);
+  console.error(`sync-github: failed — ${error.message}`);
   process.exit(2);
 }

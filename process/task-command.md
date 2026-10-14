@@ -633,7 +633,7 @@ by `git add` or by a commit during the call is caught too; its `--self-test` sho
 cases failing. Exit 1 = **automatic STOP**: report the paths to the human and do not continue
 with the role's result. Exit 2 = the check couldn't run — also a STOP, never "clean". You don't
 revert the paths yourself — a human decides whether it was a mutation left behind or a
-deliberate edit out of role. "boundary check: clean" goes into the role's cost-register notes, so
+deliberate edit out of role. "boundary-check: clean" goes into the role's cost-register notes, so
 the check leaves a trace that it ran. It sees what git sees — ignored files and anything outside
 the repository are out of its reach.
 
@@ -661,7 +661,7 @@ question, not a verdict — deleting the tests of a feature the Story removes is
 human either sends it back to the Developer or accepts it as a **recorded exception** (team
 contract, §3a), written in the PR description as `Exception <identifier>/weakening-<n> — …`; the run that follows still shows the same
 finding, and the exception is what lets the task go on. Exit 2 = the check couldn't run — also a
-STOP, never "clean". "weakening check: clean" goes into the Developer's cost-register notes.
+STOP, never "clean". "weakening-check: clean" goes into the Developer's cost-register notes.
 
 It sees patterns, not intent: a looser expected value or a broader matcher passes it. Those stay
 with QA and the Reviewer. The patterns are an example for common stacks — adapt them when you

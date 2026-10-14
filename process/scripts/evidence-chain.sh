@@ -144,7 +144,9 @@ report() {  # report <records file> → prints, sets the exit code
   local findings warns
   findings=$(grep -c '^FINDING' "$1" || true); warns=$(grep -c '^WARN' "$1" || true)
   awk -F '\t' '$1 == "FINDING" { printf "FINDING  %-6s %s\n", $2, $3 } $1 == "WARN" { printf "WARN     %-6s %s\n", $2, $3 }' "$1"
-  echo "evidence chain: $(grep -c '^CRIT' "$1" || true) criteria, $findings finding(s), $warns warning(s)"
+  local n; n=$(grep -c '^CRIT' "$1" || true)
+  if [ "$findings" -eq 0 ]; then echo "evidence-chain: clean — $n criteria, $warns warning(s)"
+  else echo "evidence-chain: $findings finding(s) — $n criteria, $warns warning(s)"; fi
   [ "$findings" -eq 0 ]
 }
 
@@ -277,8 +279,8 @@ self_test() {
   }
 
   # Lint: what must pass.
-  lint_case "four complete criteria pass"            0 "4 criteria, 0 finding(s), 0 warning(s)" "$FOUR"
-  lint_case "an amendment line inside the block passes" 0 "0 finding(s)" "$FOUR"$'\n''Amended at gate 2, 2026-10-14, A-02: the note is cut, not refused'
+  lint_case "four complete criteria pass"            0 "evidence-chain: clean — 4 criteria, 0 warning(s)" "$FOUR"
+  lint_case "an amendment line inside the block passes" 0 "evidence-chain: clean" "$FOUR"$'\n''Amended at gate 2, 2026-10-14, A-02: the note is cut, not refused'
   lint_case "three criteria is only a warning"       0 "WARN     -      3 criteria" "$(crit K-01 test)$(crit K-02 test)$(crit K-03 test)"
   total=$((total + 1))
   issue "$FOUR" | sed 's/$/\r/' > "$root/crlf.md"
@@ -305,7 +307,7 @@ self_test() {
   [ $? -eq 1 ] && [[ "$out" == *"without"* ]] && echo "ok   an unclosed block" || { echo "FAIL an unclosed block: $out"; failures=$((failures + 1)); }
 
   # Chain: the clean one, and each broken link.
-  chain_case "a clean chain holds"                   0 "4 criteria, 0 finding(s)" "$FOUR" "$PR_OK"
+  chain_case "a clean chain holds"                   0 "evidence-chain: clean — 4 criteria" "$FOUR" "$PR_OK"
   chain_case "a criterion with no test"              1 "K-04   judged by a test, but the PR names no test" "$FOUR" "${PR_OK/- K-04 — test: long note is cut at 500/}"
   chain_case "a test that does not exist"            1 "names test \"cancel frees the slot\"" "$FOUR" "${PR_OK/cancel frees the room/cancel frees the slot}"
   chain_case "a name found only outside test files"  1 "which no test file contains" "$FOUR" "${PR_OK/refund quote rounds half-up/cancel frees the room is also}"
@@ -337,6 +339,18 @@ self_test() {
   # Standard input reads the same as a file for lint.
   total=$((total + 1))
   issue "$FOUR" | bash "$self" lint - > /dev/null 2>&1 && echo "ok   lint reads standard input" || { echo "FAIL lint reads standard input"; failures=$((failures + 1)); }
+
+  # The exit contract (process/ci-and-branch-protection.md, "Exit contract"): a check's last line
+  # on stdout is its result.
+  local last
+  total=$((total + 1))
+  last="$(issue "$FOUR" | bash "$self" lint - 2>/dev/null | tail -n 1)"
+  [ "$last" = "evidence-chain: clean — 4 criteria, 0 warning(s)" ] && echo "ok   the last line states the result (clean)" \
+    || { echo "FAIL the last line states the result (clean): '$last'"; failures=$((failures + 1)); }
+  total=$((total + 1))
+  last="$(issue "$(crit K-01 test)$(crit K-02 test)$(crit K-03 test | grep -v Contrast)$(crit K-04 test)" | bash "$self" lint - 2>/dev/null | tail -n 1)"
+  [ "$last" = "evidence-chain: 1 finding(s) — 4 criteria, 0 warning(s)" ] && echo "ok   the last line states the result (finding)" \
+    || { echo "FAIL the last line states the result (finding): '$last'"; failures=$((failures + 1)); }
 
   rm -rf "$root"
   echo "Self-test: $total cases ran, $((total - failures)) passed, $failures failed."

@@ -42,6 +42,37 @@ issue [#61](https://github.com/TanerCRB/NineFold/issues/61).
    its trigger in play. Run it on a change that touches no other trigger area. On
    `claude-opus-5-5` the older areas already find these threats.
 
+### One exit contract for the kit's tools
+
+**Every kit check now ends the same way, so a caller can read any of them without knowing the
+tool.** Exit 0 is clean, 1 is a finding (or a failed self-test), and 2 means the check itself
+failed and is never clean. The last line on stdout is `<tool>: clean — …` or
+`<tool>: <n> finding(s) — …`. Query modes, which print data for another command, print only the
+data. The contract is in `process/ci-and-branch-protection.md`, §8. Every self-test now has a case
+for its own last line. Several result lines changed:
+- `boundary check: clean` → `boundary-check: clean`;
+- `weakening check: clean (…)` → `weakening-check: clean — …`;
+- `Exceptions as of …` → `exception-check: clean — as of …`;
+- `evidence chain: …` → `evidence-chain: clean — …`.
+
+The Node tools keep their old lines and add the result line after them. Their errors now start
+with the tool's name instead of `ERROR:`. It came from issue
+[#64](https://github.com/TanerCRB/NineFold/issues/64).
+
+1. **Process repository:** merge the four scripts and three tools, §8 of
+   `process/ci-and-branch-protection.md`, and the quoted result lines in
+   `process/task-command.md`, `process/bootstrap-guide.md` and the registers. If your process
+   repository runs the kit's CI, nothing changes there: the self-tests are the same commands.
+2. **Product repositories:** copy the updated `boundary-check.sh`, `weakening-check.sh`,
+   `exception-check.sh` and `evidence-chain.sh` into `scripts/`, and merge the two quoted lines
+   in the task command. Search your own CI and scripts for the old result lines, and match on
+   the exit code instead wherever you can:
+   ```bash
+   grep -rn "boundary check: clean\|weakening check: clean\|Exceptions as of\|evidence chain:" .github scripts .claude
+   ```
+3. **Check:** every copied script's `--self-test` passes, including its "the last line states the
+   result" cases, and the grep above finds nothing.
+
 ---
 
 ## v0.7.0 → v0.8.0

@@ -34,7 +34,7 @@ What `/task-status exceptions` reports for them on 2026-10-14:
 ```
 LIVE       B1-07/R-02  docs/exception-register.md:29  holds through 2026-11-30, owner @anna
 EXPIRED    B1-03/weakening-1  docs/exception-register.md:30  blocks again since 2026-10-01 (13 days ago), owner @bo
-Exceptions as of 2026-10-14: 1 live, 0 expiring within 14 days, 1 expired, 0 malformed.
+exception-check: 1 finding(s) — as of 2026-10-14: 1 live, 0 expiring within 14 days, 1 expired, 0 malformed
 ```
 
 The second line is the finding the weakening check raised on B1-03, open again: `@bo` either
