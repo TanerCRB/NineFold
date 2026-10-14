@@ -42,6 +42,7 @@ jobs:
           bash -n process/scripts/boundary-check.sh
           bash -n process/scripts/weakening-check.sh
           bash -n process/scripts/exception-check.sh
+          bash -n process/hooks/task-journal-context.sh
 
       # Method 3 from calibration/README.md: each tool proves on built-in contrast cases that its
       # checks still fire, before any of its green results below is worth anything.
@@ -53,6 +54,7 @@ jobs:
           bash process/scripts/boundary-check.sh --self-test
           bash process/scripts/weakening-check.sh --self-test
           bash process/scripts/exception-check.sh --self-test
+          bash process/hooks/task-journal-context.sh --self-test
 
       # Validates the real label manifest (ASCII-only, unique names, hex colors, every target
       # subset naming existing labels) and the Issue/PR templates. `--labels` can't run here: the

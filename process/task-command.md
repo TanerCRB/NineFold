@@ -190,6 +190,43 @@ switches that checkout. A single small commit doesn't get in the way of further 
 survives removing the worktree and other people's operations on other checkouts. The row reaches
 `main` together with the task's pull request.
 
+## Task journal and hand-offs
+
+A long task outlives your context: a compaction or a cleared session leaves you with the Issue,
+the labels and `git log`, but not with which role ran on which checkpoint and what it said. The
+**task journal** is the short memory that survives, kept in the task's worktree:
+
+- `.task/journal.md`, ignored by git (`.task/` in the product repository's `.gitignore`, see
+  `bootstrap-guide.md`). Created in step 0, right after the worktree, with one header line:
+  `# Task #<N> — <identifier> — branch <branch> — started <UTC time>`.
+- One line appended after every completed step — a role call, a checkpoint, a check, a gate stop,
+  a clarification round, a human answer:
+  ```
+  <UTC time> | <phase> | step <n> | <role or action> | <result> | <SHA or -> | next: <step and what>
+  2026-10-14T11:42Z | verification | step 11 | qa | PROOF HOLDS | 4f1c2a9 | next: step 11a, QA checkpoint
+  ```
+- Append-only. An earlier line is never edited; a correction is a new line that says what it
+  corrects.
+- **It is not evidence.** Nothing in a PR, a report or a register cites it, and it doesn't replace
+  the cost register. It tells you where to look, not what is true.
+
+**Reports go to files, not into your context.** When a role returns, save its full report as
+`.task/handoff/<step>-<role>-<n>.md` and append the journal line; keep only the verdict and the
+path in your own working memory. A later role that needs the report gets the path and an
+instruction to read it, not a pasted copy. "What an evaluating role gets" still decides **which**
+files it gets — a hand-off file holds a role's report, never your conversation with a role or
+your reasoning about it.
+
+Two limits come with an ignored directory. The write-boundary check can't see it, so **no role
+writes in `.task/`** — you write the files after the role returns. And it disappears with the
+worktree in step 25: whatever must outlive the task goes into the Issue, the PR or a register.
+
+**A SessionStart hook puts the journal back** after a start, a clear or a compaction:
+`scripts/task-journal-context.sh` (copied from the process repository's
+`process/hooks/task-journal-context.sh`, see `bootstrap-guide.md`) prints the journal's last
+lines and the next step it names, in a task worktree only. Without the hook, read the journal
+yourself first — step 0 says how.
+
 ---
 
 ## Step 0 — Recon
@@ -200,6 +237,23 @@ gh pr list --repo <organization>/<product-repo> --state open --json number,title
 git branch -a --list '*<identifier>*'
 ls <parent-dir>/tmp/<repo>-* 2>/dev/null
 ```
+
+**Resuming a task — the journal first, then what overrules it.** If the task's worktree already
+exists and has a journal (you were compacted, cleared, or called with a phase in `$2`), read
+`.task/journal.md` before anything else and check it against what can't be wrong:
+
+```bash
+git merge-base --is-ancestor <each SHA the journal names> HEAD && echo on-branch
+gh issue view <N> --repo <organization>/<product-repo> --json labels --jq '.labels[].name'
+git status --short
+```
+
+Every SHA on the branch, the last line's phase matching the Issue's state label, and a working
+tree that fits the last step → continue from the step the last line names. Anything else → the
+labels and `git log` win: say out loud which journal line disagrees and with what, append a
+correction line, and continue from the step they show. A worktree with no journal is
+reconstructed from the labels, the Issue's comments and `git log`, and gets a new journal whose
+first entry says "reconstructed" — never re-run a role just to refill it.
 
 Determine and **say out loud**, before you go any further:
 
@@ -222,7 +276,8 @@ Once the above rules out a collision and you're moving ahead, assign the Issue t
 **create the task's worktree on its own branch now**, before the first role call (the rules for
 where to create it are in step 6). Until gate 1 the branch carries only bookkeeping commits — the
 number reservation and the cost-register rows of the analysis roles; code enters it only after
-gate 1. If gate 1 rejects the task, the branch and worktree are removed like at closure.
+gate 1. If gate 1 rejects the task, the branch and worktree are removed like at closure. Start the
+task journal in the new worktree now (see "Task journal and hand-offs").
 
 **Pin what the task runs on, and who runs it.** Post one comment on the Issue:
 

@@ -241,12 +241,33 @@ lines removed. The task command reads exceptions back at gate 2 and moves them t
 gate 3; `/task-status exceptions` sweeps the register and the open PRs. A scheduled run is in
 `ci-and-branch-protection.md`, §5.
 
+**Task journal hook.** The task command keeps a journal and the roles' reports in `.task/` inside
+the task's worktree (`task-command.md`, "Task journal and hand-offs"). Add `.task/` to the product
+repository's `.gitignore` — the journal is a memory aid, never a versioned artifact. Copy
+`process/hooks/task-journal-context.sh` to `scripts/task-journal-context.sh` and register it in
+the shared `.claude/settings.json`, next to the permission rules:
+
+```json
+"hooks": {
+  "SessionStart": [
+    { "matcher": "startup|clear|compact",
+      "hooks": [ { "type": "command",
+                   "command": "bash \"$CLAUDE_PROJECT_DIR/scripts/task-journal-context.sh\"" } ] }
+  ]
+}
+```
+
+After a start, a `/clear` or a compaction inside a task worktree, the session gets the journal's
+last lines and the next step back; anywhere else the hook prints nothing.
+
 **Check:**
 
 ```bash
 bash scripts/boundary-check.sh --self-test     # every case passes on this machine
 bash scripts/weakening-check.sh --self-test    # every case passes on this machine
 bash scripts/exception-check.sh --self-test    # every case passes on this machine
+bash scripts/task-journal-context.sh --self-test   # every case passes on this machine
+git check-ignore -v .task/journal.md           # -> matched by .gitignore
 git check-ignore -v .claude/agents/qa.md       # -> matched by .gitignore
 git status --short --untracked-files=all .claude/   # commands and settings.json show up, agents don't
 node <process-repo>/tools/sync-agents.mjs --check   # run from the process repo: "No drift."
