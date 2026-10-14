@@ -5,7 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
-- [Unreleased (after v0.6.0)](#unreleased-after-v060)
+- [v0.6.0 → v0.7.0](#v060--v070)
 - [v0.5.0 → v0.6.0](#v050--v060)
 - [v0.4.0 → v0.5.0](#v040--v050)
 - [v0.3.0 → v0.4.0](#v030--v040)
@@ -17,7 +17,47 @@ instead.
 
 ---
 
-## Unreleased (after v0.6.0)
+## v0.6.0 → v0.7.0
+
+v0.7.0 turns rules the roles kept on trust into checks, and widens what the evaluating roles look
+at. A script now catches a weakened test, the scope approved at gate 1 is locked, a recorded
+exception expires, and a task journal survives a compaction. The Security Auditor covers model and
+agent surfaces, the Reviewer tries to break each test, the Analyst sweeps the data's edges, and an
+evaluating role can answer `UNDECIDABLE`. The Product Owner and the Analyst ask in a bounded round
+before gate 1. Then the changed roles were calibrated (issue
+[#46](https://github.com/TanerCRB/NineFold/issues/46)), and one definition changed because of it:
+the Developer's hard stop 10. The reasons are in the pull requests
+[#37](https://github.com/TanerCRB/NineFold/pull/37) to
+[#44](https://github.com/TanerCRB/NineFold/pull/44) and
+[#51](https://github.com/TanerCRB/NineFold/pull/51) to
+[#53](https://github.com/TanerCRB/NineFold/pull/53).
+
+**Time:** about half a day per product repository: two scripts and a hook to copy, many hand-merges
+into the task command, and recalibration of every role whose definition changed.
+
+### What changed, in one table
+
+| Area | Change | Action in a product repo | Measured |
+|---|---|---|---|
+| [Test weakening](#the-test-weakening-check) | `weakening-check.sh` stops a task that deletes tests or assertions, adds skips or suppressions, or lowers a threshold; task-command steps 10b and 11a | copy and adapt the script, merge the steps, re-sync roles | script self-test only |
+| [Model and agent surfaces](#the-security-auditor-model-and-agent-surfaces) | Security Auditor area VII and a trigger for model-backed code | re-sync roles, merge step 14 | not yet: Z-13 is found through area VI, so the set doesn't separate the arms ([#54](https://github.com/TanerCRB/NineFold/issues/54)) |
+| [Proof and claims](#the-reviewer-tests-that-cant-fail-claims-the-code-doesnt-back) | The Reviewer breaks each test on paper and reads the author's account last, as claims | re-sync roles, move the developer report to the end of evaluator prompts | not yet ([#54](https://github.com/TanerCRB/NineFold/issues/54)) |
+| [Edges and `UNDECIDABLE`](#edges-prohibitions-and-the-undecidable-verdict) | Analyst steps 3a–3c; a per-criterion `UNDECIDABLE` verdict that never counts as `PASS` | re-sync roles and PR templates, merge gates 1 and 2 | `UNDECIDABLE`: the Guardian put the human-judged criterion to the human 0/3 without it, 3/3 with it; the edge sweep wasn't measured |
+| [Scope lock](#scope-lock-and-the-assumption-ledger) | Gate-1 fingerprint checked at every later phase; the Developer's assumption ledger; hard stop 10 | re-sync roles and PR templates, merge the task and task-status commands | hard stop 10 failed 3/3 in both arms and was rewritten; then 3/3 stopped. P-07 separated the arms 3/3 against 0/3; the decoy D-03 still padded 1/3 |
+| [Expiring exceptions](#recorded-exceptions-that-expire) | One exception format with a date; `exception-check.sh`; an exception register | copy the script and the register, re-sync PR templates, merge both commands | script self-test only |
+| [Clarification round](#the-clarification-round-before-gate-1) | At most five questions per round, every answer written into the Issue; Analyst verdict `NEEDS ANSWERS` | re-sync roles and Issue templates, merge the task command | C-01 separated the arms (5/6 against 0/6); C-02 barely, C-03 not at all; the decoy D-04 asked nothing in 5/6 |
+| [Task journal](#the-task-journal-and-its-sessionstart-hook) | `.task/journal.md` and hand-off files; a SessionStart hook puts the journal back | ignore `.task/`, copy and register the hook, merge the task command | hook self-test only |
+
+Model `claude-opus-5-5`, general-purpose invocation, three runs per arm unless stated; the
+calibration subsections at the end of this section have the details. Two changes need no step in a
+product repository: the P-05 trial ([#27](https://github.com/TanerCRB/NineFold/pull/27)) found that
+the older rules already answer it (0/5 broken in both arms), and `process/hooks/pre-push` is now
+executable in the kit itself ([#45](https://github.com/TanerCRB/NineFold/pull/45)).
+
+**Merge the task command in one pass.** Eight of the subsections below change
+`process/task-command.md`. Diff it against v0.6.0 and carry the changes into
+`.claude/commands/task.md` together, then use each subsection's list to check that nothing was
+missed.
 
 ### The test-weakening check
 
@@ -32,7 +72,8 @@ issue [#28](https://github.com/TanerCRB/NineFold/issues/28).
 
 1. **Process repository:** merge the new script, the "Test-weakening check" section and steps
    10b/11a in `process/task-command.md`, the line added to hard stop 6 in `agents/developer.md`,
-   and §4 in `process/ci-and-branch-protection.md`.
+   the Developer row in §2a of your team contract, and §4 in
+   `process/ci-and-branch-protection.md`.
 2. **Product repositories:**
    - copy the script next to the boundary check and make it executable:
      ```bash
@@ -62,10 +103,12 @@ and what limits its consumption. A new trigger runs the role on any change to co
 model, defines a tool an agent can call, or builds the instructions sent to a model. It came from
 issue [#29](https://github.com/TanerCRB/NineFold/issues/29).
 
-1. **Process repository:** merge the role change and the new "Security Auditor items" section in
+1. **Process repository:** merge the role change, the sentence added to step 14 in
+   `process/task-command.md`, and the new "Security Auditor items" section in
    `calibration/example-answer-key.md`. If your product has no model-backed features, the trigger
    never fires and nothing else changes.
-2. **Product repositories:** re-sync the roles (`security-auditor.md` changed).
+2. **Product repositories:** re-sync the roles (`security-auditor.md` changed), and merge step 14
+   into `.claude/commands/task.md` by hand.
 3. **Check:** the role's definition changed, so its calibration no longer holds. If you calibrated
    the Security Auditor, add a model-backed feature with one seeded finding and one look-alike
    decoy to your set (the example's Z-13 and W-06 show the shape) and run it again before
@@ -105,8 +148,9 @@ never counts as `PASS`. It came from issue [#30](https://github.com/TanerCRB/Nin
 
 1. **Process repository:** merge the role changes (`analyst.md`, `product-owner.md`, `qa.md`,
    `invariant-guardian.md`, `reviewer.md`, `security-auditor.md`), the verdict row in §3a of your
-   team contract, gates 1 and 2 and step 17 in `process/task-command.md`, the new PR-template
-   section, and "Undecidable items" in `calibration/README.md`. Replace the edge categories in
+   team contract, gates 1 and 2 and step 17 in `process/task-command.md`, the new
+   "Undecidable" section in the application and frontend PR templates (the infra template has
+   none), and "Undecidable items" in `calibration/README.md`. Replace the edge categories in
    step 3a with the ones your domain actually has.
 2. **Product repositories:** re-sync the roles and the PR templates
    (`node tools/sync-github.mjs`), and merge the gate changes into `.claude/commands/task.md` by
@@ -133,8 +177,9 @@ written into the criteria as an amendment and locked again. It came from issue
 1. **Process repository:** merge `agents/developer.md` (hard stop 10, Method 4a, the report's
    "Assumptions" section), "Scope lock" and steps 5, 10, 11, 15, 17 and 19 in
    `process/task-command.md`, the scope-lock rows in `process/task-status-command.md`, the
-   paragraph in §3 of your team contract, the rule in `process/sdlc-flow.md`, and the new section
-   in all three PR templates. If your Story form names its sections differently, change the two
+   paragraph in §3 of your team contract, the rule in `process/sdlc-flow.md`, the new section
+   in all three PR templates, and the P-07, P-08 and D-03 rows in
+   `calibration/example-pressure-scenarios.md`. If your Story form names its sections differently, change the two
    headings the `scope_text` function looks for.
 2. **Product repositories:** re-sync the roles and the PR templates
    (`node tools/sync-github.mjs`), and merge the task and task-status command changes into
