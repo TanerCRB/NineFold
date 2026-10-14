@@ -172,7 +172,20 @@ code shows — or "none">
 
 ## Read and no concerns
 <areas you checked and found good — one sentence each with a reason>
+
+~~~verdict
+role: reviewer
+verdict: <PASS / STOP>
+undecidable: <K-xx or scenario, … — or none>
+findings: critical 0, high <n>, medium <n>, low <n>
+sha: <the SHA you reviewed>
+~~~
 ```
+
+**The report ends with the verdict block** (team contract, §3a): the same verdict and the same
+`UNDECIDABLE` items as the verdict line at the top, one count per `R-xx` heading by severity, and
+the SHA you read. It summarizes the prose and says nothing the prose doesn't; a block that
+disagrees with your own report is a failed report.
 
 **The "Read and no concerns" section is mandatory**, and must be specific. "The rest looks
 good" is not a review. If you didn't have time to read something — say so explicitly; an

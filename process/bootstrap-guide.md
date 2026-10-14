@@ -255,6 +255,11 @@ undecidable sections differently, change the three headings in the script. In an
 repository, whose proof is a run and not a test in the tree, only the lint applies. A CI pattern is
 in `ci-and-branch-protection.md`, §7.
 
+**Markers and verdict blocks.** Copy `process/scripts/markers.sh` to `scripts/markers.sh`. The task
+command checks every evaluating role's verdict block with it and reads the phase markers on the
+Issue before repeating a step; `/task-status` reads the markers before any prose. If you rename a
+role or change a role's verdicts, change the lists in the script and its self-test together.
+
 **Task journal hook.** The task command keeps a journal and the roles' reports in `.task/` inside
 the task's worktree (`task-command.md`, "Task journal and hand-offs"). Add `.task/` to the product
 repository's `.gitignore` — the journal is a memory aid, never a versioned artifact. Copy
@@ -282,6 +287,7 @@ bash scripts/weakening-check.sh --self-test    # every case passes on this machi
 bash scripts/exception-check.sh --self-test    # every case passes on this machine
 bash scripts/scope-check.sh --self-test        # every case passes on this machine
 bash scripts/evidence-chain.sh --self-test     # every case passes on this machine
+bash scripts/markers.sh --self-test            # every case passes on this machine
 bash scripts/task-journal-context.sh --self-test   # every case passes on this machine
 git check-ignore -v .task/journal.md           # -> matched by .gitignore
 git check-ignore -v .claude/agents/qa.md       # -> matched by .gitignore

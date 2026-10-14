@@ -193,7 +193,21 @@ external provider does with the data): the threat, the missing fact — or "none
 
 ## Standing risks, not caused by this change
 <e.g. an open credential-rotation task, no read registry — listed, not elaborated>
+
+~~~verdict
+role: security-auditor
+verdict: <STOP / PASS WITH RESERVATIONS / PASS>
+undecidable: <threat, … — or none>
+findings: critical <n>, high <n>, medium <n>, low <n>
+sha: <the SHA you audited>
+~~~
 ```
+
+**The report ends with the verdict block** (team contract, §3a): the same verdict and the same
+`UNDECIDABLE` items as the verdict line at the top, one count per `B-xx` heading by severity, and
+the SHA you read. Standing risks are not findings of this change and aren't counted. It summarizes
+the prose and says nothing the prose doesn't; a block that disagrees with your own report is a
+failed report.
 
 **The cheapest mitigation is one sentence, not a design.** If you start writing how to implement
 it, you have stepped out of the role — that's the Architect's and the developer's job.

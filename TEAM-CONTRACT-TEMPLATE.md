@@ -144,6 +144,25 @@ it: `PASS — UNDECIDABLE: K-04`. It is not a way out of a hard question. A role
 `UNDECIDABLE` on a criterion the code and tests can decide, or `PASS` on one marked for a human,
 has failed — calibration checks both.
 
+**Every evaluating role's report ends with one verdict block**, so a script can read the verdict
+without reading the prose:
+
+````
+```verdict
+role: qa | invariant-guardian | reviewer | security-auditor
+verdict: <the main verdict, exactly as in the role's report format>
+undecidable: <K-02, K-04 — or none>
+findings: critical <n>, high <n>, medium <n>, low <n>
+sha: <the SHA the role read>
+```
+````
+
+The prose stays the report; the block is its summary, and it says nothing the prose doesn't.
+`scripts/markers.sh verdict` checks it against the prose — the verdict line, the `UNDECIDABLE`
+items, the finding headings by severity — and against the rules above. **A block that contradicts
+its own report is a role failure**: the report goes back to the role, and nobody edits either half
+to make them agree. Calibration checks for it.
+
 **A recorded exception is one line, in one format**, so a script can find every one and check its
 date:
 

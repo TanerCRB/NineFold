@@ -61,6 +61,21 @@ From the repository (read-only):
 
 ## How to read the state
 
+**Markers first, prose second.** The task command leaves a hidden marker on the Issue for every
+phase event and a verdict event for every evaluating role (`task-command.md`, "Phase markers and
+verdict blocks"). Read them before any comment's wording — reading is still read-only:
+
+```bash
+gh issue view <N> --repo <organization>/<product-repo> --json comments --jq '.comments[].body' \
+  | scripts/markers.sh events -
+```
+
+The latest `gate-reached`, `verified`, `verdict` and `task-stopped` events place the task; a
+`task-started` with no later `task-stopped` means a session holds it. Fall back to reading the
+prose only where the markers are missing — a task started before markers existed, an event the
+command didn't record — and **say so in the report**, naming what you read instead. Exit 1 from
+the script (a malformed or unknown marker) is a finding of its own.
+
 Determine **one** position in the process, from these signals:
 
 | Signal | Where the task stands |
@@ -76,6 +91,8 @@ Determine **one** position in the process, from these signals:
 | PR merged, plan not checked off, Issue open | **gate 3**, waiting on the documentation PR |
 | Issue closed, but not in the closed state label | closed before gate 3 — a finding; the task has dropped out of the waiting filter |
 | a verification report names a SHA other than the PR's `Verified at:` | evidence about different code — a finding, re-verification needed |
+| a `verdict` event's SHA differs from the latest `verified` event | that role judged different code — a finding, the role reruns on `VERIFIED` |
+| a `verdict` event with `stop` or `proof-is-empty` and no later `reverify` | waiting on a fix round, or on the human after the round limit |
 | plan checked off with no link to a test/artifact | status raised without evidence — a finding |
 | past gate 1, the scope fingerprint differs from the latest recorded one | **scope changed after approval** — a finding; the task goes back to gate 1, whatever phase it is in |
 | past gate 1, no fingerprint comment at all | scope never locked — a finding; gate 1 approved something nobody can compare against |
@@ -99,6 +116,8 @@ Position: <phase / gate>          Waiting on: <human / CI / author / nobody>
 
 Evidence
 - Definition of done: <condition> — <satisfied by what / missing>
+- Read from: <markers / prose — which events were missing, and what was read instead>
+- Verdicts: <each role: verdict, UNDECIDABLE items, at SHA — or "none yet">
 - Scope lock: <holds / broken — the Issue's edit history shows what changed / not locked yet — before gate 1>
 - Exceptions: <each one: id, owner, live until / expiring <date> / EXPIRED since <date> — blocks again / malformed — or "none">
 - Mutations: <list, result> — <none, if there aren't any>

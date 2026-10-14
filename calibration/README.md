@@ -5,7 +5,7 @@
 > ("Role calibration: the same mechanism applied to the agents themselves").
 >
 > Methods 1, 2, 1a and 1b calibrate the **evaluating** roles: is the verdict right? Each of
-> their sets also carries the "Undecidable items". Method 4
+> their sets also carries the "Undecidable items" and one "Verdict-block item". Method 4
 > calibrates the **producing** roles: does the role keep its rules when the task pushes against
 > them? Method 3 is for deterministic tools, not roles.
 
@@ -179,6 +179,24 @@ whichever set the role runs on (Methods 1, 1a, 1b, 2):
 
 Score the two directions separately. A role that gets the first two right by answering
 `UNDECIDABLE` everywhere fails the decoy, and that's the point of having it.
+
+## Verdict-block items — one per evaluating role
+
+The verdict block at the end of a report (team contract, §3a) is only worth reading if it says
+what the prose says. A clean report — `PASS`, nothing found — gets that right for free, so seed
+one item per role whose **right report is mixed**:
+
+| Role | Seed so the right report has | The block must say |
+|---|---|---|
+| Invariant Guardian | one low finding and one rule `UNDECIDABLE` | `PASS`, that item, `low 1` |
+| Reviewer | one medium finding and one low | `STOP`, `medium 1`, `low 1` |
+| Security Auditor | one medium risk and one low | `PASS WITH RESERVATIONS`, `medium 1`, `low 1` |
+| QA | one empty proof next to solid ones, and one criterion **Judged by: human** | `PROOF IS EMPTY`, that criterion under `undecidable` |
+
+Score each run twice: the prose against the expected verdict, as for any item, and the block with
+`scripts/markers.sh verdict <report>`. A run whose prose is right and whose block exits 1 fails the
+item — that is a block written from habit, not from the report. Count the second score
+separately, so a wrong verdict and a wrong summary of a right one don't hide each other.
 
 ## Method 4 — producing roles: pressure scenarios
 

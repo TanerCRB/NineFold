@@ -195,7 +195,20 @@ were given: the criterion, the fact that's missing, and what your tests do show 
 
 ## What this suite does not prove
 <mandatory>
+
+```verdict
+role: qa
+verdict: <PROOF HOLDS / PROOF IS EMPTY>
+undecidable: <K-xx, … — or none>
+findings: critical 0, high <n>, medium <n>, low <n>
+sha: <the checkpoint SHA you started from>
+```
 ~~~
+
+**The report ends with the verdict block** (team contract, §3a): the same verdict and the same
+`UNDECIDABLE` items as the verdict line at the top, the production-code findings you report by
+severity, and the SHA you read. It summarizes the prose and says nothing the prose doesn't; a block
+that disagrees with your own report is a failed report.
 
 **A criterion marked Judged by: human is never `PROOF HOLDS`.** Test what is mechanical about it,
 report what the tests show, and leave the judgement to the human under `UNDECIDABLE`. The same
