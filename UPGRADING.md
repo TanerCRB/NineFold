@@ -60,6 +60,46 @@ runs it on every pushed branch once the script is in `scripts/`. It came from is
    one is either a real leftover or a path for `.leftovers-allow`. The hook's install check in
    `process/bootstrap-guide.md`, step 2, still gives `code=1` and `code=0`.
 
+### The layer check
+
+**Which code may depend on which is now a table a script holds, not only a design someone
+remembers.** A new register template, `process/registers/layer-dependencies.md`, has one row per
+layer and glob. Each row gives the prefixes other code refers to the layer by (namespace, module
+or import alias) and the layers it **must not depend on**. A new script,
+`process/scripts/layer-check.sh` (26 self-test cases, run in kit-ci, POSIX awk), reads the lines a
+change adds. It takes their references (C# `using`, TS/JS `import`/`require`, Python
+`import`/`from`) and reports each one that crosses a rule, with file, line and rule. A prefix matches on
+a boundary and the longest one wins; a relative import is resolved and matched by the glob.
+A table with only placeholders, an unknown layer, or a changed file under two layers fails the
+check (exit 2).
+
+The task command runs it at step **10a** on every task, fast lane or not, and a finding goes to
+the Architect. A dependency the human lets through is a recorded exception
+(`Exception <identifier>/layer-<n>`). It reads lines, not a compiled graph, and only added ones:
+a rule broken before the task is not reported. It came from issue
+[#69](https://github.com/TanerCRB/NineFold/issues/69).
+
+1. **Process repository:** merge the script, the table template and its row in the registers
+   README, step 10a and the "Layer check" section in `process/task-command.md`, the notes in
+   `process/bootstrap-guide.md`, step 4, and the list in `process/ci-and-branch-protection.md`,
+   §8. If your process repository runs the kit's CI, add the script's `bash -n` and
+   `--self-test` lines to `.github/workflows/kit-ci.yml`.
+2. **Product repositories:**
+   - copy the script and make it executable:
+     ```bash
+     cp <process-repo>/process/scripts/layer-check.sh scripts/
+     git add scripts/layer-check.sh && git update-index --chmod=+x scripts/layer-check.sh
+     ```
+   - copy the table next to your other registers and fill it from your architectural decisions:
+     one row per layer and glob, with no placeholder left. Replace `<path-to-layer-dependencies>`
+     in the task command, and point `REGISTER` in the script at the copy;
+   - merge the task command changes into `.claude/commands/task.md` by hand.
+3. **Check:** `bash scripts/layer-check.sh --self-test` passes, and
+   `bash scripts/layer-check.sh HEAD HEAD` prints `layer-check: clean` and exits 0 (exit 2 means
+   the table still has placeholders or names an unknown layer). Then run
+   `bash scripts/layer-check.sh <last-release-tag> HEAD` and read the findings: each is a real
+   crossing, or a row of the table that doesn't say what the team meant.
+
 ---
 
 ## v0.8.0 → v0.9.0

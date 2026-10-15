@@ -249,6 +249,15 @@ command uses the classes to decide the fast lane, the Security Auditor's trigger
 surviving mutation may be let through at gate 2. Point `REGISTER` in the script at the copy, or
 pass `--register`.
 
+**Layer check.** Copy `process/scripts/layer-check.sh` to `scripts/layer-check.sh`, and
+`process/registers/layer-dependencies.md` to where your registers live. Replace the placeholder
+rows with your layers: one glob per row, the namespaces, modules or import aliases other code uses
+for the layer, and the layers it must not depend on. A table with only placeholders fails the
+check, so it can't pass silently. Point `REGISTER` in the script at the copy, or pass
+`--register`. The task command runs it at step 10a on every task; a finding goes to the
+Architect. If your stack isn't C#, TS/JS or Python, add its reference pattern to the script and a
+self-test case for it.
+
 **Leftovers check.** Copy `process/scripts/leftovers-check.sh` to `scripts/leftovers-check.sh`.
 The task command runs it on the developer and QA checkpoints, and the pre-push hook runs it on
 every pushed branch once the file is there. Its patterns (copy and draft names, debug output per
@@ -300,6 +309,8 @@ last lines and the next step back; anywhere else the hook prints nothing.
 bash scripts/boundary-check.sh --self-test     # every case passes on this machine
 bash scripts/weakening-check.sh --self-test    # every case passes on this machine
 bash scripts/exception-check.sh --self-test    # every case passes on this machine
+bash scripts/layer-check.sh --self-test        # every case passes on this machine
+bash scripts/layer-check.sh HEAD HEAD          # "layer-check: clean", exit 0: your table reads
 bash scripts/leftovers-check.sh --self-test    # every case passes on this machine
 bash scripts/leftovers-check.sh origin/main HEAD   # on a clean branch: "leftovers-check: clean", exit 0
 bash scripts/risk-check.sh --self-test         # every case passes on this machine

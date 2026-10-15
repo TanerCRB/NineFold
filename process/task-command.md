@@ -574,6 +574,8 @@ missing = go back to the `analysis` phase; a broken lock = back to gate 1.
     **Fast-lane tasks:** check the fast-lane triggers again, now against the real diff
     (`git diff --name-only origin/main...HEAD`). Any trigger fires → back to the Architect before
     verification (see "Fast lane").
+    **Every task:** `scripts/layer-check.sh origin/main "$CHECKPOINT"` (see "Layer check"). Exit 1
+    goes to the Architect before verification, fast lane or not.
 
 10b. **Test-weakening check — before QA.** `scripts/weakening-check.sh origin/main "$CHECKPOINT"`
     (see "Test-weakening check" below). Exit 1 = **automatic STOP**: QA does not start on a
@@ -684,6 +686,35 @@ STOP, never "clean". "weakening-check: clean" goes into the Developer's cost-reg
 It sees patterns, not intent: a looser expected value or a broader matcher passes it. Those stay
 with QA and the Reviewer. The patterns are an example for common stacks — adapt them when you
 copy the script, together with its self-test cases.
+
+### Layer check
+
+Which code may depend on which is the Architect's design, and a line that breaks it compiles,
+passes the tests and reads fine in review. So the rule is checked mechanically, with
+`scripts/layer-check.sh` (copied from the process repository's `process/scripts/layer-check.sh`,
+see `bootstrap-guide.md`, step 4). It reads the layer table (`<path-to-layer-dependencies>`,
+template in `registers/layer-dependencies.md`): each layer's glob, the prefixes other code refers
+to it by, and the layers it must not depend on.
+
+```bash
+scripts/layer-check.sh origin/main "$CHECKPOINT"   # step 10a
+```
+
+It reads only the lines the task added, takes the references they make (`using`, `import`,
+`require`, `from … import`), and reports each one from a layer to a layer it must not depend on,
+with file, line and rule. A relative import is resolved against the file and matched by the glob.
+
+Exit 1 = **to the Architect**, before QA starts. The Architect either sends it back to the
+Developer with the design the task should follow, or changes the table, a decision the human
+merges like any other. A dependency the human lets through as it is becomes a recorded exception
+(team contract, §3a), `Exception <identifier>/layer-<n> — …`, like a weakening finding. Exit 2 = the
+check couldn't run: the table is missing, has only placeholders, names an unknown layer, or a
+changed file falls under two layers. That is a STOP, never "clean". "layer-check: clean" goes into
+the Developer's cost-register notes.
+
+It reads lines, not a compiled graph: a fully qualified name with no `using`, reflection, a
+dynamic import, a transitive dependency and a rule broken before the task all pass it. The
+Architect still reads the design.
 
 ### Leftovers check
 
