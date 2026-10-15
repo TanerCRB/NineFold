@@ -5,6 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
+- [Unreleased (after v0.9.0)](#unreleased-after-v090)
 - [v0.8.0 → v0.9.0](#v080--v090)
 - [v0.7.0 → v0.8.0](#v070--v080)
 - [v0.6.0 → v0.7.0](#v060--v070)
@@ -16,6 +17,48 @@ changes fail silently when half-done. Upgrade one version at a time.
 
 If you are installing from scratch, follow [`process/bootstrap-guide.md`](process/bootstrap-guide.md)
 instead.
+
+---
+
+## Unreleased (after v0.9.0)
+
+### The leftovers check
+
+**What an agent leaves behind is now found by a script, not by a reviewer.** A new script,
+`process/scripts/leftovers-check.sh` (29 self-test cases, run in kit-ci), reads what a change
+adds and reports three things. The first is a new file or rename target named like a copy or a
+draft (`Price.copy.cs`, `handler_final.ts`, `PriceOld.cs`, `report (1).md`, `*.bak`). The second
+is an added line of debug output, from a pattern per file type. The third is a block of added
+comment lines that read as code: they start with a closing bracket, or they end like a statement
+and start with a keyword or call something. Prose that ends the same way passes. A deliberate case
+is marked in the code, `leftovers-allow: <reason>`, or a glob in `.leftovers-allow`. The marker
+stays in the diff for the Reviewer, and an allow with no reason doesn't count.
+
+The task command runs it at a new step **10c** on the developer checkpoint, and again at **11a**
+on `VERIFIED`. A finding goes back to the role that wrote it, not to the human. The pre-push hook
+runs it on every pushed branch once the script is in `scripts/`. It came from issue
+[#69](https://github.com/TanerCRB/NineFold/issues/69).
+
+1. **Process repository:** merge the script, `process/hooks/pre-push`, step 10c, the line in 11a
+   and the "Leftovers check" section in `process/task-command.md`, the notes in
+   `process/bootstrap-guide.md` (step 4 and the pilot list), and the list in
+   `process/ci-and-branch-protection.md`, §8. If your process repository runs the kit's CI, add
+   the script's `bash -n` and `--self-test` lines to `.github/workflows/kit-ci.yml`.
+2. **Product repositories:**
+   - copy the script and the hook, and keep both executable:
+     ```bash
+     cp <process-repo>/process/scripts/leftovers-check.sh scripts/
+     cp <process-repo>/process/hooks/pre-push .githooks/      # or .husky/pre-push
+     git add scripts/leftovers-check.sh .githooks/pre-push
+     git update-index --chmod=+x scripts/leftovers-check.sh .githooks/pre-push
+     ```
+   - adapt `DEBUG_RULES` and the comment markers to your stack. A path that prints on purpose,
+     such as a CLI or dev scripts, goes into `.leftovers-allow` with a `#` comment saying why;
+   - merge the task command changes into `.claude/commands/task.md` by hand.
+3. **Check:** `bash scripts/leftovers-check.sh --self-test` passes. Then run
+   `bash scripts/leftovers-check.sh <last-release-tag> HEAD` once and read the findings: every
+   one is either a real leftover or a path for `.leftovers-allow`. The hook's install check in
+   `process/bootstrap-guide.md`, step 2, still gives `code=1` and `code=0`.
 
 ---
 

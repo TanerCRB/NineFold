@@ -249,6 +249,13 @@ command uses the classes to decide the fast lane, the Security Auditor's trigger
 surviving mutation may be let through at gate 2. Point `REGISTER` in the script at the copy, or
 pass `--register`.
 
+**Leftovers check.** Copy `process/scripts/leftovers-check.sh` to `scripts/leftovers-check.sh`.
+The task command runs it on the developer and QA checkpoints, and the pre-push hook runs it on
+every pushed branch once the file is there. Its patterns (copy and draft names, debug output per
+file type, comment markers) are an example for common stacks — adapt them to yours, with a
+self-test case for every pattern you add. If a path prints on purpose (a CLI, dev scripts), put
+its glob in `.leftovers-allow` at the repository root, with a `#` comment saying why.
+
 **Scope check.** Copy `process/scripts/scope-check.sh` to `scripts/scope-check.sh`. It is the
 scope lock's one extraction: the task command posts and compares the gate-1 fingerprint with it,
 `/task-status` recomputes it, and the `label-guard` workflow (section 6) runs it on every edit of
@@ -293,6 +300,8 @@ last lines and the next step back; anywhere else the hook prints nothing.
 bash scripts/boundary-check.sh --self-test     # every case passes on this machine
 bash scripts/weakening-check.sh --self-test    # every case passes on this machine
 bash scripts/exception-check.sh --self-test    # every case passes on this machine
+bash scripts/leftovers-check.sh --self-test    # every case passes on this machine
+bash scripts/leftovers-check.sh origin/main HEAD   # on a clean branch: "leftovers-check: clean", exit 0
 bash scripts/risk-check.sh --self-test         # every case passes on this machine
 bash scripts/risk-check.sh classes --paths - < /dev/null   # empty output, exit 0: your register reads
 bash scripts/scope-check.sh --self-test        # every case passes on this machine
@@ -604,6 +613,7 @@ Watch, and note in the run log, what the kit can't check for you:
 
 - the write-boundary check around the Architect and QA (and around every role, if roles are called through a general-purpose mechanism) leaves a "boundary-check: clean" note;
 - the test-weakening check on the developer and QA checkpoints leaves a "weakening-check: clean" note, or its findings went to you before QA started;
+- the leftovers check on the same checkpoints leaves a "leftovers-check: clean" note, or its findings went back to the Developer or QA, not to you;
 - a cost-register row lands as its own commit on the task branch after every role call;
 - the PR description carries the mutation patch and the Guardian's verdict unsmoothed;
 - at gate 3 the agent opens a documentation PR with the register entries (`Closes #<N>`) — you review them against their evidence and merge; the Issue stays open until then.

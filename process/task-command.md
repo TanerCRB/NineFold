@@ -580,6 +580,11 @@ missing = go back to the `analysis` phase; a broken lock = back to gate 1.
     checkpoint whose diff removes a test or an assertion, adds a skip or a suppression, or lowers
     a threshold, until the human has decided on every finding.
 
+10c. **Leftovers check — before QA.** `scripts/leftovers-check.sh origin/main "$CHECKPOINT"`
+    (see "Leftovers check" below). Exit 1 = back to the Developer, not to the human: the copy and
+    draft files, debug output and commented-out code go, or each deliberate one gets a
+    `leftovers-allow: <reason>` the reviewers will read. Then a new developer checkpoint.
+
 ---
 
 ## Phase `verification` — before gate 2
@@ -598,7 +603,8 @@ missing = go back to the `analysis` phase; a broken lock = back to gate 1.
     test directory — as `checkpoint: <identifier> qa`. **`VERIFIED` = `git rev-parse HEAD`**: the
     one version the reading roles audit and the PR must carry. Run the test-weakening check again
     on `VERIFIED` — QA only adds tests, so any finding not already decided at step 10b is QA's,
-    and it is a `STOP` like any other.
+    and it is a `STOP` like any other. Run the leftovers check on `VERIFIED` too; a finding there
+    goes back to QA.
 
 12. **Invariant Guardian role** — audits `VERIFIED` against the hard rules. Verdict `PASS` /
     `STOP`. On `STOP` you go back to the `code` phase; the verdict goes into the PR description
@@ -678,6 +684,36 @@ STOP, never "clean". "weakening-check: clean" goes into the Developer's cost-reg
 It sees patterns, not intent: a looser expected value or a broader matcher passes it. Those stay
 with QA and the Reviewer. The patterns are an example for common stacks — adapt them when you
 copy the script, together with its self-test cases.
+
+### Leftovers check
+
+An agent leaves things behind that a reviewer reading for meaning is the wrong instrument to
+find: a `Price.copy.cs`, a `handler_final.ts`, a `console.log`, a block of commented-out code. So
+they are found mechanically, with `scripts/leftovers-check.sh` (copied from the process
+repository's `process/scripts/leftovers-check.sh`, see `bootstrap-guide.md`, step 4):
+
+```bash
+scripts/leftovers-check.sh origin/main "$CHECKPOINT"   # step 10c
+scripts/leftovers-check.sh origin/main "$VERIFIED"     # step 11a
+```
+
+It reads only what the task added (`origin/main...<SHA>`) and reports, with file and line: a new
+file or rename target whose name marks a copy or a draft, an added line of debug output, and a
+block of added comment lines that read as code. Its `--self-test` shows each of those failing next
+to ordinary changes that must pass: prose comments, a method named `print_report`, an old debug
+line the task didn't touch.
+
+Exit 1 = **back to the role that wrote it**, the Developer at 10c and QA at 11a. Unlike the
+weakening check, this is not a question for the human: a deliberate case is marked in the code,
+`leftovers-allow: <reason>` on the line or on the comment above a block, or a glob in
+`.leftovers-allow` for a whole path. The marker stays in the diff, so the Reviewer reads every one.
+An allow with no reason doesn't count. Exit 2 = the check couldn't run — a STOP, never "clean".
+"leftovers-check: clean" goes into the Developer's cost-register notes. The pre-push hook runs the
+same check on every pushed branch, so a change made outside `/task` meets it too.
+
+It sees patterns, not intent: a logger left at debug level, or a scratch file with an ordinary
+name, passes it. The patterns are an example for common stacks — adapt them when you copy the
+script, together with its self-test cases.
 
 ### Re-verification after a `STOP`
 

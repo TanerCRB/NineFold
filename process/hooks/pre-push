@@ -16,11 +16,17 @@
 
 protected_ref="refs/heads/main"
 blocked=0
+pushed=""
+zero="0000000000000000000000000000000000000000"
 
 # git supplies one line per reference: <local> <sha> <remote> <sha>
 while read -r local_ref local_sha remote_ref remote_sha; do
     if [ "$remote_ref" = "$protected_ref" ]; then
         blocked=1
+    fi
+    # A deleted branch pushes no code.
+    if [ "$local_sha" != "$zero" ]; then
+        pushed="$pushed $local_sha"
     fi
 done
 
@@ -38,6 +44,31 @@ if [ "$blocked" -eq 1 ]; then
     echo "  The hook can be bypassed with 'git push --no-verify' - deliberately, not by accident." >&2
     echo "" >&2
     exit 1
+fi
+
+# Leftovers (opt-in): runs once scripts/leftovers-check.sh is copied into the repository. It reads
+# what each pushed branch adds on top of origin/main — copy and draft files, debug output,
+# commented-out code — so the author removes them before anyone reviews the branch. An origin/main
+# the hook can't find is a check that couldn't run, and that refuses the push too.
+if [ -f scripts/leftovers-check.sh ]; then
+    for sha in $pushed; do
+        # git always supplies a real commit; the hand-typed lines of the install check don't.
+        git cat-file -e "$sha^{commit}" 2>/dev/null || continue
+        if ! base=$(git merge-base origin/main "$sha" 2>/dev/null); then
+            echo "" >&2
+            echo "  pre-push: the leftovers check couldn't find origin/main to compare with." >&2
+            echo "  Run 'git fetch origin main', or push with --no-verify deliberately." >&2
+            echo "" >&2
+            exit 1
+        fi
+        if ! bash scripts/leftovers-check.sh "$base" "$sha"; then
+            echo "" >&2
+            echo "  REFUSED: the leftovers check reported findings (above)." >&2
+            echo "  Remove them, or mark a deliberate one with 'leftovers-allow: <reason>'." >&2
+            echo "" >&2
+            exit 1
+        fi
+    done
 fi
 
 # Tests run wherever there is something to run. The condition is the `test` script in the root

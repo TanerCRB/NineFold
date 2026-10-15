@@ -376,7 +376,7 @@ a PR whose description has no matching exception is a finding for gate 2.
 
 Every check the kit ships means the same thing by its exit code and its last line. A caller,
 whether the task command, a CI step or a human, can then read any of them without knowing that
-tool. This covers `boundary-check.sh`, `weakening-check.sh`, `exception-check.sh`,
+tool. This covers `boundary-check.sh`, `weakening-check.sh`, `leftovers-check.sh`, `exception-check.sh`,
 `scope-check.sh`, `evidence-chain.sh`, `markers.sh` and `risk-check.sh` in `process/scripts/`, the
 `task-journal-context.sh` hook, and `sync-agents.mjs`, `sync-github.mjs` and `check-links.mjs` in
 `tools/`.
