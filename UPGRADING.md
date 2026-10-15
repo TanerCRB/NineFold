@@ -5,7 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
-- [Unreleased (after v0.8.0)](#unreleased-after-v080)
+- [v0.8.0 → v0.9.0](#v080--v090)
 - [v0.7.0 → v0.8.0](#v070--v080)
 - [v0.6.0 → v0.7.0](#v060--v070)
 - [v0.5.0 → v0.6.0](#v050--v060)
@@ -19,7 +19,41 @@ instead.
 
 ---
 
-## Unreleased (after v0.8.0)
+## v0.8.0 → v0.9.0
+
+v0.9.0 makes the process scale with risk through a script, not a judgement:
+- every kit check ends with one exit contract, so a caller reads any tool the same way;
+- risk classes come from the paths a change touches and decide the fast lane, the Security
+  Auditor and whether a surviving mutation may be let through;
+- the team contract says who may approve gate 2, and the task records who drove it.
+
+All three came from issue [#64](https://github.com/TanerCRB/NineFold/issues/64). Area VII was also
+measured a third time ([#61](https://github.com/TanerCRB/NineFold/issues/61)); no definition changed.
+
+**Time:** about two hours per product repository. That covers five scripts to copy (one new), a
+*Risk classes* column to fill in the sensitive-paths register, and hand-merges into the task and
+task-status commands. No role changed, so no recalibration is needed.
+
+### What changed, in one table
+
+| Area | Change | Action in a product repo | Measured |
+|---|---|---|---|
+| [Exit contract](#one-exit-contract-for-the-kits-tools) | Exit 0 / 1 / 2 and one last result line for every check; query modes print only data | copy four updated scripts, grep CI and scripts for the old result lines | every self-test has a case for its own last line |
+| [Risk classes](#risk-classes-from-paths) | `risk-check.sh` reads classes from the register; they drive the fast lane, step 14 and gate 2 | copy the script, add the *Risk classes* column, merge the task command | script self-test only (20 cases) |
+| [Gate-2 approver](#who-may-approve-gate-2) | Contract §3 picks "one person" or "a second person"; `operator=` on `task-started`; `/task-status` compares it with `mergedBy` | pick the rule, merge both commands | — |
+| [Calibration](#calibration-area-vii-on-threats-only-a-model-surface-has) | Z-18 to Z-20 seeded for threats only a model surface has | nothing to re-sync | area VII still doesn't separate the arms (3/3 in both) |
+
+**Merge the task command in one pass,** as for v0.8.0. The exit contract, the risk classes and the
+gate-2 approver all change `process/task-command.md`. Diff it against v0.8.0 and carry the changes
+into `.claude/commands/task.md` together.
+
+**Fill the register before the first task runs.** Until every row of your sensitive-paths register
+has a real path and a known class, `risk-check.sh` exits 2, and the task command reads that as
+a reason to run every role: no fast lane, and the Security Auditor on every task. It fails safe,
+but slow.
+
+**If your process repository runs the kit's own CI,** add `risk-check.sh` to
+`.github/workflows/kit-ci.yml`: its `bash -n` line and its `--self-test` line.
 
 ### Calibration: area VII on threats only a model surface has
 
