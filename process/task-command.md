@@ -239,7 +239,7 @@ answered by a script, not by reading prose:
 
 | Event | Posted with | Keys |
 |---|---|---|
-| `task-started` | the pin comment, step 0 | — |
+| `task-started` | the pin comment, step 0 | `operator=<login>` (older tasks may lack it) |
 | `task-stopped` | the "Task stopped — <reason>" comment | — |
 | `scope-locked` | the fingerprint comment at gate 1, and the amendment at gate 2 | `gate=1` or `gate=2`, `hash=<fingerprint>` |
 | `gate-reached` | a short "Gate <n> reached — waiting on the human" comment when you stop at a gate | `gate=1`, `2` or `3` |
@@ -332,10 +332,14 @@ task journal in the new worktree now (see "Task journal and hand-offs").
 
 ```bash
 ROLES=$(cat .claude/agents/*.md .claude/commands/task.md | git hash-object --stdin)
+OPERATOR=$(gh api user --jq .login)
 gh issue comment <N> --repo <organization>/<product-repo> --body \
-  "Task started — session: <session id>, worktree: <path>, branch: <branch>, roles: $ROLES
-<!-- ninefold:event=task-started sha=$(git rev-parse HEAD) -->"
+  "Task started — session: <session id>, worktree: <path>, branch: <branch>, roles: $ROLES, operator: @$OPERATOR
+<!-- ninefold:event=task-started sha=$(git rev-parse HEAD) operator=$OPERATOR -->"
 ```
+
+The **operator** is the account this session acts under, which is the person who drives the
+agents. Gate 2 compares it with who approves (team contract, §3, "Who may approve gate 2").
 
 The fingerprint covers the synchronized roles and this command; every cost-register row carries
 it (`roles`). Before each role call, recompute it: if it changed mid-task (someone ran the sync, or
@@ -800,8 +804,10 @@ converged.
     what the tests show, and your recommendation. The human's answer on each goes into the PR
     description; one left unanswered means the gate is not ready. **So is every assumption in
     the Developer's ledger** — what was unclear, what was assumed, the test that shows it, and
-    your recommendation — and the message states whether the scope lock still holds. Unassign
-    yourself.
+    your recommendation — and the message states whether the scope lock still holds. **It names
+    the operator** from the `task-started` marker, and the team contract's rule on who may approve
+    gate 2. Under "a second person", it says plainly that the operator is not the one to merge.
+    Unassign yourself.
 
     **What the human's answer on an assumption does.** Accepted — the assumed behavior becomes
     part of the scope. Rejected — the human's answer says what the behavior must be instead, and
