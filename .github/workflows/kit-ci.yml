@@ -41,6 +41,7 @@ jobs:
           node --check tools/check-links.mjs
           bash -n process/scripts/boundary-check.sh
           bash -n process/scripts/weakening-check.sh
+          bash -n process/scripts/leftovers-check.sh
           bash -n process/scripts/exception-check.sh
           bash -n process/scripts/scope-check.sh
           bash -n process/scripts/evidence-chain.sh
@@ -57,6 +58,7 @@ jobs:
           node tools/check-links.mjs --self-test
           bash process/scripts/boundary-check.sh --self-test
           bash process/scripts/weakening-check.sh --self-test
+          bash process/scripts/leftovers-check.sh --self-test
           bash process/scripts/exception-check.sh --self-test
           bash process/scripts/scope-check.sh --self-test
           bash process/scripts/evidence-chain.sh --self-test
