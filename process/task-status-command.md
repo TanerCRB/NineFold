@@ -24,7 +24,7 @@ Run the queries **in parallel**, in one message — they don't depend on each ot
 
 ```bash
 gh issue view <N> --repo <organization>/<product-repo> --json number,title,state,labels,assignees,updatedAt,comments
-gh pr list --repo <organization>/<product-repo> --state all --search "<N>" --json number,title,state,isDraft,headRefName,reviewDecision,mergedAt,updatedAt
+gh pr list --repo <organization>/<product-repo> --state all --search "<N>" --json number,title,state,isDraft,headRefName,reviewDecision,mergedAt,mergedBy,updatedAt
 
 # CI checks, when a PR exists (no wait mode — this is a report, not a wait)
 gh pr checks <PR number> --repo <organization>/<product-repo>
@@ -58,6 +58,9 @@ From the repository (read-only):
     | scripts/exception-check.sh -
   grep -E '^[-*+ ]*Exception <identifier>/' <exception-register> | scripts/exception-check.sh -
   ```
+- who may approve gate 2 — the team contract, §3, "Who may approve gate 2" — and the operator, the
+  `operator=` key of the `task-started` marker. Once the PR is merged, compare the operator with
+  its `mergedBy`.
 
 ## How to read the state
 
@@ -99,6 +102,8 @@ Determine **one** position in the process, from these signals:
 | an exception the check reports `EXPIRED` | **the finding blocks again** — whatever phase the task is in, merged or not; the owner renews it or it becomes a Story |
 | an exception the check reports `MALFORMED` | not an exception — the finding it meant to cover was never let through |
 | an exception in the merged PR, but not in the exception register after gate 3 | an exception nobody will check again — a finding |
+| PR merged by the operator, while the team contract says "a second person" approves gate 2 | the gate approved itself — a finding for the team, not for the agent; nothing is reverted |
+| PR merged, no `operator=` key on the `task-started` marker | the approver can't be compared — say so; not a finding for a task started before the key existed |
 
 Before calling red CI a defect, rule out environmental causes: missing checks from a merge
 conflict, a container image pull failure, a timeout on the hosting platform's endpoints, a failure
@@ -121,6 +126,7 @@ Evidence
 - Scope lock: <holds / broken — the Issue's edit history shows what changed / not locked yet — before gate 1>
 - Exceptions: <each one: id, owner, live until / expiring <date> / EXPIRED since <date> — blocks again / malformed — or "none">
 - Mutations: <list, result> — <none, if there aren't any>
+- Gate 2: operator @<login> • rule: <one person / a second person> • merged by: @<login> / not merged yet — <fine / the operator merged under "a second person" — a finding / operator unknown>
 - CI: <list of red checks or "green">
 
 Blockers

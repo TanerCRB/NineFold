@@ -113,6 +113,29 @@ of passing as risk-free. It came from issue [#64](https://github.com/TanerCRB/Ni
    `bash scripts/risk-check.sh classes <last-release-tag> HEAD` and check that the classes match
    what you know the recent changes touched.
 
+### Who may approve gate 2
+
+**The team contract now says who may approve gate 2, and the task records who drove it.** §3 of
+the contract gains one choice: *one person*, meaning the operator may merge their own task (an
+honest choice for a solo project), or *a second person*, meaning someone else merges. The task
+command's pin comment at step 0 records the **operator**, the account the session acts under
+(`gh api user`), in its text and in the `task-started` marker (`operator=<login>`). The gate-2
+message names the operator and the contract's rule. `/task-status` reads the PR's `mergedBy`: a PR
+merged by the operator under "a second person" is a finding for the team. The agent never merges,
+so nothing is enforced or reverted. A tool can't tell two people apart behind one account, so
+this is evidence, not a control. It came from issue
+[#64](https://github.com/TanerCRB/NineFold/issues/64).
+
+1. **Process repository:** merge the paragraph in §3 of your team contract and pick one of the two
+   rules. Merge step 0, the marker table row and the gate-2 message in `process/task-command.md`,
+   and the gathering step, the two state rows and the *Gate 2* evidence line in
+   `process/task-status-command.md`.
+2. **Product repositories:** merge both command changes into `.claude/commands/task.md` and
+   `.claude/commands/task-status.md` by hand. `scripts/markers.sh` needs no change; the key is
+   optional, and tasks started before it read "operator unknown".
+3. **Check:** start a task and confirm the pin comment carries `operator=<your login>`:
+   `gh issue view <N> --json comments --jq '.comments[].body' | scripts/markers.sh events -`.
+
 ---
 
 ## v0.7.0 → v0.8.0
