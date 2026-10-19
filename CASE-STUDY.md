@@ -20,6 +20,14 @@ This is the same kind of evidence field as for code — "the role works" without
 claim without proof. Below are exclusively the numbers actually recorded in the calibration run log;
 where the log is silent, the table says so explicitly, instead of estimating.
 
+**What these token numbers count.** They were copied from the call's result, and Claude Code's
+documentation now says that number covers the subagent's **final request** only, not the whole
+run. The source project's log doesn't say which it recorded, so read them as probably the size of
+a role's last request: a lower bound on what the run cost, not checked. On one
+measured call the transcript summed to about four times the reported number, most of it cache
+reads. Rows measured by the cost-capture hook (`process/registers/cost-register.md`) are not
+comparable with them.
+
 | Role | Measured cost | Measurement source |
 |---|---|---|
 | Architect (impact map, one run) | ~137k tokens, 37 tool calls, ~10 min | calibration run |

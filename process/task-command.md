@@ -153,7 +153,8 @@ directory when you need it. A shared append-only table makes two parallel tasks 
 same spot and conflict on every merge; separate files never conflict, so the merge step needs no
 special rule for them.
 
-**Model** — the model the role actually ran on, from the invocation, not from the role file.
+**Model** — the model the role actually ran on, from the measured record (below), not from the
+role file.
 Roles inherit the calling session's model, so the same role can run on different models across
 tasks; without this column a cost or quality difference between two runs can't be told apart
 from a model difference. A role's calibration result holds only for the model it was run on (see
@@ -168,10 +169,16 @@ deciding where to move checks earlier; leave it empty on first runs.
 belongs to (see "Round limit"). Without it the rework rows of one task cannot be told apart, and
 the round limit cannot be checked against what actually happened.
 
-Take the numbers (tokens, tool calls, time) from the invocation's usage field — never estimate. If
-a given invocation doesn't return a number, write "no data" in that column instead of guessing: an
-empty field with a reason is better than a made-up number — the same rule as with the completion
-proof.
+**The numbers come from the measured record, not from the call's result.** The Agent tool's
+`totalTokens` and `usage` cover the final request only, and a background call returns none. When
+the role stops, the `scripts/cost-capture.mjs` hook (copied from the process repository's
+`process/hooks/cost-capture.mjs`, see `bootstrap-guide.md`) sums its transcript into
+`$(git rev-parse --git-common-dir)/cost-capture/<agentId>.json`; the call's result gives you the
+`agentId` at launch. Copy model, tokens, token split, `tokensSource`, tool calls and seconds from
+that record, set `"measured": "record"`, and add the fields only you can judge. No record, or a
+record that says `"no data"` — write `"no data"` in those columns and `"measured": "by hand"`, with
+the reason in the notes, instead of guessing: an empty field with a reason is better than a
+made-up number — the same rule as with the completion proof.
 
 **Complexity is different — it's your judgment call, not a measured number.** Set it *before* the
 call (number of files in scope / number of acceptance criteria / number of open questions / whether
