@@ -100,6 +100,29 @@ a rule broken before the task is not reported. It came from issue
    `bash scripts/layer-check.sh <last-release-tag> HEAD` and read the findings: each is a real
    crossing, or a row of the table that doesn't say what the team meant.
 
+### Comments and reports
+
+**A comment says what the code doesn't, and a report says only what was checked.** The team
+contract, §7 "How to write", gets two rules for every role. A comment carries a reason, a
+constraint or a workaround in one line; restated lines, step lists, empty labels, banners, end
+markers, emoji and `TODO`s with no task are cut. Every number in a report comes from a command
+that was run, what wasn't checked says "not checked", and a report ends on a fact or a verdict.
+`agents/developer.md` points to both, in Method §4 and in "Discipline", and limits the clean-up
+to code the task changes. `calibration/example-pressure-scenarios.md` adds P-09 (comment
+narration under pressure) and decoy D-05 (a workaround comment and a license header that must
+stay). The rules are adapted from [anti-slop](https://github.com/miqdadbadjuber/anti-slop) (MIT);
+`NOTICE` names it.
+
+1. **Process repository:** merge the two paragraphs in `TEAM-CONTRACT-TEMPLATE.md`, the bullet
+   and the paragraph in `agents/developer.md`, the two scenario rows and the `NOTICE` lines.
+2. **Product repositories:**
+   - merge the two paragraphs into your team contract's "How to write" section by hand, after
+     your own language rules;
+   - sync the Developer role (`node tools/sync-agents.mjs`, as for any role change).
+3. **Check:** `grep -n "says what the code doesn't" <team-contract>` finds the rule, and the
+   synced `developer.md` in the product repository has the "Comments:" bullet in Method §4.
+   Before relying on it, run P-09 and D-05 per `calibration/README.md`, Method 4.
+
 ---
 
 ## v0.8.0 → v0.9.0

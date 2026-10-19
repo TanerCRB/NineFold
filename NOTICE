@@ -2,3 +2,7 @@ Ninefold
 Copyright 2026 Mariusz Miziołek
 
 This product is licensed under the Apache License, Version 2.0 (see LICENSE).
+
+The comment and report-honesty rules in TEAM-CONTRACT-TEMPLATE.md and agents/developer.md are
+adapted from anti-slop (https://github.com/miqdadbadjuber/anti-slop),
+Copyright (c) 2026 Miqdad Badjuber, licensed under the MIT License.
