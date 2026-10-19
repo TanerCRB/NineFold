@@ -466,7 +466,10 @@ of patching in numbers with one synthetic run on an artificial task, the process
 permanent registry — in the source project `docs/architecture/koszt-rol-agentowych.md` in the
 backend repository and `docs/KOSZT-ROL-AGENTOWYCH.md` in the frontend repository — fed
 **automatically from real work**: after every call to any of the eight roles, the command driving the task appends a row with numbers
-taken directly from the call's output (tokens, tool calls, time), never from an estimate. The goal is
+taken directly from the call's output (tokens, tool calls, time), never from an estimate. That
+output counts only the final request, per Claude Code's documentation; the kit now measures the
+whole run from the subagent's transcript (`process/hooks/cost-capture.mjs`), and the numbers below
+are probably lower bounds (see [CASE-STUDY.md](CASE-STUDY.md#actual-cost-in-tokens--only-what-was-actually-measured)). The goal is
 3–5 measurements per role before the order of magnitude is considered reliable — below that
 threshold, the spread between individual tasks can easily be mistaken for a pattern.
 

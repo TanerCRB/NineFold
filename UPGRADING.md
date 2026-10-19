@@ -123,6 +123,46 @@ stay). The rules are adapted from [anti-slop](https://github.com/miqdadbadjuber/
    synced `developer.md` in the product repository has the "Comments:" bullet in Method §4.
    Before relying on it, run P-09 and D-05 per `calibration/README.md`, Method 4.
 
+### Cost capture
+
+**The cost register's tokens now cover the whole role call, measured by a hook, not copied by
+hand.** The Agent tool's `totalTokens` and `usage` count the subagent's final request only, and a
+background call (Claude Code's default) returns none. A new `SubagentStop` hook,
+`process/hooks/cost-capture.mjs` (12 self-test cases, run in kit-ci), sums every request in the
+subagent's transcript, once per message id. It writes `<git common dir>/cost-capture/<agent id>.json`
+while a task runs: model, seconds, tool calls, requests, tokens and their split, and
+`tokensSource`. A transcript it can't read gives `"no data"` with the reason. It always exits 0.
+The task command copies the record into the row (`"measured": "record"`), and writes
+`"measured": "by hand"` with a reason when there is none. On the call this was checked on
+(Claude Code 2.1.303), the transcript summed to 205,367 tokens against 49,520 reported for the
+call; tool calls and seconds matched. It came from issue
+[#72](https://github.com/TanerCRB/NineFold/issues/72).
+
+**Earlier rows are not comparable.** Rows written before this change probably count the final
+request only. Keep them out of the same p50/p90 as rows that have `tokensSource`, and don't
+correct them after the fact. The same caveat now sits in `CASE-STUDY.md` and `FrameworkDoc.md`,
+§6.
+
+1. **Process repository:** merge the hook, `process/registers/cost-register.md`, section 3 of
+   `process/task-command.md`, the hook note and check line in `process/bootstrap-guide.md`, step
+   4, the list in `process/ci-and-branch-protection.md`, §8, and the caveats in `CASE-STUDY.md`
+   and `FrameworkDoc.md`. If your process repository runs the kit's CI, add the hook's
+   `node --check` and `--self-test` lines to `.github/workflows/kit-ci.yml`.
+2. **Product repositories:**
+   - copy the hook:
+     ```bash
+     cp <process-repo>/process/hooks/cost-capture.mjs scripts/
+     git add scripts/cost-capture.mjs
+     ```
+   - register it under `"SubagentStop"` in the shared `.claude/settings.json`, as in
+     `process/bootstrap-guide.md`, step 4 — through its own pull request, not inside a task;
+   - merge the task command changes into `.claude/commands/task.md` by hand.
+3. **Check:** `node scripts/cost-capture.mjs --self-test` passes. Then start a task (or create an
+   empty `.task/` in a scratch worktree), call any subagent, and confirm
+   `$(git rev-parse --git-common-dir)/cost-capture/<agent id>.json` appears with
+   `"tokensSource": "transcript"`. Compare it once with
+   `node scripts/cost-capture.mjs --transcript <the agent's transcript>`: the numbers match.
+
 ---
 
 ## v0.8.0 → v0.9.0

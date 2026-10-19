@@ -15,7 +15,11 @@
   "invocation": "registered",
   "roles": "<fingerprint from step 0>",
   "complexity": "Medium",
-  "tokens": 142318,
+  "agentId": "<the call's agent id>",
+  "tokens": 1423180,
+  "tokenSplit": { "input": 210, "output": 18400, "cacheWrite": 162300, "cacheRead": 1242270 },
+  "tokensSource": "transcript",
+  "measured": "record",
   "toolCalls": 27,
   "seconds": 512,
   "fixRound": 0,
@@ -24,8 +28,15 @@
 }
 ```
 
-- `tokens`, `toolCalls`, `seconds` come from the call's usage data, never an estimate; missing →
-  the string `"no data"`.
+- `model`, `tokens`, `tokenSplit`, `tokensSource`, `toolCalls` and `seconds` are copied from the
+  call's measured record, `<git common dir>/cost-capture/<agentId>.json`, written by the
+  `cost-capture.mjs` hook (`../hooks/cost-capture.mjs`). `tokens` is every request of the run
+  summed, cache reads included; `tokenSplit` lets a reader price them. `measured` says where the
+  numbers came from: `record`, or `by hand` when there was no record and the reason is in
+  `notes`. Never an estimate; a number nobody measured is the string `"no data"`.
+- Rows written before the hook count only the call's **final request** (the Agent tool's
+  `totalTokens`), or nothing for a background call. Their `tokens` can't be compared with rows
+  that have `tokensSource`; keep them out of the same distribution.
 - `invocation` is `registered` or `general-purpose` (see the task command, "How you call a role") — calibration holds per mode.
 - `complexity` (Low / Medium / High) is the driving agent's judgment, set **before** the call.
 - `reworkCause` is filled only on a repeated run: the finding that caused it and which earlier role

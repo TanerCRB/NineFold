@@ -39,6 +39,7 @@ jobs:
           node --check tools/sync-agents.mjs
           node --check tools/sync-github.mjs
           node --check tools/check-links.mjs
+          node --check process/hooks/cost-capture.mjs
           bash -n process/scripts/boundary-check.sh
           bash -n process/scripts/weakening-check.sh
           bash -n process/scripts/leftovers-check.sh
@@ -67,6 +68,7 @@ jobs:
           bash process/scripts/markers.sh --self-test
           bash process/scripts/risk-check.sh --self-test
           bash process/hooks/task-journal-context.sh --self-test
+          node process/hooks/cost-capture.mjs --self-test
 
       # Validates the real label manifest (ASCII-only, unique names, hex colors, every target
       # subset naming existing labels) and the Issue/PR templates. `--labels` can't run here: the

@@ -303,6 +303,21 @@ the shared `.claude/settings.json`, next to the permission rules:
 After a start, a `/clear` or a compaction inside a task worktree, the session gets the journal's
 last lines and the next step back; anywhere else the hook prints nothing.
 
+**Cost capture hook.** The cost register's numbers come from a measured record per role call, not
+from the Agent tool's result (`registers/cost-register.md`). Copy `process/hooks/cost-capture.mjs`
+to `scripts/cost-capture.mjs` and register it in the same `"hooks"` object:
+
+```json
+"SubagentStop": [
+  { "hooks": [ { "type": "command",
+                 "command": "node \"$CLAUDE_PROJECT_DIR/scripts/cost-capture.mjs\"" } ] }
+]
+```
+
+While a task runs (a worktree has `.task/`), every subagent that stops leaves
+`<git common dir>/cost-capture/<agent id>.json`; with no task running the hook writes nothing.
+It always exits 0, so a broken hook costs a record, never a role run.
+
 **Check:**
 
 ```bash
@@ -319,6 +334,7 @@ bash scripts/scope-check.sh --self-test        # every case passes on this machi
 bash scripts/evidence-chain.sh --self-test     # every case passes on this machine
 bash scripts/markers.sh --self-test            # every case passes on this machine
 bash scripts/task-journal-context.sh --self-test   # every case passes on this machine
+node scripts/cost-capture.mjs --self-test      # every case passes on this machine
 git check-ignore -v .task/journal.md           # -> matched by .gitignore
 git check-ignore -v .claude/agents/qa.md       # -> matched by .gitignore
 git status --short --untracked-files=all .claude/   # commands and settings.json show up, agents don't
