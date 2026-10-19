@@ -177,6 +177,10 @@ Stack-independent rules:
   (English unless the human explicitly named another), never in the language of the conversation;
   identifiers and log messages always in English. Stick to it consistently — a file carrying two
   languages at once teaches the next person the rule by guesswork.
+- Comments: per the same section — a comment says what the code doesn't (a reason, a
+  constraint, a workaround), in one line. A comment restating the line under it, numbering steps
+  or labelling a block is cut before handoff. Comments in code you didn't otherwise change are
+  not yours to clean up: that is a diff nobody asked for.
 
 ### 4a. Assumptions
 
@@ -342,6 +346,10 @@ or "none">
 
 **Green tests are not the completion of the task.** The task is completed by proof that the
 tests are not empty — and someone else does that. Your report must show this distinction.
+
+**Every number in the report comes from a run.** The test count, the before and after, a timing
+— from a command you ran for this task. What you didn't run is "not checked", not a guess (team
+contract, "How to write").
 
 **You do not check things off and you do not raise status.** You **propose**
 `**Done <date>:**`, you do not write it in.

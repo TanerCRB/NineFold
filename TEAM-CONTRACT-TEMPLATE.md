@@ -350,6 +350,20 @@ If something genuinely requires a long explanation, the explanation goes into a 
 link stays in the commit or comment. A description that nobody will read doesn't differ in effect
 from no description — yet it costs the time of both the writer and the reader.
 
+**A comment in code says what the code doesn't.** A reason, a constraint, a workaround, a
+contract, an edge case, a security or performance cost: one line, two when the second is a new
+fact. A line restating the next line or the signature is not a comment, and neither is a step list
+(`Step 1`, `Step 2`), a label with nothing behind it (`// Main logic`, `// Helper`), a banner of
+repeated characters, an end marker (`// end if`), an emoji, or a `TODO` that names no task.
+Commented-out code is the leftovers check's job, not this rule's. A legal notice, or a comment
+carrying one of the facts above, is never cut to make a file shorter.
+
+**A report says what was checked, not what sounds finished.** Every number in it (a test count,
+a timing, a cost) comes from a command that was run. What wasn't checked is written as "not
+checked", never filled in with what is probably true ("this likely covers X as well"). A report
+ends on its last fact or its verdict, not on a line saying the result is robust, complete or
+production-ready.
+
 The rule applies to every role. The report formats in the role definitions state **what** must be
 included; this rule states **how much** space that should take.
 
