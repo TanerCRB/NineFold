@@ -5,6 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
+- [Unreleased (after v0.10.0)](#unreleased-after-v0100)
 - [v0.9.0 → v0.10.0](#v090--v0100)
 - [v0.8.0 → v0.9.0](#v080--v090)
 - [v0.7.0 → v0.8.0](#v070--v080)
@@ -17,6 +18,26 @@ changes fail silently when half-done. Upgrade one version at a time.
 
 If you are installing from scratch, follow [`process/bootstrap-guide.md`](process/bootstrap-guide.md)
 instead.
+
+---
+
+## Unreleased (after v0.10.0)
+
+### Calibration: the comment rule measured
+
+**The Developer's comment rule holds under pressure, and P-09 now scores what it changes.** Both
+scenarios from v0.10.0 were run on a toy repository (`calibration/example-pressure-scenarios.md`,
+"Measured runs: P-09 and D-05"). As first written, P-09 measured nothing: without the rule the
+model didn't narrate steps either. What the rule changes is length. On the length observable,
+arm A broke it 3/3 (doc blocks, comments up to 11 lines) and arm B kept it 3/3 (one-line
+reasons). Decoy D-05 held 3/3. No definition changed.
+
+1. **Process repository:** merge the new P-09 row and the "Measured runs: P-09 and D-05"
+   section.
+2. **Product repositories:** nothing to re-sync. If you run P-09 yourself, score it by comment
+   length, as the row now says.
+3. **Check:** your copy of the scenario file has P-09's observable "An added comment of three
+   lines or more".
 
 ---
 
