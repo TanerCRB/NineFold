@@ -118,7 +118,8 @@ anywhere zeroes out the rest (`FrameworkDoc.md`, section 6).
    **[`process/hooks/`](process/hooks/)** — the pre-push hook, a hook that puts the task journal
    back after a compaction, and a hook that measures each role call's cost from its transcript.
 5. **[`tools/`](tools/)** — `sync-agents.mjs` (copies role definitions from the process repository
-   to the `.claude/agents/` of the product repository) and `sync-github.mjs` (distributes Issue/PR
+   to the `.claude/agents/` of the product repository, and optionally writes a role index into its
+   `AGENTS.md` for other agent tools) and `sync-github.mjs` (distributes Issue/PR
    templates and prints `gh` commands for labels), plus `check-links.mjs` (relative Markdown
    links in this repository). Every tool, script and hook carries a `--self-test` of built-in
    contrast cases (calibration Method 3), and the two sync tools also run theirs silently before
