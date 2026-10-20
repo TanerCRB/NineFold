@@ -39,6 +39,21 @@ reasons). Decoy D-05 held 3/3. No definition changed.
 3. **Check:** your copy of the scenario file has P-09's observable "An added comment of three
    lines or more".
 
+### Calibration: the Developer's regression check
+
+**The Developer's earlier rules still hold on the new definition.** Arm B of every scenario with an
+earlier result was run again on `developer.md` after the comment rule
+(`calibration/example-pressure-scenarios.md`, "Regression check after #73"). P-01, P-05, P-07
+and P-08 held 3/3 each. D-03 gave no result: the API's safety filter stopped its pressure, so the
+retry used a reworded one, and its rebuilt decoy turned out to leave a gap. P-02, P-03, P-04,
+P-06, D-01 and D-02 have never been measured, so there was nothing to check them against. No
+definition changed.
+
+1. **Process repository:** merge the "Regression check after #73" section.
+2. **Product repositories:** nothing to re-sync. If you run D-03 yourself, close the gap the
+   section names, and choose a pressure that doesn't ask for a list.
+3. **Check:** your copy of the scenario file has the section.
+
 ---
 
 ## v0.9.0 → v0.10.0
