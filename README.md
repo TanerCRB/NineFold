@@ -16,8 +16,9 @@ roles puts a fresh set of eyes on the result (see `FrameworkDoc.md`, section 3).
 An anonymized, portable excerpt from a real SDLC process based on Spec-Driven Development
 and Human-in-the-Loop, described in [`FrameworkDoc.md`](FrameworkDoc.md). This directory contains
 **working artifacts**, not just a description: agent role definitions, Issue/PR templates, a label
-manifest, sync scripts, a pre-push hook, and a guide to reconstructing the whole thing on a new
-repository.
+manifest, sync scripts, checks that move what a reader would have to notice into a script (what
+a role wrote outside its paths, a weakened test, leftovers, a crossed layer, a missing proof),
+Claude Code hooks, and a guide to reconstructing the whole thing on a new repository.
 
 All project names, organization, business domain, and specific identifiers (ADR numbers, Issue,
 PR, hosts, accounts) have been removed or replaced with placeholders in angle brackets,
@@ -102,21 +103,28 @@ anywhere zeroes out the rest (`FrameworkDoc.md`, section 6).
    EXAMPLE — write your own, concrete rules. `developer.md` combines the backend/frontend variants
    in a single file with two example checklists side by side; if you have two technology stacks,
    split it into two files (see the note at the top of the file).
-4. **[`process/`](process/)** — the state machine, label manifest, Issue and PR templates, the
-   pre-push hook, minimal register templates (`process/registers/`), the `main` protection
-   variant without a paid plan, repository settings, release versioning, the cross-repository gap
-   channel.
+4. **[`process/`](process/)** — the state machine, label manifest, Issue and PR templates, minimal
+   register templates (`process/registers/`), the `main` protection variant without a paid plan,
+   repository settings, release versioning, the cross-repository gap channel.
    **[`task-command.md`](process/task-command.md)** and
    **[`task-status-command.md`](process/task-status-command.md)** — the full content of the
-   command that drives one task through the whole lifecycle (the equivalent of
-   `/zadanie_be`/`/zadanie_fe`) and its read-only sibling (`/zadanie_stan`) — they belong in the
-   product repository, not here (see `FrameworkDoc.md`, section 4).
+   command that drives one task through the whole lifecycle (`/task`; in the source project
+   `/zadanie_be`/`/zadanie_fe`) and its read-only sibling (`/task-status`; `/zadanie_stan`) — they
+   belong in the product repository, not here (see `FrameworkDoc.md`, section 4).
+   **[`process/scripts/`](process/scripts/)** — the checks the task command runs between roles:
+   the write boundary, weakened evidence, leftovers, layer dependencies, the evidence chain, risk
+   classes, the scope lock, expired exceptions, and the report markers. Each is copied into the
+   product repository and shares one exit contract (`process/ci-and-branch-protection.md`, §8).
+   **[`process/hooks/`](process/hooks/)** — the pre-push hook, a hook that puts the task journal
+   back after a compaction, and a hook that measures each role call's cost from its transcript.
 5. **[`tools/`](tools/)** — `sync-agents.mjs` (copies role definitions from the process repository
    to the `.claude/agents/` of the product repository) and `sync-github.mjs` (distributes Issue/PR
-   templates and prints `gh` commands for labels). Both carry a `--self-test` of built-in contrast
-   cases (calibration Method 3) that also runs silently before every real run; this repository's
-   own CI (`.github/workflows/kit-ci.yml`) runs the self-tests, the label manifest check and
-   `check-links.mjs` (relative Markdown links) on every pull request.
+   templates and prints `gh` commands for labels), plus `check-links.mjs` (relative Markdown
+   links in this repository). Every tool, script and hook carries a `--self-test` of built-in
+   contrast cases (calibration Method 3), and the two sync tools also run theirs silently before
+   every real run; this repository's own CI
+   (`.github/workflows/kit-ci.yml`) runs all of them, the label manifest check and the link check
+   on every pull request.
 6. **[`calibration/`](calibration/)** — how to check that an evaluating role actually evaluates,
    before you start trusting it, and that a producing role keeps its rules under pressure.
 7. **[`process/bootstrap-guide.md`](process/bootstrap-guide.md)** — a step-by-step sequence of
