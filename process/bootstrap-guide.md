@@ -45,7 +45,8 @@ scripts find product repositories by path relative to the process repository.
 
 1. **Fill in the configuration of both sync scripts.**
    - `tools/sync-agents.mjs`: `TARGETS` — one entry per product repository (`name`, `path`,
-     `dir`).
+     `dir`, and `agentsMd: "AGENTS.md"` if anyone drives tasks from an agent tool other than
+     Claude Code; see step 4).
    - `tools/sync-github.mjs`: `OWNER` (your GitHub organization or account) and `TARGETS` —
      remove the example entries you don't have (e.g. `<repo-infra>`,
      `<repo-order-recipient>`).
@@ -206,6 +207,16 @@ are versioned. Then, from the root of the **process** repository:
 node tools/sync-agents.mjs            # copies the 8 roles; prints the source commit it read
 node tools/sync-agents.mjs --check    # afterwards: "No drift."
 ```
+
+**Other agent tools.** Codex, Cursor, Copilot and other tools read `AGENTS.md` at the repository
+root and can't load `.claude/agents/` as subagents. With `agentsMd: "AGENTS.md"` on the target,
+the sync also writes a role index into that file: one row per role with its file and description,
+and how to act as a role from such a tool (read the file in full, keep to its `tools` line by
+hand). The index sits between `<!-- ninefold:roles:begin -->` and `<!-- ninefold:roles:end -->`;
+the rest of the file stays yours, and a missing file is created. `AGENTS.md` is versioned, so
+commit the change through a pull request. Driven from such a tool, the task command runs in its
+general-purpose mode (`task-command.md`, "How you call a role"), with the write-boundary check
+around every call.
 
 **Commands.** Copy the two commands into the product repository's command directory and adapt
 them — remove the template quote at the top (the frontmatter must be the first thing in the

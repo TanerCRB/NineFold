@@ -23,6 +23,27 @@ instead.
 
 ## Unreleased (after v0.10.0)
 
+### A role index in AGENTS.md
+
+**Agent tools other than Claude Code can now find the roles.** Those tools read `AGENTS.md` at the
+repository root and don't load `.claude/agents/`. A target in `tools/sync-agents.mjs` can now set
+`agentsMd: "AGENTS.md"`. The sync then writes a role index between
+`<!-- ninefold:roles:begin -->` and `<!-- ninefold:roles:end -->`: one row per role with its file
+and description, and how to act as a role from such a tool. Text outside the markers is never
+touched, and a missing file is created. `--check` reports a stale or missing block as drift.
+Broken markers stop the run with exit 2 before anything is written. The tool's self-test grows
+from 11 to 19 cases. It came from issue [#79](https://github.com/TanerCRB/NineFold/issues/79).
+
+1. **Process repository:** merge `tools/sync-agents.mjs`, the notes in
+   `process/bootstrap-guide.md` (steps 1 and 4) and the line in `README.md`. If anyone drives
+   tasks from another agent tool, add `agentsMd: "AGENTS.md"` to that product repository's entry
+   in `TARGETS`.
+2. **Product repositories:** run `node tools/sync-agents.mjs` from the process repository, read
+   the new block in `AGENTS.md`, and commit it through a pull request. `AGENTS.md` is versioned,
+   unlike `.claude/agents/`.
+3. **Check:** `node tools/sync-agents.mjs --self-test` passes 19 cases, and
+   `node tools/sync-agents.mjs --check` prints `sync-agents: clean` once the block is in.
+
 ### Calibration: the comment rule measured
 
 **The Developer's comment rule holds under pressure, and P-09 now scores what it changes.** Both
