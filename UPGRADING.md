@@ -5,7 +5,7 @@ Step-by-step upgrades between released versions, newest first. Each one touches 
 roles, templates and commands from it — and every step ends with a check, because most of these
 changes fail silently when half-done. Upgrade one version at a time.
 
-- [Unreleased (after v0.9.0)](#unreleased-after-v090)
+- [v0.9.0 → v0.10.0](#v090--v0100)
 - [v0.8.0 → v0.9.0](#v080--v090)
 - [v0.7.0 → v0.8.0](#v070--v080)
 - [v0.6.0 → v0.7.0](#v060--v070)
@@ -20,7 +20,46 @@ instead.
 
 ---
 
-## Unreleased (after v0.9.0)
+## v0.9.0 → v0.10.0
+
+v0.10.0 moves three things from a reader's attention to a script or a measurement:
+- what an agent leaves behind (copies, debug output, commented-out code) is found by a leftovers
+  check, from issue [#69](https://github.com/TanerCRB/NineFold/issues/69);
+- which code may depend on which is a table a layer check holds, also from #69;
+- a role call's cost is measured from its transcript by a hook, not copied by hand, from issue
+  [#72](https://github.com/TanerCRB/NineFold/issues/72).
+
+The team contract also gets two writing rules for every role: what a comment in code carries, and
+that a report states only what was checked.
+
+**Time:** about half a day per product repository. That covers two scripts and one hook to copy, a
+layer table to fill in from your architectural decisions, debug patterns to adapt to your stack,
+the hook's registration in `.claude/settings.json` through its own pull request, hand-merges into
+the task command and the team contract, a Developer re-sync, and the Developer's recalibration.
+
+### What changed, in one table
+
+| Area | Change | Action in a product repo | Measured |
+|---|---|---|---|
+| [Leftovers check](#the-leftovers-check) | `leftovers-check.sh` reports copy/draft file names, debug output and commented-out code; steps 10c and 11a, pre-push | copy the script and the hook, adapt `DEBUG_RULES`, merge the task command | script self-test only (29 cases) |
+| [Layer check](#the-layer-check) | `layer-dependencies.md` table; `layer-check.sh` reports a reference that crosses a rule; step 10a | copy the script, fill the table, merge the task command | script self-test only (26 cases) |
+| [Comments and reports](#comments-and-reports) | Team contract §7: comment and report rules; Developer §4 and Discipline point to them; P-09, D-05 | merge two paragraphs, re-sync the Developer | not yet: P-09 and D-05 have no run |
+| [Cost capture](#cost-capture) | `cost-capture.mjs` `SubagentStop` hook sums the transcript; cost-register rows from its record | copy and register the hook, merge the task command | one real hook run and 171 transcripts on Claude Code 2.1.303 |
+
+**Merge the task command in one pass.** The leftovers check (10c, 11a), the layer check (10a) and
+cost capture (section 3) all change `process/task-command.md`. Diff it against v0.9.0 and carry
+the changes into `.claude/commands/task.md` together.
+
+**The Developer's definition changed, so recalibrate it** (`calibration/README.md`, "When to repeat
+it"): arm B of every scenario, and both arms of the new P-09 and D-05. The evaluating roles didn't
+change.
+
+**Cost rows before and after are not comparable.** Rows written before the hook probably count a
+call's final request only. Start a new distribution from the first row with `tokensSource`.
+
+**If your process repository runs the kit's own CI,** add `leftovers-check.sh`, `layer-check.sh`
+and `cost-capture.mjs` to `.github/workflows/kit-ci.yml`: a syntax line and a `--self-test` line
+for each.
 
 ### The leftovers check
 
